@@ -273,7 +273,13 @@ let non_localized server =
           [ "default", "persistent=p transient=none"
           ; "persistent", "persistent=p transient=none"
           ; "all", "persistent=p transient=t"
-          ; "none", "persistent=none transient=none" ]) ] )
+          ; "none", "persistent=none transient=none"
+            (* The default of the target service, overridden by the link *)
+          ; "service", "persistent=p transient=t"
+          ; "service_none", "persistent=none transient=none"
+            (* A preapplied value replaces the value of the request. *)
+          ; "preapplied", "persistent=q transient=none"
+          ; "preapplied_all", "persistent=q transient=t" ]) ] )
 
 let actions server =
   let case = case server in
