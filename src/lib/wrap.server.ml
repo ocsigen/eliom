@@ -243,12 +243,6 @@ module Tbl = struct
     else (
       rehash tbl;
       let idx = get_index_no_retry tbl x in
-      if idx = -1
-      then (
-        for i = 0 to Array.length tbl.obj - 1 do
-          assert (tbl.obj.(i) != x)
-        done;
-        Format.eprintf "%b@." (is_marked x));
       assert (idx <> -1);
       idx)
 
