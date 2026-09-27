@@ -75,6 +75,7 @@ let set_max_volatile_groups_per_site v =
   Mod_main.default_max_volatile_groups_per_site := v
 
 let set_secure_cookies v = Mod_main.default_secure_cookies := v
+let set_comet_timeout = Mod_main.set_comet_timeout
 
 let set_application_script (defer, async) =
   Mod_main.default_application_script := {Common.defer; async}

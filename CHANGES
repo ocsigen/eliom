@@ -161,6 +161,9 @@
   only warn, since libraries create some that applications may not use.
   Service.registered_later tells that a service is registered later, during
   requests, as the service of a bus of client processes is.
+* Comet: Config.set_comet_timeout and the option <comettimeout value="20"/>
+  set the time after which the server answers a Comet request waiting for
+  data with no data. It was fixed to 20 s, still the default.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

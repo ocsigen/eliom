@@ -74,15 +74,13 @@ let fallback_global_service =
 
 let new_id = Lib.make_cryptographic_safe_string
 
-(* ocsigenserver needs to be modified for this to be configurable:
-   the connection is closed after a fixed amount of time
-   if the server does not send anything.
-   By default it is 20 seconds *)
-let timeout_base = 20.
+(* A request waiting for data is answered with no data after the time set
+   by Config.set_comet_timeout, give or take a jitter of 10%. *)
 let timeout_jitter = 0.1
 
 let timeout () =
-  timeout_base *. (1. +. (timeout_jitter *. (Random.float 2. -. 1.)))
+  Mod_main.get_comet_timeout ()
+  *. (1. +. (timeout_jitter *. (Random.float 2. -. 1.)))
 
 module Stateless : sig
   type channel

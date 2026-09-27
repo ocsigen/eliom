@@ -85,6 +85,15 @@ val set_max_persistent_data_tab_sessions_per_group : int -> unit
 val set_max_anonymous_services_per_session : int -> unit
 val set_max_volatile_groups_per_site : int -> unit
 val set_secure_cookies : bool -> unit
+
+val set_comet_timeout : float -> unit
+(** [set_comet_timeout t] sets the time, in seconds, after which the server
+    answers a Comet request that waits for data with no data (default 20).
+    The client then sends a new request. Keep it below the timeouts of the
+    proxies between clients and the server. The option
+    [<comettimeout value="20"/>] of the configuration file sets it too.
+    @raise Invalid_argument if [t] is not a positive number. *)
+
 val set_application_script : bool * bool -> unit
 
 val set_enable_wasm : bool -> unit

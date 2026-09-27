@@ -46,6 +46,18 @@ let default_secure_cookies = ref false
 let default_application_script = ref {Common.defer = false; async = false}
 let default_enable_wasm = ref false
 let default_cache_global_data = ref None
+
+(* The time after which a Comet request waiting for data is answered with no
+   data *)
+let comet_timeout = ref 20.
+let valid_comet_timeout t = t > 0. && Float.is_finite t
+
+let set_comet_timeout t =
+  if not (valid_comet_timeout t)
+  then invalid_arg "Eliom: the Comet timeout must be a positive number";
+  comet_timeout := t
+
+let get_comet_timeout () = !comet_timeout
 let default_html_content_type = ref None
 let default_ignored_get_params = ref []
 let default_ignored_post_params = ref []
@@ -544,6 +556,14 @@ let rec parse_global_config = function
   | Xml.Element (("persistentsessiongcfrequency" as tag), [("value", s)], _)
     :: ll ->
       Mod_gc.set_persistentsessiongcfrequency (parse_gc_frequency tag s);
+      parse_global_config ll
+  | Xml.Element (("comettimeout" as tag), [("value", s)], _) :: ll ->
+      (match float_of_string_opt s with
+      | Some t when valid_comet_timeout t -> set_comet_timeout t
+      | _ ->
+          raise
+            (Error_in_config_file
+               (Printf.sprintf "Eliom: Wrong value for <%s>" tag)));
       parse_global_config ll
   | e :: ll ->
       parse_eliom_option

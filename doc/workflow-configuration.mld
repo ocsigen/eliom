@@ -297,6 +297,17 @@ For now, it cannot be set for each site independently
      Like [<sessiongcfrequency>],
      but for "in memory data" sessions only
 
+{2 Comet}
+
+This option can appear inside tag
+[<extension findlib-package="eliom.server"/>].
+
+- [<comettimeout value="20"/>]
+     Time after which the server answers a Comet request that waits for
+     data with no data, in seconds (default 20). The client then sends a
+     new request. Keep it below the timeouts of the proxies between
+     clients and the server.
+
 {2 Limiting the number of sessions or coservices}
 
 To fight denial of service, Eliom limits the number of sessions
