@@ -196,7 +196,52 @@ let groups server =
         let* () = check "oldest" "" a "/get" in
         let* () = check "second" "b" b "/get" in
         let* () = check "newest" "c" c "/get" in
-        check "size" "2" c "/group/size") ] )
+        check "size" "2" c "/group/size")
+    ; case "limit, services and persistent data" (fun browser ->
+        let a = browser () and b = browser () and c = browser () in
+        let open_states b v =
+          let* _ = text b ("/set?v=" ^ v) in
+          let* url = text b "/coservice" in
+          let* _ = text b ("/persistent/set?v=" ^ v) in
+          let+ _ = join b ~max:2 "limit-sp" in
+          url
+        in
+        let* url_a = open_states a "a" in
+        let* url_b = open_states b "b" in
+        let* url_c = open_states c "c" in
+        (* The oldest session of the group is closed. *)
+        let* () = check "services, oldest" "fallback" a url_a in
+        let* () = check "services, second" "coservice of b" b url_b in
+        let* () = check "services, newest" "coservice of c" c url_c in
+        let* () = check "persistent, oldest" "" a "/persistent/get" in
+        let* () = check "persistent, second" "b" b "/persistent/get" in
+        check "persistent, newest" "c" c "/persistent/get")
+    ; case "close the sessions of a group" (fun browser ->
+        (* From outside the group, as Os.Session.disconnect_all does *)
+        let admin = browser () and a = browser () and b = browser () in
+        let c = browser () in
+        let open_states b ?(group = "sessions-g") v =
+          let* _ = text b ("/set?v=" ^ v) in
+          let* url = text b "/coservice" in
+          let* _ = text b ("/persistent/set?v=" ^ v) in
+          let+ _ = join b group in
+          url
+        in
+        let* url_a = open_states a "a" in
+        let* _ = open_states b "b" in
+        let* url_c = open_states c ~group:"sessions-h" "c" in
+        let* () =
+          check "sessions" "2" admin "/group/sessions?name=sessions-g"
+        in
+        let* _ = text admin "/group/close_sessions?name=sessions-g" in
+        let* () = check "closed" "0" admin "/group/sessions?name=sessions-g" in
+        let* () = check "other group" "c" c "/get" in
+        let* () = check "other group, services" "coservice of c" c url_c in
+        let* () = check "other group, persistent" "c" c "/persistent/get" in
+        let* () = check "services" "fallback" a url_a in
+        let* () = check "persistent" "" a "/persistent/get" in
+        let* () = check "data" "" a "/get" in
+        check "other member" "" b "/get") ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
