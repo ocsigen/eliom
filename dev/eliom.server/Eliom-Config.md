@@ -87,6 +87,12 @@ val set_max_volatile_groups_per_site : int -> unit
 val set_secure_cookies : bool -> unit
 ```
 ```ocaml
+val set_comet_timeout : float -> unit
+```
+`set_comet_timeout t` sets the time, in seconds, after which the server answers a Comet request that waits for data with no data (default 20\). The client then sends a new request. Keep it below the timeouts of the proxies between clients and the server. The option `<comettimeout value="20"/>` of the configuration file sets it too.
+
+raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+```ocaml
 val set_application_script : (bool * bool) -> unit
 ```
 ```ocaml

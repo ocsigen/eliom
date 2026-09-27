@@ -167,6 +167,12 @@ These options can appear inside tag `<extension findlib-package="eliom.server"/>
 - `<servicesessiongcfrequency value="3600"/>` Like `<sessiongcfrequency>`, but for service sessions only
 - `<datasessiongcfrequency value="3600"/>` Like `<sessiongcfrequency>`, but for "in memory data" sessions only
 
+### Comet
+
+This option can appear inside tag `<extension findlib-package="eliom.server"/>`.
+
+- `<comettimeout value="20"/>` Time after which the server answers a Comet request that waits for data with no data, in seconds (default 20\). The client then sends a new request. Keep it below the timeouts of the proxies between clients and the server.
+
 ### Limiting the number of sessions or coservices
 
 To fight denial of service, Eliom limits the number of sessions and the number of dynamic coservices. Without these limitations, it would be possible for an attacker to open repeatedly lots of sessions, or creating new services (for example CSRF safe coservices can create lots of coservices when you reload repeatedly a page). When the limit is reached, it is still possible to open a new session or create a new service, but the oldest session or services disappear (the one that has not been used for the longest time).

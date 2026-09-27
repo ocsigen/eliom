@@ -37,6 +37,15 @@ val default_enable_wasm : bool ref
 val default_cache_global_data : (Lib.Url.path * int) option ref
 ```
 ```ocaml
+val set_comet_timeout : float -> unit
+```
+`set_comet_timeout t` sets the time after which a Comet request waiting for data is answered with no data, in seconds.
+
+raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+```ocaml
+val get_comet_timeout : unit -> float
+```
+```ocaml
 val default_html_content_type : string option ref
 ```
 ```ocaml

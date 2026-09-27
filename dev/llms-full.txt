@@ -3550,6 +3550,12 @@ These options can appear inside tag `<extension findlib-package="eliom.server"/>
 - `<servicesessiongcfrequency value="3600"/>` Like `<sessiongcfrequency>`, but for service sessions only
 - `<datasessiongcfrequency value="3600"/>` Like `<sessiongcfrequency>`, but for "in memory data" sessions only
 
+### Comet
+
+This option can appear inside tag `<extension findlib-package="eliom.server"/>`.
+
+- `<comettimeout value="20"/>` Time after which the server answers a Comet request that waits for data with no data, in seconds (default 20\). The client then sends a new request. Keep it below the timeouts of the proxies between clients and the server.
+
 ### Limiting the number of sessions or coservices
 
 To fight denial of service, Eliom limits the number of sessions and the number of dynamic coservices. Without these limitations, it would be possible for an attacker to open repeatedly lots of sessions, or creating new services (for example CSRF safe coservices can create lots of coservices when you reload repeatedly a page). When the limit is reached, it is still possible to open a new session or create a new service, but the oldest session or services disappear (the one that has not been used for the longest time).
@@ -125183,6 +125189,12 @@ val set_max_volatile_groups_per_site : int -> unit
 val set_secure_cookies : bool -> unit
 ```
 ```ocaml
+val set_comet_timeout : float -> unit
+```
+`set_comet_timeout t` sets the time, in seconds, after which the server answers a Comet request that waits for data with no data (default 20\). The client then sends a new request. Keep it below the timeouts of the proxies between clients and the server. The option `<comettimeout value="20"/>` of the configuration file sets it too.
+
+raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+```ocaml
 val set_application_script : (bool * bool) -> unit
 ```
 ```ocaml
@@ -223119,6 +223131,15 @@ val default_enable_wasm : bool ref
 ```
 ```ocaml
 val default_cache_global_data : (Lib.Url.path * int) option ref
+```
+```ocaml
+val set_comet_timeout : float -> unit
+```
+`set_comet_timeout t` sets the time after which a Comet request waiting for data is answered with no data, in seconds.
+
+raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+```ocaml
+val get_comet_timeout : unit -> float
 ```
 ```ocaml
 val default_html_content_type : string option ref
