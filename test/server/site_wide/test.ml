@@ -191,6 +191,33 @@ let collection server =
         (* Collected without being accessed *)
         check "collected" "0" a "/count") ] )
 
+(* The limit of groups of the site, set by a member of a group that has
+   states of one kind only: the oldest group is closed. *)
+let limit_of_groups kind server =
+  let case = case server in
+  ( "limit of groups"
+  , [ (match kind with
+      | `Service ->
+          case "service states" (fun browser ->
+            let a = browser () and b = browser () and c = browser () in
+            let* url_a = text a "/service/join?name=ga" in
+            let* _ = text a "/service/max_groups?n=2" in
+            let* url_b = text b "/service/join?name=gb" in
+            let* url_c = text c "/service/join?name=gc" in
+            let* () = check "second" "coservice" b url_b in
+            let* () = check "newest" "coservice" c url_c in
+            check "oldest" "fallback" a url_a)
+      | `Data ->
+          case "data states" (fun browser ->
+            let a = browser () and b = browser () and c = browser () in
+            let* _ = text a "/data/join?name=da&v=a" in
+            let* _ = text a "/data/max_groups?n=2" in
+            let* _ = text b "/data/join?name=db&v=b" in
+            let* _ = text c "/data/join?name=dc&v=c" in
+            let* () = check "second" "b" b "/get" in
+            let* () = check "newest" "c" c "/get" in
+            check "oldest" "" a "/get")) ] )
+
 let run name exe suites =
   Server_harness.with_server exe (fun server ->
     Alcotest.run ~and_exit:false name (suites server))
@@ -201,4 +228,8 @@ let () =
   run "eliom-server-subnet" "./subnet_server.exe" (fun server ->
     [subnet server]);
   run "eliom-server-collection" "./gc_server.exe" (fun server ->
-    [collection server])
+    [collection server]);
+  run "eliom-server-groups-of-services" "./groups_server.exe" (fun server ->
+    [limit_of_groups `Service server]);
+  run "eliom-server-groups-of-data" "./groups_server.exe" (fun server ->
+    [limit_of_groups `Data server])

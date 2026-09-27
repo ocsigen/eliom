@@ -1,8 +1,8 @@
 ; Settings of the states that apply to a whole site: each server has its own.
 
 (executables
- (names timeouts_server subnet_server gc_server)
- (modules services timeouts_server subnet_server gc_server)
+ (names timeouts_server subnet_server gc_server groups_server)
+ (modules services timeouts_server subnet_server gc_server groups_server)
  (preprocess
   (pps js_of_ocaml-ppx_deriving_json))
  (libraries eliom.server ocsipersist-sqlite eliom_test_server))
@@ -11,5 +11,5 @@
  (name test)
  (modules test)
  (package eliom)
- (deps timeouts_server.exe subnet_server.exe gc_server.exe)
+ (deps timeouts_server.exe subnet_server.exe gc_server.exe groups_server.exe)
  (libraries eliom_test_server lwt.unix alcotest))
