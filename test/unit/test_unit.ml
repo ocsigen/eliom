@@ -4,4 +4,5 @@ let () =
     ; Test_uri.suite
     ; Test_sessiongroups.suite
     ; Test_cookies.suite
-    ; Test_wrap.suite ]
+    ; Test_wrap.suite
+    ; Test_content.suite ]

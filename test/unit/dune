@@ -3,4 +3,6 @@
 (test
  (name test_unit)
  (package eliom)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
  (libraries eliom.server ocsipersist-sqlite alcotest))
