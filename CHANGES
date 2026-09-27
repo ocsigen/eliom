@@ -374,6 +374,12 @@
    pages of its subsections with rel="subsection", in the order of the site,
    as documented. All the links had rel="next", which means the next
    document of a series, and the subsections came in reverse order.
+** The result of the ~error_handler of a service sending OCaml values
+   (Registration.Ocaml, and Client.server_function) is now sent as a result
+   of the service, which the client-side program expects; an exception of
+   the error handler is logged and its code sent, as for the handler of the
+   service. The result was sent alone, and the client-side program read it
+   as a value of another type.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
