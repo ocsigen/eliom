@@ -317,6 +317,11 @@
    submission does, so that the service receives its
    Parameter.coordinates. The point was not sent, and the service
    rejected the request.
+** The garbage collectors of sessions of a statically linked application
+   now use the frequencies set by the application before App.run
+   (Config.set_session_gc_frequency and the like). They were started when
+   Eliom was loaded, before the code of the application ran, with the
+   default frequencies.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
