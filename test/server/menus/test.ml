@@ -10,14 +10,16 @@ type menus =
   ; menu_of_b : string
   ; depth_first : string
   ; whole_tree : string
-  ; breadth_first : string }
+  ; breadth_first : string
+  ; structure_links : string }
 
 let menus b url =
   let+ r = Browser.get b url in
   if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
   match String.split_on_char '\n' r.body with
-  | [menu; menu_of_b; depth_first; whole_tree; breadth_first] ->
-      {menu; menu_of_b; depth_first; whole_tree; breadth_first}
+  | [menu; menu_of_b; depth_first; whole_tree; breadth_first; structure_links]
+    ->
+      {menu; menu_of_b; depth_first; whole_tree; breadth_first; structure_links}
   | _ -> Alcotest.failf "%s: unexpected answer %S" url r.body
 
 (* [case server name f] is a test that runs [f b] with a new browser [b]. *)
@@ -93,7 +95,27 @@ let hierarchical server =
           ^ level1 ~x:current "")
           m.breadth_first) ] )
 
+let links server =
+  let case = case server in
+  ( "structure links"
+  , [ case "main page" (fun b ->
+        let+ m = menus b "/" in
+        check "subsections"
+          {|<link href="a" rel="subsection"/><link href="section/" rel="subsection"/>|}
+          m.structure_links)
+    ; case "page of a section" (fun b ->
+        let+ m = menus b "/section/x" in
+        check "section" {|<link href="./" rel="up"/>|} m.structure_links)
+    ; case "main page of a section" (fun b ->
+        let+ m = menus b "/section/" in
+        check "main page and subsections"
+          {|<link href="../" rel="up"/><link href="x" rel="subsection"/><link href="y" rel="subsection"/>|}
+          m.structure_links)
+    ; case "page not in the site" (fun b ->
+        let+ m = menus b "/b" in
+        check "no link" "" m.structure_links) ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-menus"
-      [simple server; hierarchical server])
+      [simple server; hierarchical server; links server])

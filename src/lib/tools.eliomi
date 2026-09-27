@@ -202,8 +202,9 @@ module type HTML5_TOOLS = sig
     -> unit
     -> [> `Link] Html.elt list
   (** The function [structure_links site ()] returns the tags [<link
-      rel="subsection" ...>] and [<link rev="subsection" ...>] for the
-      given hierarchical [site].
+      rel="up" ...>] towards the main page of the section of the current
+      service, if any, and [<link rel="subsection" ...>] towards the main
+      pages of its subsections, in the order of the hierarchical [site].
 
       By default the current service correspond to the current
       url. The optional parameter [service] allow to override the

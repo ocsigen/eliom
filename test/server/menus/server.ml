@@ -38,7 +38,8 @@ let menus () =
         (List.map print
            (Tools.F.hierarchical_menu_depth_first ~whole_tree:true site ()))
     ; String.concat ""
-        (List.map print (Tools.F.hierarchical_menu_breadth_first site ())) ]
+        (List.map print (Tools.F.hierarchical_menu_breadth_first site ()))
+    ; String.concat "" (List.map print (Tools.F.structure_links site ())) ]
 
 let () =
   List.iter

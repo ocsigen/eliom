@@ -465,17 +465,20 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
       match s with
       | None -> endlist
       | Some (Srv s) ->
-          link ~rel:[`Next] (* ?? *) ~href:(make_uri ~service:s ()) ()
-          :: endlist
+          link ~rel:[`Up] ~href:(make_uri ~service:s ()) () :: endlist
     in
-    let make_rel s =
-      (* s is a subsection of mine *)
-      link ~rel:[`Next] ~href:(make_uri ~service:s ()) ()
-    in
-    let make_rels beg a =
-      match snd a with
-      | Site_tree (Main_page (Srv page), _) -> make_rel page :: beg
-      | _ -> beg
+    (* The links to the subsections [hsl] of mine, in their order *)
+    let make_rels hsl =
+      List.filter_map
+        (function
+          | _, Site_tree (Main_page (Srv page), _) ->
+              Some
+                (link
+                   ~rel:[`Other "subsection"]
+                   ~href:(make_uri ~service:page ())
+                   ())
+          | _ -> None)
+        hsl
     in
     let rec create_rev (parent : srv option) = function
       | [] -> raise Not_found
@@ -485,7 +488,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
       | (_, Disabled) :: l | (_, Site_tree (_, [])) :: l -> create_rev parent l
       | (_, Site_tree (Main_page (Srv page), hsl)) :: _
         when same_service_opt page service ->
-          make_rev parent (List.fold_left make_rels [] hsl)
+          make_rev parent (make_rels hsl)
       | (_, Site_tree (Main_page page, hsl)) :: l -> (
         try create_rev (Some page) hsl with Not_found -> create_rev parent l)
       | (_, Site_tree (_, hsl)) :: l -> (
@@ -495,7 +498,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
       match default with
       | Main_page (Srv def as def') ->
           if same_service_opt def service
-          then List.fold_left make_rels [] pages
+          then make_rels pages
           else create_rev (Some def') pages
       | _ -> create_rev None pages
     with Not_found -> []

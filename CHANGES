@@ -369,6 +369,11 @@
    registered during the initialisation of a site, now raise
    Eliom_duplicate_registration, as services with a path and non-attached
    coservices do. The second one silently replaced the first one.
+** Tools.F.structure_links and Tools.D.structure_links now link to the main
+   page of the section of the current page with rel="up", and to the main
+   pages of its subsections with rel="subsection", in the order of the site,
+   as documented. All the links had rel="next", which means the next
+   document of a series, and the subsections came in reverse order.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
