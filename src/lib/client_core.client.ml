@@ -350,13 +350,32 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     Js.Opt.to_option
       (Js.Unsafe.coerce ev : Dom_html.submitEvent Js.t)##.submitter
   in
+  (* A submitter can send the form to another URL, or in another way,
+     than the form says. Eliom does not know the service behind it, so
+     it lets the browser submit the form, except in a client application,
+     which the browser would leave. *)
+  let overrides_form =
+    match submitter with
+    | None -> false
+    | Some submitter ->
+        List.exists
+          (fun attribute ->
+             Js.to_bool (submitter##hasAttribute (Js.string attribute)))
+          ["formaction"; "formmethod"; "formenctype"; "formtarget"]
+  in
   let f () =
+    if overrides_form
+    then
+      Logs.warn ~src:section (fun fmt ->
+        fmt
+          "the formaction, formmethod, formenctype and formtarget attributes of a button are ignored in a client application");
     Lwt.async @@ fun () ->
     let* b = client_form_handler ev in
     if not b then change_page_form ?cookies_info ?tmpl ?submitter form action;
     Lwt.return_unit
   in
-  ((not !Common.is_client_app) && changes_protocol https) || (f (); false)
+  ((not !Common.is_client_app) && (changes_protocol https || overrides_form))
+  || (f (); false)
 
 let raw_event_handler value =
   let handler =

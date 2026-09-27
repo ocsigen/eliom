@@ -137,6 +137,11 @@
    Request.send_get_form and Request.send_post_form take the button as a
    new ?submitter argument. Mod_dom.add_formdata_hack_onclick_handler is
    removed.
+** A form submitted by a button with a formaction, formmethod,
+   formenctype or formtarget attribute is submitted by the browser, not
+   through XHR, since Eliom does not know the service it goes to. These
+   attributes were ignored. A client application still submits the form
+   through XHR, ignoring them, and logs a warning.
 * Logging
 ** The Comet client logs its connection and request failures as
    warnings (source eliom:comet) instead of application messages
