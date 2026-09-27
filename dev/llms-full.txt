@@ -116577,7 +116577,7 @@ val send_get_form :
   'a result ->
   (string * 'a option) Lwt.t
 ```
-`send_get_form form url result` sends the fields of `form` to `url` through XHR, in the query string, after `~get_args`. With `~post_args`, the request is a POST whose body holds `~post_args`, the fields staying in the query string. `~submitter` is the button that submitted `form`, the `submitter` of its submit event: its name and value are sent, before the fields, as a native submission sends them.
+`send_get_form form url result` sends the fields of `form` to `url` through XHR, in the query string, after `~get_args`. With `~post_args`, the request is a POST whose body holds `~post_args`, the fields staying in the query string. `~submitter` is the button that submitted `form`, the `submitter` of its submit event: its name and value are sent, before the fields, as a native submission sends them. An image button sends instead the point of the click in the image, as `name.x` and `name.y`, or `x` and `y` when it has no name. This point is the one recorded by [`track_image_button_clicks`](./#val-track_image_button_clicks) for the last click on this button, (0, 0\) if there is none.
 
 ```ocaml
 val send_post_form : 
