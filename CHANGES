@@ -77,6 +77,9 @@
    to ease migration of existing code.
 ** BREAKING: Eliom.run is now Eliom.App.run (the auto-generated
    wrapper module cannot contain val declarations).
+* Eliom.Content.Html.Ev
+** Add support for the `toggle` and `beforetoggle` events of the `popover` API
+*** Also adds support for the `toggle` event for `details` elements
 * Eliom.Content.Html.T
 ** New named module type for the Tyxml HTML signature shared by F
    and D, with Eliom's LINKS_AND_FORMS extensions. Use it as the
