@@ -39,4 +39,4 @@ update_template ()
   rm -rf "$tmpdir"
 }
 
-update_template "app.exe" "https://github.com/ocsigen/eliom_template_exe"
+update_template "app" "https://github.com/ocsigen/eliom_template_exe"
