@@ -1,0 +1,103 @@
+(rule
+ (with-stdout-to
+  dune.corrected
+  (run
+   ocsigen-dune-rules
+   gen-application
+   --name
+   %%%PROJECT_NAME%%%
+   --wasm
+   --server-libraries
+   ocsipersist-sqlite
+   --eliom-libraries
+   %%%PROJECT_NAME%%%.lib
+   %%%PROJECT_NAME%%%
+   --dune
+   %{dep:dune})))
+
+; [ocsigen-dune-rules] Do not remove this line.
+; Below this line, any changes will be overwritten.
+;
+; To update the rules below, modify the invocation of ocsigen-dune-rules above
+; and run:
+;
+;     dune runtest --auto-promote
+;
+
+(rule
+ (alias runtest)
+ (action
+  (diff dune dune.corrected)))
+
+(library
+ (public_name %%%PROJECT_NAME%%%)
+ (name %%%PROJECT_NAME%%%)
+ (modes byte native)
+ (library_flags
+  (:standard -linkall))
+ (preprocess
+  (pps
+   eliom.ppx.server
+   ocsigen-ppx-rpc
+   js_of_ocaml-ppx_deriving_json
+   --rpc-raw))
+ (libraries eliom.server ocsipersist-sqlite %%%PROJECT_NAME%%%.lib.server))
+
+(subdir
+ client
+ (executable
+  (name %%%PROJECT_NAME%%%)
+  (modes js wasm byte)
+  (js_of_ocaml
+   (build_runtime_flags :standard --enable use-js-string)
+   (flags :standard --enable with-js-error --enable use-js-string))
+  (libraries
+   eliom.client
+   js_of_ocaml
+   js_of_ocaml-lwt
+   %%%PROJECT_NAME%%%.lib.client))
+ (dynamic_include ../dune.client))
+
+(subdir
+ client/ppx
+ (rule
+  (write-file main.ml "let () = Ppxlib.Driver.standalone ()"))
+ (executable
+  (name main)
+  (libraries
+   ppxlib
+   eliom.ppx.client
+   ocsigen-ppx-rpc
+   js_of_ocaml-ppx
+   js_of_ocaml-ppx_deriving_json)))
+
+(rule
+ (deps
+  (glob_files *.eliom)
+  (glob_files *.eliomi))
+ (action
+  (with-stdout-to
+   dune.client
+   (run ocsigen-dune-rules gen-client-modules . -- --rpc-raw))))
+
+(rule
+ (alias runtest)
+ (action
+  (run
+   ocsigen-dune-rules
+   check-modules
+   --client
+   %{dep:client/%%%PROJECT_NAME%%%.bc}
+   --server
+   %{dep:check_modules/main.bc})))
+
+(subdir
+ check_modules
+ (rule
+  (write-file main.ml ""))
+ (executable
+  (name main)
+  (modes byte)
+  (link_flags
+   (:standard -linkall))
+  (libraries %%%PROJECT_NAME%%%)))

@@ -1,0 +1,29 @@
+(lang dune 3.17)
+
+(using directory-targets 0.1)
+
+(name %%%PROJECT_NAME%%%)
+
+(authors "%%%PROJECT_NAME%%% authors")
+
+(package
+ (name %%%PROJECT_NAME%%%)
+ (synopsis "Eliom application")
+ (depends
+  ocsigen-dune-rules
+  (eliom
+   (>= 12.0.0))
+  (ocsipersist-sqlite-config
+   (>= 2.0))))
+
+(dialect
+ (name "eliom-server")
+ (implementation
+  (extension "eliom"))
+ (interface
+  (extension "eliomi")))
+
+(formatting
+ (enabled_for ocaml "eliom-server"))
+
+(generate_opam_files true)

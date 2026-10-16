@@ -1,0 +1,50 @@
+; To run the application locally:
+;  dune build
+;  dune exec %%%PROJECT_NAME%%%
+;
+; The initial 'dune build' is needed to make sure that static files are updated.
+
+(subdir
+ local/var/www/%%%PROJECT_NAME%%%
+ (rule
+  (mode promote)
+  (action
+   (copy %{workspace_root}/app/client/%%%PROJECT_NAME%%%.bc.js %%%PROJECT_NAME%%%.js)))
+ (rule
+  (mode promote)
+  ; Depend on assets dir as it's not build by default
+  (deps %%%PROJECT_NAME%%%.bc.wasm.assets)
+  (action
+   (copy
+    %{workspace_root}/app/client/%%%PROJECT_NAME%%%.bc.wasm.js
+    %%%PROJECT_NAME%%%.wasm.js)))
+ (rule
+  (mode promote)
+  ; Name is hardcoded into compiled wasm files
+  (targets
+   (dir %%%PROJECT_NAME%%%.bc.wasm.assets))
+  (deps %{workspace_root}/app/client/%%%PROJECT_NAME%%%.bc.wasm.assets)
+  (action
+   (run cp -r %{deps} .)))
+ (subdir
+  css
+  (rule
+   (mode promote)
+   (action
+    (copy %{workspace_root}/static/css/%%%PROJECT_NAME%%%.css %%%PROJECT_NAME%%%.css)))))
+
+; Install the www directory
+
+(install
+ (section share)
+ (package %%%PROJECT_NAME%%%)
+ (files
+  (app/client/%%%PROJECT_NAME%%%.bc.js as www/%%%PROJECT_NAME%%%.js)
+  (app/client/%%%PROJECT_NAME%%%.bc.wasm.js as www/%%%PROJECT_NAME%%%.wasm.js)
+  ; It seems that we can't change the wasm assets directory name
+  (glob_files_rec
+   (app/client/%%%PROJECT_NAME%%%.bc.wasm.assets/**
+    with_prefix
+    www/%%%PROJECT_NAME%%%.bc.wasm.assets))
+  (glob_files_rec
+   (static/** with_prefix www))))
