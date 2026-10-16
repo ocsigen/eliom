@@ -1,13 +1,8 @@
-# Local server configuration
-local
-
-# Eliom
-.depend
-_client
-_deps
-_server
-
-static/css/project_name.css.map
+# Local server state
+local/**
+!local/**/
+!local/**/.keep
 
 # Dune
 _build
+/*.install
