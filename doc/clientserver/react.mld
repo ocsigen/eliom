@@ -3,7 +3,7 @@
 In reactive programming, the programmer declaratively defines
 relationships between different pieces of data, and between the data
 and what is displayed in the interface. This allows rapid development
-of robust user interfaces. {{!page-"clientserver-html".reactive}Another manual section} describes Eliom's
+of robust user interfaces. {{!//clientserver/page-html.reactive}Another manual section} describes Eliom's
 client-side reactive infrastructure.
 
 Client-side reactive programming in itself does not adequately cover
@@ -171,5 +171,5 @@ re-rendered after every update operation.
 
 - {{:http://erratique.ch/software/react} React}
 - {{:https://github.com/ocsigen/reactiveData}ReactiveData}
-- {{!page-"ppx-syntax"}Our PPX syntax extension},
+- {{!//clientserver/page-multitier}Our PPX syntax extension},
    which is crucial for enabling the discussed paradigm

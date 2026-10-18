@@ -136,7 +136,7 @@ functions. You can use either
 and client or shared fragments to circumvent this limitation.
 
 To extend and customize the serialization from client to server, see
-chapter {{!page-"clientserver-wrapping"}Wrapping values}.
+chapter {{!//clientserver/page-wrapping}Wrapping values}.
 
 {1 Note about evaluation}
 

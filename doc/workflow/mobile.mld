@@ -16,7 +16,7 @@ Here are the main principle for writing multi-platform apps with Eliom:
 use the client-side implementation. The Web app will generate the pages
 server-side during the first request, and by default, subsequent pages will
 be generated client-side. For more info, see the
-{{!page-"clientserver-services"}client-side services chapter}
+{{!//clientserver/page-services}client-side services chapter}
 of this manual.
 - Be careful with the order of evaluation, which is different when pages
 are generated client-side. Client sections sent by the server will be executed

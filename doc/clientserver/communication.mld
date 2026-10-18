@@ -4,7 +4,7 @@
 
 Besides injections and client values, as described in the
 documentation of our
-{{!page-"ppx-syntax"}PPX syntax extension},
+{{!//clientserver/page-multitier}PPX syntax extension},
 there are multiple ways for the client and the server to exchange values.
 
 {1:rpc Remote Procedure Calls}
@@ -159,7 +159,7 @@ let _ =
 Since the client-side representation of values differs from the
 server-side representation, there are restrictions on what can be
 sent. The restrictions are the same as for the [~%variable]
-mechanism. (See {{!page-"clientserver-wrapping"}chapter
+mechanism. (See {{!//clientserver/page-wrapping}chapter
 Wrapping}.)
 
 {1:client_sending_data Send OCaml values to services}

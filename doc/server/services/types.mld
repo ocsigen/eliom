@@ -19,7 +19,7 @@ A service is composed of:
 
 Services are most commonly used to create links and forms towards a
 service, using for example the function {!val:Eliom.Content.Html.D.a}.
-See chapter {{!page-"server-links"}Creating links and forms} for more
+See chapter {{!//server/services/page-links}Creating links and forms} for more
 information.
 
 Manipulation of Eliom services can be done through the values of type
@@ -36,7 +36,7 @@ steps:
   content sent to the client.
 
 The rest of this chapter focuses on service creation. See chapter
-{{!page-"server-outputs"}Implementing service handlers} for
+{{!//server/services/page-handlers}Implementing service handlers} for
 more information on handler implementation and registration.
 
 {1 Service creation}
@@ -115,7 +115,7 @@ Values of the type [Eliom.Parameter.params_type]
 represent the set of expected arguments with their types. They are
 built using combinators from the
 {!Eliom.Parameter}
-module. See chapter {{!page-"server-params"}Service
+module. See chapter {{!//server/services/page-parameters}Service
 parameters} for a detailled description of this module.
 
 Type information associated to each argument allows Eliom to
@@ -172,7 +172,7 @@ particular URL. A link to such a service points to the current URL
 with just an additional special parameter. This is useful when you
 want the same link or form on several pages (for example, a login box)
 but you don't want to go to another URL. Pathless services are often
-used with {{!page-"server-outputs".actions}actions}.
+used with {{!//server/services/page-handlers.actions}actions}.
 
 Here is a simple example. Suppose that the function [remove]
 removes one piece of data from a database (based on the identifier of
@@ -267,7 +267,7 @@ service each time you want to record a precise point in the
 interaction with the user, to be able to come back there later.
 
 Often, they should be used with a restricted scope (see the section
-{{!page-"server-services".service_scope}service
+{{!//server/services/page-types.service_scope}service
 scopes}).
 
 POST attached services can be used to customize the behaviour of a
@@ -286,7 +286,7 @@ has expired, or if the session to which it belongs was closed), the
 fallback is called.
 
 The fallback of a GET attached service cannot take parameters. But it
-is possible to use a {{!page-"server-services".preapplied}pre-applied} service as fallback.
+is possible to use a {{!//server/services/page-types.preapplied}pre-applied} service as fallback.
 
 Attached services can have a timeout and can be disposable, just like
 pathless services.
@@ -347,7 +347,7 @@ a (static_dir ()) [txt "download image"] ["ocsigen10.png"]
 It is also possible to send static files using Eliom, with
 {!Eliom.Registration.File}.
 See
-{{!page-"server-outputs".eliomfiles}Sending files}.
+{{!//server/services/page-handlers.eliomfiles}Sending files}.
 
 {3:preapplied Pre-applied services}
 
@@ -454,7 +454,7 @@ order):
   phase (while reading the site configuration) or while processing a
   request, because Eliom must know the information about the site. Be
   very careful about this if you want to use static linking (see the
-  section on {{!page-"workflow-configuration".static_linking}static linking} in the chapter about
+  section on {{!//workflow/page-configuration.static_linking}static linking} in the chapter about
   Compiling and configuring Eliom modules).
 - All regular services (but not pathless and attached services) need
   to be created in a module loaded inside a [<host>] tag of the
@@ -475,7 +475,7 @@ order):
   warning in the logs).
 - GET attached services (without POST parameters) can be registered
   only with a regular service without GET/POST parameters as fallback.
-  But it may be {{!page-"server-services".preapplied}{e preapplied}}.
+  But it may be {{!//server/services/page-types.preapplied}{e preapplied}}.
 - The registration of (main) services must be completed before the end
   of the loading of the module. It is not possible to launch an Lwt
   thread with the intention that it will register a service later, as

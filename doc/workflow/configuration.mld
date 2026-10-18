@@ -1,4 +1,3 @@
-
 {0 Compiling and configuring Eliom modules}
 
 
@@ -8,7 +7,7 @@ options in the Ocsigen server configuration file, and how to define options for 
 Eliom modules. See the Ocsigen server documentation for more information about the
 {{!/ocsigenserver/page-config}server's configuration}.
 
-Note, however, that {{!page-"workflow-distillery"}Eliom's
+Note, however, that {{!//workflow/page-distillery}Eliom's
 distillery} provides templates to get started at once with Eliom!
 
 {1:misc Using Eliom modules with Ocsigen server}

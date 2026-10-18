@@ -113,7 +113,7 @@ module type S = sig
       request, and should return the corresponding page.
 
       The optional parameter [~scope] is {!Common.global_scope}
-      by default. See the Eliom manual for detailed description {{!page-"server-services".service_scope}of
+      by default. See the Eliom manual for detailed description {{!//server/services/page-types.service_scope}of
       different scopes}. On the server, registering with a session,
       session group or client process scope is possible only during a
       request; outside one, [register] raises
@@ -134,7 +134,7 @@ module type S = sig
       protocol is [http], or in the secure session if the protocol is
       [https]. If set to [false] (resp. [true]) the [handler] will be
       stored in the non-secure (resp. secure) session. See the Eliom
-      manual for an introduction to {{!page-"server-state"}secure state}.
+      manual for an introduction to {{!//server/page-state}secure state}.
 
       The optional parameter [~error_handler] is used to specialize
       the error page when actual parameters aren't compatible with the

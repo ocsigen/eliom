@@ -10,7 +10,7 @@ val is_client_app : unit -> bool
 
 (** {2 RPC / Server functions}
 
-    See the {{!page-"clientserver-communication".rpc}manual}.*)
+    See the {{!//clientserver/page-communication.rpc}manual}.*)
 
 type ('a, 'b) server_function
 (** A value of type [('a, 'b) server_function] is created on the server from a
@@ -45,5 +45,5 @@ val server_function :
     The optional parameters correspond directly to the optional
     parameters of {!Registration.Ocaml.register_coservice'}.
 
-    See also the {{!page-"clientserver-communication".rpc}manual}.
+    See also the {{!//clientserver/page-communication.rpc}manual}.
 *)

@@ -94,7 +94,7 @@ There are four modules to create typed HTML:
    {!Eliom.Content.Html.C} and
    {!Eliom.Content.Html.R}.
 The last one is for reactive elements and is addressed in
-{{!page-"clientserver-html"}another section}.
+{{!//clientserver/page-html}another section}.
 
 It is possible to mix the four kinds of nodes in the same page.
 

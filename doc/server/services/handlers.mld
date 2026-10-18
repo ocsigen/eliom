@@ -1,11 +1,10 @@
-
 {0 Service handlers}
 
 
 
 {1:predefined_outputs Output modules}
 
-Once the {{!page-"server-services".identification}service identification mechanism}
+Once the {{!//server/services/page-types.identification}service identification mechanism}
 identifies the service responsible for a given URL, it executes its
 service handler. The service handler is a function taking the GET and
 POST parameters as arguments and returning the content to be sent to
@@ -13,13 +12,13 @@ the client. The return type of the service handler depends on the
 function used to register it. The most common case is HTML content
 build with the TyXML library, but Eliom additionally provides a lot of
 output modules to ease the implementation of common Web
-interaction. See section {{!page-"server-outputs".predefined_outputs}Predefined output modules} for a
+interaction. See section {{!//server/services/page-handlers.predefined_outputs}Predefined output modules} for a
 comprehensive list.
 
 {2 List of predefined output modules}
 
 Services can send several types of data, using a variety of predefined modules.
-It is also possible to {{!page-"server-outputs".creating}create your own output modules}.
+It is also possible to {{!//server/services/page-handlers.creating}create your own output modules}.
 The main predefined output modules are:
 
 
@@ -38,19 +37,19 @@ using polymorphic variant types. You may use constructor functions from {!Eliom.
 ;{!Eliom.Registration.String}
 : Registration of functions that   generate text pages, without any validation of the content. The services return a pair of strings. The first string is the content   of the page, while the second string is the content type.
 ;{!Eliom.Registration.File}
-: Registration of services that send files. See {{!page-"server-outputs".eliomfiles}here} for an example of use.
+: Registration of services that send files. See {{!//server/services/page-handlers.eliomfiles}here} for an example of use.
 ;{!Eliom.Registration.Streamlist}
 : Registration of services that send "byte" contents. It is used when big content (that does not fit in memory) is generated.
 
 {%wodoc:div class="paragraph"%} Generating content for client-server applications {%wodoc:end%}
 
 ;{!Eliom.Registration.App}
-: Functor that allows creation of services belonging to a client-server Eliom application (see {{!page-"clientserver-applications"}chapter client-server applications}).
+: Functor that allows creation of services belonging to a client-server Eliom application (see {{!//clientserver/page-applications}chapter client-server applications}).
 
 {%wodoc:div class="paragraph"%} Special browser interraction {%wodoc:end%}
 
 ;{!Eliom.Registration.Action}
-: Registration of actions (functions that do not generate any page. See {{!page-"server-outputs".actions}Action}). The page corresponding to the URL (without the special parameter identifying the action) is reloaded after the action by default if possible.
+: Registration of actions (functions that do not generate any page. See {{!//server/services/page-handlers.actions}Action}). The page corresponding to the URL (without the special parameter identifying the action) is reloaded after the action by default if possible.
 ;{!Eliom.Registration.Unit}
 : Like {!Eliom.Registration.Action}, but the URL is not reloaded after the action. (Same as [Eliom.Registration.Action] with [[`NoReload]] option).
 ;{!Eliom.Registration.Redirection}
@@ -68,7 +67,7 @@ using polymorphic variant types. You may use constructor functions from {!Eliom.
 
 ;{!Eliom.Registration.Ocaml}
 : Registration of services sending marshalled OCaml values. See the section on
-{{!page-"clientserver-communication"}communications in the chapter about client-server applications}.
+{{!//clientserver/page-communication}communications in the chapter about client-server applications}.
 
 {%wodoc:div class="paragraph"%} Runtime choice of content {%wodoc:end%}
 
@@ -92,7 +91,7 @@ let sendfile =
     (fun () () -> return "filename")
 ]}
 
-Other example, with "suffix" services (see {{!page-"server-params".suffix}here}):
+Other example, with "suffix" services (see {{!//server/services/page-parameters.suffix}here}):
 {@ocaml[
 let sendfile2 =
   Eliom.Registration.File.create
@@ -105,7 +104,7 @@ let sendfile2 =
       Ocsigen_base.Lib.Url.string_of_url_path ~encode:false s)
 ]}
 
-The extension {{!page-"server-services".staticparts}Staticmod} is another way to
+The extension {{!//server/services/page-types.staticparts}Staticmod} is another way to
 handle static files.
 
 
@@ -167,7 +166,7 @@ let redir1 =
 
 If you want to give parameters to such services, use
 {!Eliom.Service.preapply} (see also in
-{{!page-"server-services".preapplied}section about pre-applied services}).
+{{!//server/services/page-types.preapplied}section about pre-applied services}).
 Example:
 
 {@ocaml[

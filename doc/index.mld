@@ -1,4 +1,4 @@
-@children_order intro server-services server-params server-outputs server-links server-state server-security clientserver-applications ppx-syntax clientserver-html clientserver-communication clientserver-services clientserver-react clientserver-cache clientserver-wrapping workflow-distillery mobile-apps workflow-configuration scalability eliom-language misc ppx-migration
+@children_order intro server/ clientserver/ workflow/ ppx-migration
 
 {0 Eliom}
 {e The full-stack OCaml Web and mobile framework}

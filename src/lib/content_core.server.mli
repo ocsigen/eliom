@@ -185,7 +185,7 @@ module Svg : sig
 end
 
 module Html : sig
-  (** See the Eliom manual for more information on {{!page-"clientserver-html".unique}dom semantics vs. functional
+  (** See the Eliom manual for more information on {{!//clientserver/page-html.unique}dom semantics vs. functional
       semantics} for HTML5 tree manipulated by client/server
       application. *)
 

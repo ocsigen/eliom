@@ -1,9 +1,6 @@
-{0 Miscellaneous}
+{0 HTML widgets}
 
-
-{1:predefinedconstructs HTML widgets}
-
-{2 Images, CSS, Javascript}
+{1 Images, CSS, Javascript}
 
 
  To include an image, simply use function  {!Eliom.Content.Html.D.img}:
@@ -44,12 +41,12 @@ To simplify the creation of [<link>] tags for CSS or [<script>]
          ~service:(Eliom.Service.static_dir ()) ["funs.js"]) ()
 ]}
 
-{2:basic_menu Basic menus}
+{1:basic_menu Basic menus}
 
 To generate a context-aware menu on your Web page, you can use the function
 {!Eliom.Tools.HTML5_TOOLS.menu}. This function can be used from
 either of the modules {!Eliom.Tools.D} or {!Eliom.Tools.F}.
-(See {{!page-"clientserver-html".unique}HTML element manipulation, by value and by reference}).
+(See {{!//clientserver/page-html.unique}HTML element manipulation, by value and by reference}).
 
 Here is a simple example:
 
@@ -98,7 +95,7 @@ Note: {!Eliom.Tools.D.menu} takes a list of services without GET
 parameters. If you want one of the links to contain GET parameters, pre-apply
 the service.
 
-{2:hier_menu Hierarchical menus}
+{1:hier_menu Hierarchical menus}
 
 {@ocaml[(* Hierarchical menu *)
 open Eliom.Content.Html.F

@@ -1,4 +1,3 @@
-
 {0 Sessions and server side state}
 
 
@@ -126,7 +125,7 @@ coservices with timeouts.)
 We hope to simplify this when OCaml's serialization mechanism evolves.
 In the meantime, be very careful where you store your data.  To avoid
 shutting down the server, note that it is possible to ask the server
-to dynamically load new versions of your site (see {{!page-"workflow-configuration".reload}command
+to dynamically load new versions of your site (see {{!//workflow/page-configuration.reload}command
 [reload]}).
 
 
@@ -138,7 +137,7 @@ to dynamically load new versions of your site (see {{!page-"workflow-configurati
 {2 Basics}
 
 Eliom uses a notion of {e scopes} to restrict the visibility of
-server-side data to a set of clients. Together with {{!page-"server-state".eref}Eliom references}, this is a
+server-side data to a set of clients. Together with {{!//server/page-state.eref}Eliom references}, this is a
 very convenient way to implement a session mechanism for your Web site.
 
 There are two categories of scopes:
@@ -163,26 +162,26 @@ with respect to how Eliom associates clients and data.
 - Data and dynamic services created with scope
   {!val:Eliom.Common.default_group_scope} are only visible to the clients
   whose sessions belong to the same session group.  See section
-  {{!page-"server-state".session_groups}Session
+  {{!//server/page-state.session_groups}Session
   groups} for more information.
 - Data and dynamic services created with scope
   {!val:Eliom.Common.default_process_scope} are only visible to a specific
   instance of the Eliom application (i.e., a single tab, running the
-  Eliom client process).  See section {{!page-"clientserver-applications"}Eliom
+  Eliom client process).  See section {{!//clientserver/page-applications}Eliom
   applications} for more information.
 
 User scopes are organised in a {e hierarchy}: client processes belong
 to a session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded
-explicitely or via a timeout. See sections {{!page-"server-state".closing_sessions}Closing session}
-and {{!page-"server-state".timeouts}Timeouts and
+explicitely or via a timeout. See sections {{!//server/page-state.closing_sessions}Closing session}
+and {{!//server/page-state.timeouts}Timeouts and
 session duration} for more information.
 
 If you want to handle multiple sessions for the same site ---~
 e.g. several different data sessions that could be created and
 discarded independently~ --- you can create new users scopes that will
-use different cookies. See section {{!page-"server-state".new_scope}Hierarchies of scopes} for more information.
+use different cookies. See section {{!//server/page-state.new_scope}Hierarchies of scopes} for more information.
 
 
 
@@ -364,7 +363,7 @@ session group name as parameter:
 
 A session could be only attached to one group at a time, but it is
 possible to create multiple sessions for a same client attached to
-different groups, see section {{!page-"server-state".new_scope}Hierarchies of scopes} for more information.
+different groups, see section {{!//server/page-state.new_scope}Hierarchies of scopes} for more information.
 
 It's possible to fetch the current session group name of a session, if
 any, or to detach a session from a group. See the module {!Eliom.State} for more information.
@@ -399,7 +398,7 @@ persistent data).
 
 To close all sessions from a group, close the group.
 
-See section {{!page-"server-state".closing_sessions}Closing sessions} for more information.
+See section {{!//server/page-state.closing_sessions}Closing sessions} for more information.
 
 
 
@@ -415,7 +414,7 @@ See section {{!page-"server-state".closing_sessions}Closing sessions} for more i
 {2 Principles}
 
 {e Eliom references} ({e erefs}) are a kind of references with
-a (possibly) limited {{!page-"server-state".scopes}scope}. You declare a reference with an initial
+a (possibly) limited {{!//server/page-state.scopes}scope}. You declare a reference with an initial
 value and a scope. Then, when you change the associated value, it
 actually changes only for the scope you specified.
 

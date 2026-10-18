@@ -15,7 +15,7 @@ package — i.e. the documented version is whatever the build switch has install
 
 | What | Where | Format |
 |---|---|---|
-| Manual | the package's `(documentation)` `.mld` (built with the API by odoc_driver) | odoc pages |
+| Manual | the `.mld` files of `doc/`, installed by `(documentation)` (top level) and by `(install)` (one entry per subdirectory, see [`doc/dune`](dune)), built with the API by odoc_driver | odoc pages |
 | Manual nav order | `doc/manual/menu.wiki` (overlaid from the `wikidoc` branch by CI) | wiki menu |
 | Server / client API | `doc/server.indexdoc` / `doc/client.indexdoc` (curated module index) | odoc index |
 | API (`.mli`) | the installed `eliom` package | odoc comments |

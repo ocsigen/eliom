@@ -12,12 +12,12 @@ within a Web application. In this manual chapter, we focus on the
 client-side service mechanics and do not go into the details of
 setting up a complete mobile application. The complete setup needed is
 discussed in the
-{{!page-"mobile-apps"}mobile applications chapter}
+{{!//workflow/page-mobile}mobile applications chapter}
 of this manual.
 
 {1 Service creation and registering}
 
-As described in the chapter {{!page-"server-services"}on
+As described in the chapter {{!//server/services/page-types}on
 server-side services}, services are first created via
 {!Eliom.Service.create}
 and similar functions, and subsequently registered.

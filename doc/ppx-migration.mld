@@ -11,7 +11,7 @@ still supported, future development will focus on PPX, and therefore
 users are advised to migrate.
 
 For more extensive information on the PPX extension itself, refer to
-the {{!page-"ppx-syntax"}corresponding manual page}.
+the {{!//clientserver/page-multitier}corresponding manual page}.
 
 {1 Source code conversion}
 

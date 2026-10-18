@@ -14,7 +14,7 @@ standard for OCaml code, while the client part is compiled to
 Javascript to be run in the browser.
 
 For developing an Eliom application, we recommend that you use our
-{{!page-"ppx-syntax"}PPX syntax extension}.
+{{!//clientserver/page-multitier}PPX syntax extension}.
 
 An interesting feature of Eliom applications is that the client-side process
 does not stop when you click on a link or send a form, and it is possible to
@@ -43,7 +43,7 @@ services for one client process, or even set cookies for one tab.
 
 {2 How it works}
 
-The code of an Eliom application is written in OCaml, with {{!page-"eliom-language"}a syntax extension} to distinguish
+The code of an Eliom application is written in OCaml, with {{!//clientserver/page-language}a syntax extension} to distinguish
 between server and client code. The files using this syntax
 usually have the extension [.eliom]. As the compling process is quite
 complex, we provide commands called [eliomc], [eliomopt] and [js_of_eliom] that

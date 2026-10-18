@@ -179,7 +179,7 @@ let mytype =
                      " is valid. Now try with another value.")]]))
 ]}
 
-See also {{!page-"clientserver-communication".client_sending_data}Client sending data} in the chapter
+See also {{!//clientserver/page-communication.client_sending_data}Client sending data} in the chapter
 about client-server communication, which shows how to use a [user_type]
 from the client-side.
 
