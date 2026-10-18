@@ -2,3 +2,24 @@
 @toc_status hidden
 
 {0 Client-server programming}
+
+An Eliom application runs partly on the server and partly in the browser or
+in a mobile app. It is written as one OCaml program, and a syntax extension
+says where each piece of code runs.
+
+- {{!//clientserver/page-applications}Eliom applications}: the general
+  principles.
+- {{!//clientserver/page-multitier}Multi-tier programming}: the syntax
+  extension, with shared sections, client fragments and injections.
+- {{!//clientserver/page-html}Generating HTML}: typed HTML built on the server
+  or on the client, elements kept by reference, and reactive pages.
+- {{!//clientserver/page-communication}Communication}: remote procedure calls,
+  notifications from the server, and the other ways to exchange values.
+- {{!//clientserver/page-services}Client-side services}: services whose
+  handlers run on the client.
+- {{!//clientserver/page-react}Shared reactive programming}: reactive values
+  defined on the server and used on the client.
+- {{!//clientserver/page-cache}Caching data and off-line applications}: a
+  cache of data for the client, and applications that work off-line.
+- {{!//clientserver/page-wrapping}Custom wrapping}: how server values are sent
+  to the client; useful when working on Eliom itself.

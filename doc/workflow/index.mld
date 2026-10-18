@@ -2,3 +2,14 @@
 @toc_status hidden
 
 {0 Workflows}
+
+How to start, build, configure and deploy an Eliom project.
+
+- {{!//workflow/page-distillery}Distillery}: create a project from a
+  template, then build and run it.
+- {{!//workflow/page-mobile}Mobile apps}: one code base for a Web application
+  and Android or iOS apps.
+- {{!//workflow/page-configuration}Configuration & running}: Eliom's options
+  in the Ocsigen Server configuration file, and options for your own modules.
+- {{!//workflow/page-scalability}Scalability}: running an application on
+  several cores or servers.
