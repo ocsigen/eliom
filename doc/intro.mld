@@ -77,7 +77,7 @@ the back button).  When you click on a link, the client-side program
 - If you are listening to music or watching a video, playback does not
   stop when you change page!
 
-{{!page-"clientserver-applications"}More information...}
+{{!//clientserver/page-applications}More information...}
 
 {1 Services}
 
@@ -117,7 +117,7 @@ for example). This is equivalent to what is usually called
 implementing multiple-step forms very easily (like booking a plane
 ticket).
 
-{{!page-"server-services"}More information...}
+{{!//server/services/page-types}More information...}
 
 {1 Sessions and server-side state}
 
@@ -145,4 +145,4 @@ references:
 - There is also a scope {e "request"} that can be used to store data
   during the generation of a page.
 
-{{!page-"server-state"}More information...}
+{{!//server/page-state}More information...}

@@ -23,7 +23,7 @@
     files, ...
 
     {b Please read the Eliom manual before this page to learn how to
-    use {{!page-"server-services"}services} and {{!page-"server-outputs"}predefined outputs}.
+    use {{!//server/services/page-types}services} and {{!//server/services/page-handlers}predefined outputs}.
     }
 
     {2 Type definitions} *)
@@ -189,7 +189,7 @@ val transform_global_app_uri : (Content.Html.uri -> Content.Html.uri) ref
 (** Function to modify the global_app URI for some obscure reason *)
 
 (** Functor for application creation.
-    See {{!page-"clientserver-applications"}the chapter on applications}
+    See {{!//clientserver/page-applications}the chapter on applications}
     in the Eliom manual for details. *)
 module App (_ : Registration_sigs.APP_PARAM) : APP
 
@@ -262,7 +262,7 @@ module CssText :
 (** {2 Other kinds of services} *)
 
 (** Eliom service registration for services that only execute
-    actions. See the Eliom manual for more information about {{!page-"server-outputs".actions}Actions
+    actions. See the Eliom manual for more information about {{!//server/services/page-handlers.actions}Actions
     outputs}.
 
     If you give the optional parameter [~options:`NoReload] to the
@@ -302,7 +302,7 @@ type _ redirection =
 
 (** Eliom service registration for services that returns a
     redirections towards another service. See the Eliom manual for
-    more information about {{!page-"server-outputs".redirections}Redirections outputs}.
+    more information about {{!//server/services/page-handlers.redirections}Redirections outputs}.
 
     The default returned HTTP code is [302 Found]. You could use the
     optional parameter [~options] to change this value:
@@ -339,7 +339,7 @@ end
 
 (** Eliom service registration for services that returns a
     redirections towards a string-URL. See the Eliom manual for more
-    information about {{!page-"server-outputs".redirections}Redirections outputs}. The URL given
+    information about {{!//server/services/page-handlers.redirections}Redirections outputs}. The URL given
     must be an absolute URI.
 
     The default returned HTTP code is [302 Found]. You could use the
@@ -360,7 +360,7 @@ module String_redirection :
 
 (** Eliom service registration for services that returns file
     contents. The value returned by service handlers is the name of
-    the file to send. See the Eliom manual for more information on {{!page-"server-outputs".eliomfiles}how to
+    the file to send. See the Eliom manual for more information on {{!//server/services/page-handlers.eliomfiles}how to
     send files with Eliom}.  The option is the optional
     "Cache-policy: max-age" header value to be sent. *)
 module File : sig
@@ -406,7 +406,7 @@ module Ocaml :
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
     {!Html.send} or {!String.send} functions. See the Eliom manual
-    for more information about {{!page-"server-outputs".any}services that choose dynamically what they want to
+    for more information about {{!//server/services/page-handlers.any}services that choose dynamically what they want to
     send} *)
 module Any :
   Registration_sigs.S_poly_with_create_with_send

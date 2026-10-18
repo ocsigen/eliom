@@ -22,7 +22,7 @@
     The interface is meant to be compatible with server-side
     {!Registration}.
 
-    See {{!page-"clientserver-services"}the manual chapter on client-side services}
+    See {{!//clientserver/page-services}the manual chapter on client-side services}
     for details. *)
 
 type 'a kind

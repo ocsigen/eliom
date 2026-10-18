@@ -15,11 +15,12 @@ package — i.e. the documented version is whatever the build switch has install
 
 | What | Where | Format |
 |---|---|---|
-| Manual | the package's `(documentation)` `.mld` (built with the API by odoc_driver) | odoc pages |
-| Manual nav order | `doc/manual/menu.wiki` (overlaid from the `wikidoc` branch by CI) | wiki menu |
+| Manual | the `.mld` files of `doc/`, installed by `(documentation)` (top level) and by `(install)` (one entry per subdirectory, see [`doc/dune`](dune)), built with the API by odoc_driver | odoc pages |
+| Manual tree | the subdirectories of `doc/` and their `index.mld` (`@children_order`, `@toc_status`): the same tree on ocaml.org and in the left column (wodoc `(page-tree)`) | odoc pages |
 | Server / client API | `doc/server.indexdoc` / `doc/client.indexdoc` (curated module index) | odoc index |
 | API (`.mli`) | the installed `eliom` package | odoc comments |
 | Site configuration | [`doc/wodoc`](wodoc) | wodoc config (S-expression) |
+| Old manual URLs | [`doc/redirects/`](redirects), copied into each version by `(static-copy …)` in `doc/wodoc` | HTML redirects |
 
 The whole site — per-side API navs, the client/server switch, the body colour,
 the shared manual nav, and the rewriting of sibling Ocsigen projects' cross-refs
@@ -34,8 +35,6 @@ ref you want to document) in a switch that also has `odoc_driver` and `wodoc`:
 ```
 opam install ./eliom.opam            # the version to document
 opam install wodoc                   # the odoc driver / theming
-# overlay the manual menu (lives on the wikidoc branch):
-git show origin/wikidoc:doc/dev/manual/menu.wiki > doc/manual/menu.wiki
 wodoc build --config doc/wodoc --label dev --out _doc-site/dev \
   --menu https://ocsigen.org/doc/menu.html
 ```

@@ -104,7 +104,7 @@ module type LINKS = sig
 
       The optional parameter [nl_params] allows one to add non
       localized GET parameter to the URL.  See the eliom manual for
-      more information about {{!page-"server-params".nonlocalizedparameters}non localized
+      more information about {{!//server/services/page-parameters.nonlocalizedparameters}non localized
       parameters}.  *)
 
   val uri_of_string : (unit -> string) -> uri

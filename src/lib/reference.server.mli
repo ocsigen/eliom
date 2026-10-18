@@ -20,7 +20,7 @@
 (** {2 Server side state data, a.k.a Eliom references} *)
 
 (** {b Please read the
-    {{!page-"server-state"}Eliom manual}
+    {{!//server/page-state}Eliom manual}
     before this page to learn how server side state works. }
 
 *)
@@ -46,7 +46,7 @@ val eref :
   -> 'a eref
 (** The function [eref ~scope value] creates an Eliom reference for
     the given [scope] and initialize it with [value]. See the Eliom
-    manual for more information about {{!page-"server-state"}scopes}.
+    manual for more information about {{!//server/page-state}scopes}.
 
     Use the optional parameter [?persistent] if you want the data to
     survive after relaunching the server. The argument is a pair

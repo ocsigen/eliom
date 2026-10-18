@@ -20,8 +20,8 @@
 (** Creation and manipulation of Eliom services.
 
     See the Eliom manual for a detailed introduction to the concept of
-    {{!page-"server-services"}Eliom services} and to
-    {{!page-"clientserver-services"}client-side service implementation}.
+    {{!//server/services/page-types}Eliom services} and to
+    {{!//clientserver/page-services}client-side service implementation}.
 
     The main functions about services are documented in
     {!Service_sigs.S}. *)

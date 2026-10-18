@@ -86,7 +86,7 @@ module type HTML5_TOOLS = sig
     -> [> `Ul] Html.elt
   (** The function [menu elts ()], where [elts] is a list of pair
       [(service, content)], creates a list of link towards the
-      [service]s. See the Eliom manual for an {{!page-"misc".basic_menu}example of menu}.
+      [service]s. See the Eliom manual for an {{!//server/page-widgets.basic_menu}example of menu}.
 
       The optional parameter [service] is used to find which item(s)
       to highlight (by adding the class [eliomtools_current] to the

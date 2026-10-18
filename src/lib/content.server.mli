@@ -75,7 +75,7 @@
    into server-side content.
 
    {b Please read
-   {{!page-"clientserver-html"}Eliom's manual}
+   {{!//clientserver/page-html}Eliom's manual}
    to learn how to generate HTML. }
 
   *)
@@ -104,7 +104,7 @@ module Xml : sig
   (** Unique nodes are XML nodes that are manipulated 'by reference'
       when sent to the client part of an Eliom-application: the
       created element is allocated only one time in each instance of
-      an application. See {{!page-"clientserver-html".unique}the eliom manual} for more
+      an application. See {{!//clientserver/page-html.unique}the eliom manual} for more
       details. *)
 
   (** {2 Event handlers } *)
@@ -112,7 +112,7 @@ module Xml : sig
   type caml_event_handler
   (** Values of type [caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
-      information on {{!page-"clientserver-html".syntax}syntax extension}). Such values are
+      information on {{!//clientserver/page-html.syntax}syntax extension}). Such values are
       expected by functions like {!Content.Html.a_onclick}. *)
 
   (**/**)
@@ -169,7 +169,7 @@ module Xml_shared :
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {!Svg_sigs.T}*)
 module Svg : sig
-  (** See the Eliom manual for more information on{{!page-"clientserver-html".unique}dom semantics vs. functional
+  (** See the Eliom manual for more information on{{!//clientserver/page-html.unique}dom semantics vs. functional
       semantics} for SVG tree manipulated by client/server
       application. *)
 
@@ -276,7 +276,7 @@ module Svg : sig
 
     val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new HTML5 element
-        identifier. (see the Eliom manual for more information on {{!page-"clientserver-html".global}global element}).*)
+        identifier. (see the Eliom manual for more information on {{!//clientserver/page-html.global}global element}).*)
 
     val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
@@ -302,7 +302,7 @@ end
     Information about Html api can be found at
     {!Html_sigs.T} .*)
 module Html : sig
-  (** See {{!page-"clientserver-html".unique}more information on dom semantics vs. functional
+  (** See {{!//clientserver/page-html.unique}more information on dom semantics vs. functional
       semantics} in Eliom's manual
       for HTML5 tree manipulated by client/server application. *)
 
@@ -344,7 +344,7 @@ module Html : sig
         See {!Html_sigs.T}.
         If you want to create an untyped form, you will have to use {!Content.Html.F.Raw} otherwise, use
         Eliom form widgets.  For more information, see
-        {{!page-"server-links".forms}the manual}.
+        {{!//server/services/page-links.forms}the manual}.
          *)
 
     (** See {!Html_sigs.T}. *)
@@ -382,7 +382,7 @@ module Html : sig
         See {!Html_sigs.T}.
         If you want to create an untyped form, you will have to use {!Content.Html.F.Raw} otherwise, use
         Eliom form widgets.  For more information, see
-        {{!page-"server-links".forms}the manual}. *)
+        {{!//server/services/page-links.forms}the manual}. *)
 
     (** See {!Html_sigs.T}. *)
 
@@ -418,7 +418,7 @@ module Html : sig
   module C : sig
     (** {2 Content injection} *)
 
-    (** See Eliom manual for more detail on {{!page-"clientserver-html".inject}DOM &
+    (** See Eliom manual for more detail on {{!//clientserver/page-html.inject}DOM &
         Client-values}. *)
 
     val node : ?init:'a elt -> 'a elt Client_value.t -> 'a elt
@@ -443,7 +443,7 @@ module Html : sig
 
     val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new global HTML element
-        identifier (see the Eliom manual for more information on {{!page-"clientserver-html".global}global element}).*)
+        identifier (see the Eliom manual for more information on {{!//clientserver/page-html.global}global element}).*)
 
     val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
@@ -489,7 +489,7 @@ module Html : sig
   end
 
   (** Type-safe custom data for HTML.
-      See the {{!page-"clientserver-html".custom_data}examples in the manual}. *)
+      See the {{!//clientserver/page-html.custom_data}examples in the manual}. *)
   module Custom_data : sig
     type 'a t
     (** Custom data with values of type ['a]. *)

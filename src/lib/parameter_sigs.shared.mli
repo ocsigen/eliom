@@ -21,7 +21,7 @@
 
     {b Please read Eliom's manual before this page
     to learn how to use
-    {{!page-"server-params"}service parameters}. }
+    {{!//server/services/page-parameters}service parameters}. }
     *)
 
 module type S = sig
