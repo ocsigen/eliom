@@ -2,3 +2,17 @@
 @toc_status hidden
 
 {0 Services}
+
+Services are the entry points of a Web site. A service is usually attached to
+a URL, and it generates a page.
+
+- {{!//server/services/page-types}The different types of services}: services
+  with a path, pathless and attached services, and how Eliom finds the service
+  a request is for.
+- {{!//server/services/page-parameters}Typing service parameters}: GET and
+  POST parameters, decoded and checked against their types.
+- {{!//server/services/page-handlers}Service handlers}: the output modules,
+  which decide what a handler returns (HTML pages, redirections, actions,
+  files, OCaml values), and error handling.
+- {{!//server/services/page-links}Creating links and forms}: links and forms
+  checked against the parameters of the service they lead to.
