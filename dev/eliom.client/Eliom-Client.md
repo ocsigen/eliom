@@ -249,7 +249,7 @@ After this function is called, the document head is no longer changed on page ch
 
 ### RPC / Server functions
 
-See the [manual](./../clientserver-communication.md#rpc).
+See the [manual](./../clientserver/communication.md#rpc).
 
 ```ocaml
 type ('a, +'b) server_function = 'a -> 'b Lwt.t

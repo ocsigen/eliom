@@ -2,7 +2,7 @@
 
 Building SVG tree.
 
-See the Eliom manual for more information on[dom semantics vs. functional semantics](./../clientserver-html.md#unique) for SVG tree manipulated by client/server application.
+See the Eliom manual for more information on[dom semantics vs. functional semantics](./../clientserver/html.md#unique) for SVG tree manipulated by client/server application.
 
 ```ocaml
 type +'a elt

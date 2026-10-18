@@ -2,7 +2,7 @@
 
 Creation and manipulation of Eliom services.
 
-See the Eliom manual for a detailed introduction to the concept of [Eliom services](./../server-services.md).
+See the Eliom manual for a detailed introduction to the concept of [Eliom services](./../server/services/types.md).
 
 See [`create`](./#val-create) for the main service creation function.x
 
@@ -375,7 +375,7 @@ val add_non_localized_get_parameters :
   service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e, 'f, 'return) t ->
   ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e * 'pn, 'f, 'return) t
 ```
-The function `add_non_localized_get_parameters ~params ~service` Adds non localized GET parameters `params` to `service`. See the Eliom manual for more information about [non localized parameters](./../server-params.md#nonlocalizedparameters).
+The function `add_non_localized_get_parameters ~params ~service` Adds non localized GET parameters `params` to `service`. See the Eliom manual for more information about [non localized parameters](./../server/services/parameters.md#nonlocalizedparameters).
 
 ```ocaml
 val add_non_localized_post_parameters : 
@@ -428,11 +428,11 @@ The remaining arguments are ignored for services identified by a path (construct
 
 The optional `~timeout` argument specifies a timeout (in seconds) after which the coservice will disappear. This amount of time is computed from the creation or from the last call to the service. The default is "no timeout". The optional `~max_use` argument specifies that the service can be used only a fixed number of times. The default is "no limitation".
 
-If the optional argument `~keep_nl_params:`Persistent` (resp. `~keep_nl_params:`All`) is given, all links towards that service will keep persistent (resp. all) non localized GET arguments of the current service. The default is ``None`. See the eliom manual for more information about [non localized parameters](./../server-params.md#nonlocalizedparameters).
+If the optional argument `~keep_nl_params:`Persistent` (resp. `~keep_nl_params:`All`) is given, all links towards that service will keep persistent (resp. all) non localized GET arguments of the current service. The default is ``None`. See the eliom manual for more information about [non localized parameters](./../server/services/parameters.md#nonlocalizedparameters).
 
 The optional `~name` argument provides a name for the service; otherwise, it will be anonymous (with an auto-generated internal name).
 
-If the optional `~csrf_safe` argument is `true`, we create a ["CSRF-safe" service](./../server-security.md#csrf). In that case the `~name` argument is ignored. The default is `false`.
+If the optional `~csrf_safe` argument is `true`, we create a ["CSRF-safe" service](./../server/security.md#csrf). In that case the `~name` argument is ignored. The default is `false`.
 
 The `~csrf_scope` and `~csrf_secure`, if present, should respectively correspond to the `~scope` and `~secure` arguments that will be given to the associated `register` function. Otherwise the registration will fail with `Service.Wrong_session_table_for_CSRF_safe_coservice`. See [`Registration.Html.register`](./Eliom-Registration-Html.md#val-register), [`Registration.App.register`](./Eliom-Registration-App.md#val-register) or any other [`Registration`](./Eliom-Registration.md)`.*.register` functions for a description of these arguments.
 

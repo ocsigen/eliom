@@ -37,13 +37,13 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server/services/types.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
 The optional parameters `?charset`, `?code`, `?content_type` and `?headers` can be used to modify the HTTP answer sent by Eliom. Use this with care.
 
-The optional parameter `~secure_session` has no effect for scope [`Common.global_scope`](./Eliom-Common.md#type-global_scope). With other scopes, the parameter is used to force the session service table in which the `handler` will be registered. By default, the service is registered in the non-secure session if the current request's protocol is `http`, or in the secure session if the protocol is `https`. If set to `false` (resp. `true`) the `handler` will be stored in the non-secure (resp. secure) session. See the Eliom manual for an introduction to [secure state](./../server-state.md).
+The optional parameter `~secure_session` has no effect for scope [`Common.global_scope`](./Eliom-Common.md#type-global_scope). With other scopes, the parameter is used to force the session service table in which the `handler` will be registered. By default, the service is registered in the non-secure session if the current request's protocol is `http`, or in the secure session if the protocol is `https`. If set to `false` (resp. `true`) the `handler` will be stored in the non-secure (resp. secure) session. See the Eliom manual for an introduction to [secure state](./../server/state.md).
 
 The optional parameter `~error_handler` is used to specialize the error page when actual parameters aren't compatible with the expected type. The default error handler is ` fun l -> raise (`[`Common.Eliom_Typing_Error`](./Eliom-Common.md#exception-Eliom_Typing_Error)` l) `.
 

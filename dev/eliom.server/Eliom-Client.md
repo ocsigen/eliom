@@ -12,7 +12,7 @@ then Client.init_client_app ...
 
 ### RPC / Server functions
 
-See the [manual](./../clientserver-communication.md#rpc).
+See the [manual](./../clientserver/communication.md#rpc).
 
 ```ocaml
 type ('a, 'b) server_function
@@ -44,4 +44,4 @@ val server_function :
 
 The optional parameters correspond directly to the optional parameters of `Registration.Ocaml.register_coservice'`.
 
-See also the [manual](./../clientserver-communication.md#rpc).
+See also the [manual](./../clientserver/communication.md#rpc).

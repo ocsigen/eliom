@@ -1,6 +1,6 @@
 # Module `Eliom.Extension`
 
-Allows Ocsigen's extension to access Eliom data. See the Eliom manual for more information about [Eliom's extensions](./../workflow-configuration.md#extensions)
+Allows Ocsigen's extension to access Eliom data. See the Eliom manual for more information about [Eliom's extensions](./../workflow/configuration.md#extensions)
 
 ```ocaml
 type eliom_extension_sig = unit -> Ocsigen.Extensions.answer Lwt.t

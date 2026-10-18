@@ -1,0 +1,144 @@
+# Eliom PPX syntax extension
+
+The eliom syntax extension allows to write, in one file, both the client and server part of your application. The extension is automatically enabled by the default build system on `.eliom` and `.eliomi` files.
+
+The extensions presented here are also available with the `eliom.` prefix.
+
+## Sections
+
+The location of code execution is specified by section annotations. We can specify that a declaration is performed on the server, or on the client:
+
+```ocaml
+  let%server s = ...
+```
+
+```ocaml
+  let%client c = ...
+```
+Or, alternatively:
+
+```ocaml
+[%%server
+  let s = ...
+]
+```
+
+```ocaml
+[%%client
+  let c = ...
+]
+```
+Finally, it's also possible to start a section for the rest of the file:
+
+```ocaml
+[%%server.start]
+let s = ..
+```
+In `.eliomi` files, only the last version is available.
+
+Sections are only available at top level and cannot be nested.
+
+Similarly, you can write for example `type%server`, `module%server`, `open%server`, etc ...
+
+### Shared sections
+
+Shared sections are also available for code that should be on the client and on the server.
+
+```ocaml
+let%shared sh = ...
+```
+This is equivalent to duplicating the code in a client and a server section. Each copy refers to the declarations of its own side, which may differ:
+
+```ocaml
+let%server output s = print_endline s
+let%client output s = Dom_html.window##alert (Js.string s)
+let%shared () = output "Hello"
+```
+Here, `output` is the server function in the server copy, and the client function in the client copy.
+
+## Client fragments
+
+A client-side expression can be included inside a server section, and the server can thereafter refer to it: an expression placed inside `[%client ... ]` will be computed on the client when it receives the page; but the eventual client-side value of the expression can be manipulated as a black box on the server.
+
+```ocaml
+let%server x = [%client 1 + 3 ]
+```
+For example, here, the expression `1 + 3` will be evaluated on the client, but it’s possible to refer server-side to the future value of this expression (for example, put it in a list). The value of a client fragment cannot be accessed on the server.
+
+In this case, `x` has type `int Eliom.Client_value.t`. Eliom can't always infer the type of fragments. In this case, you may annotate the type: `[%client ( ... : <type> ) ]`.
+
+Client fragments cannot be nested.
+
+### Shared fragments
+
+It is also possible to use shared fragments.
+
+```ocaml
+let%server x = [%shared ...]
+```
+It will produce values of type [`Eliom.Shared.Value.t`](./../eliom.server/Eliom-Shared-Value.md#type-t).
+
+Shared fragments can be nested and can contain client fragments.
+
+## Injections and escaped values
+
+Values that have been computed on the server can be used on the client by prefixing them with a percent symbol `~%`. We call this an *injection*.
+
+```ocaml
+let%server s = 1 + 2
+let%client c = ~%s + 1
+```
+Here, the expression `1 + 2` is evaluated and bound to variable `s` on the server. The resulting value `3` is transferred to the client together with the Web page, then the expression `~%s + 1` is computed client-side. An injection makes it possible to access client-side a client fragment which has been specified on the server:
+
+```ocaml
+let%server x = [%client 1 + 3 ]
+let%client c = 3 + ~%x
+```
+The value inside the client fragment is extracted by `~%x`, whose value is `4` here.
+
+Any server-side expression can be injected, with parentheses: `~%(f x)`. The injected expression is evaluated on the server once, when the server loads the module, just before the declaration that contains the injection. It can thus only refer to server-side values defined before this declaration, not to client-side variables. Each client process receives a copy of the value with its first page: later changes on the server are not seen by the client. To follow a server-side value, inject a reactive signal (see [`Eliom.Eliom_react.S.Down.of_react`](./../eliom.server/Eliom-Eliom_react-S-Down.md#val-of_react)).
+
+```ocaml
+let%client server_start = ~%(Unix.gettimeofday ())
+```
+Here, `server_start` is the time when the server loaded the module, not the time of the request.
+
+In a shared section, the server copy uses the value of the injected expression directly, computed in the same way.
+
+Inside a client fragment, `~%` also accepts the local variables of the server code around the fragment: their value, when the fragment is created, is sent with the fragment (see `~%n` in the [example below](./#clientvalues)).
+
+## Restrictions
+
+It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use either [`Eliom.Client.server_function`](./../eliom.server/Eliom-Client.md#type-server_function) (`let%rpc`) and client or shared fragments to circumvent this limitation.
+
+To extend and customize the serialization from client to server, see chapter [Wrapping values](./wrapping.md).
+
+## Evaluation
+
+### Top-level code
+
+On the server, top-level declarations are evaluated when the server loads the module, before any request: no information on a request is available at that time.
+
+On the client, top-level declarations are evaluated when the client process starts, before the page is in the DOM. To act on the page, use `Eliom.Client.onload`.
+
+### Global and request client fragments
+
+Regardless of the construction used and their combination, there is only one communication from server to client, when the Web page is sent. Client fragments are not executed when the server meets them: the server registers them for later execution, and the client executes them once it has received the page.
+
+A client fragment created when the server loads the module is *global*. Global fragments are executed when the client process starts, together with the client sections, in the order of the program. This example prints the numbers 1 to 5 in the browser console, in this order:
+
+```ocaml
+let%client () = print_endline "1"
+
+let%server f n = ignore [%client (print_endline (string_of_int ~%n) : unit)]
+
+let%server () =
+  ignore [%client (print_endline "2" : unit)];
+  f 3;
+  f 4
+
+let%client () = print_endline "5"
+```
+A client fragment created while the server processes a request is a *request* fragment. The client executes request fragments when it receives the response, in the order of their creation on the server. When the response is a page of an Eliom application (see [`Eliom.Registration.App`](./../eliom.server/Eliom-Registration-App.md)), they are executed once the new content is in the page, so they can use its elements.
+
+Creating a client fragment in any other context (for example in a thread that runs after the server has started, outside of any request) raises an exception.

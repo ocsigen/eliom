@@ -7,7 +7,7 @@ Creation of HTML5 content from client-side values. This module is available on c
 ```ocaml
 val node : ?init:'a D.elt -> 'a elt Client_value.t -> 'a D.elt
 ```
-Those two functions are the identity on client-side (the `init` argument is ignored). See Eliom manual for more detail on [Dom & Client-values](./../clientserver-html.md#inject).
+Those two functions are the identity on client-side (the `init` argument is ignored). See Eliom manual for more detail on [Dom & Client-values](./../clientserver/html.md#inject).
 
 ```ocaml
 val attr : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib

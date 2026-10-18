@@ -29,7 +29,7 @@ It is possible to have a client side Eliom program and maintain the traditional 
 - You can set bookmarks corresponding to some states of the client-side program.
 - Part of the page can persist after loading a new page.
 - If you are listening to music or watching a video, playback does not stop when you change page\!
-[More information...](./clientserver-applications.md)
+[More information...](./clientserver/applications.md)
 
 ## Services
 
@@ -43,7 +43,7 @@ When defining a service, you must specify the names and types of the parameters 
 
 Services can be created dynamically. For example, you can create new services that depend on previous interaction with the user (form data for example). This is equivalent to what is usually called *continuation-based Web programming*. This enables for example implementing multiple-step forms very easily (like booking a plane ticket).
 
-[More information...](./server-services.md)
+[More information...](./server/services/types.md)
 
 ## Sessions and server-side state
 
@@ -54,4 +54,4 @@ But you can choose other *scope* than "session" for Eliom references:
 - It is also possible to define references with scope *"client process"*, which corresponds to a tab of your browser (if you are using client-side features). For example, if you are implementing a game, you can have several instances of the game in separate tabs. The score is stored on the server in an Eliom reference of scope "client process".
 - Eliom also provides the scope *"session group"*. This allows for example grouping together all sessions belonging to the same user. For example, you can use this to share a shopping basket between several devices (e.g., the user's laptop and smartphone).
 - There is also a scope *"request"* that can be used to store data during the generation of a page.
-[More information...](./server-state.md)
+[More information...](./server/state.md)

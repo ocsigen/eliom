@@ -2,7 +2,7 @@
 
 Creation and manipulation of Eliom services.
 
-See the Eliom manual for a detailed introduction to the concept of [Eliom services](./../server-services.md) and to [client-side service implementation](./../clientserver-services.md).
+See the Eliom manual for a detailed introduction to the concept of [Eliom services](./../server/services/types.md) and to [client-side service implementation](./../clientserver/services.md).
 
 The main functions about services are documented in [`Service_sigs.S`](./Eliom-Service_sigs-module-type-S.md).
 
@@ -375,7 +375,7 @@ val add_non_localized_get_parameters :
   service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e, 'f, 'return) t ->
   ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e * 'pn, 'f, 'return) t
 ```
-The function `add_non_localized_get_parameters ~params ~service` Adds non localized GET parameters `params` to `service`. See the Eliom manual for more information about [non localized parameters](./../server-params.md#nonlocalizedparameters).
+The function `add_non_localized_get_parameters ~params ~service` Adds non localized GET parameters `params` to `service`. See the Eliom manual for more information about [non localized parameters](./../server/services/parameters.md#nonlocalizedparameters).
 
 ```ocaml
 val add_non_localized_post_parameters : 

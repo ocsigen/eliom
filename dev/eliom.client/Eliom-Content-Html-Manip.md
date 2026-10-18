@@ -2,7 +2,7 @@
 
 DOM-like manipulation functions.
 
-In this module, all the functions apply only to HTML5 element with [Dom semantics](./../clientserver-html.md#unique).
+In this module, all the functions apply only to HTML5 element with [Dom semantics](./../clientserver/html.md#unique).
 
 ```ocaml
 val appendChild : ?before:'a elt -> 'b elt -> 'c elt -> unit

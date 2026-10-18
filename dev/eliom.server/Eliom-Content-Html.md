@@ -2,7 +2,7 @@
 
 Building and printing valid HTML5 tree. Information about Html api can be found at [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md) .
 
-See [more information on dom semantics vs. functional semantics](./../clientserver-html.md#unique) in Eliom's manual for HTML5 tree manipulated by client/server application.
+See [more information on dom semantics vs. functional semantics](./../clientserver/html.md#unique) in Eliom's manual for HTML5 tree manipulated by client/server application.
 
 ```ocaml
 type +'a elt
@@ -49,7 +49,7 @@ Creation of HTML content from shared reactive signals and data ([`Shared`](./Eli
 ```ocaml
 module Custom_data : sig ... end
 ```
-Type-safe custom data for HTML. See the [examples in the manual](./../clientserver-html.md#custom_data).
+Type-safe custom data for HTML. See the [examples in the manual](./../clientserver/html.md#custom_data).
 
 ```ocaml
 module Printer : 

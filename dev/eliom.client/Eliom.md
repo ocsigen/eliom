@@ -178,7 +178,7 @@ module Shared_sigs : sig ... end
 ```ocaml
 module Tools : sig ... end
 ```
-Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about [menu](./../misc.md#basic_menu) or [hierarchical site](./../misc.md#hier_menu).
+Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about [menu](./../server/widgets.md#basic_menu) or [hierarchical site](./../server/widgets.md#hier_menu).
 
 ```ocaml
 module Types : sig ... end

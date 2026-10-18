@@ -2,7 +2,7 @@
 
 Handle unsolicited server to client communications.
 
-See the Eliom manual for a detailed introduction to the concept of [client server communication](./../clientserver-communication.md).
+See the Eliom manual for a detailed introduction to the concept of [client server communication](./../clientserver/communication.md).
 
 When the page is not active the client stops making comet requests to the server, implying that the client can't be notified by the server anymore. The activity status is changed when the page is focused or unfocused.
 

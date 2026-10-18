@@ -149,14 +149,14 @@ val content : elt -> econtent
 
 ### Unique nodes
 
-Unique nodes are XML nodes that are manipulated 'by reference' when sent to the client part of an Eliom-application: the created element is allocated only one time in each instance of an application. See [the eliom manual](./../clientserver-html.md#unique) for more details.
+Unique nodes are XML nodes that are manipulated 'by reference' when sent to the client part of an Eliom-application: the created element is allocated only one time in each instance of an application. See [the eliom manual](./../clientserver/html.md#unique) for more details.
 
 ### Event handlers
 
 ```ocaml
 type caml_event_handler
 ```
-Values of type `caml_event_handler` represents event handler build with the `{{ ... }}` syntax (see the Eliom manual for more information on [syntax extension](./../clientserver-html.md#syntax)). Such values are expected by functions like `Content.Html.a_onclick`.
+Values of type `caml_event_handler` represents event handler build with the `{{ ... }}` syntax (see the Eliom manual for more information on [syntax extension](./../clientserver/html.md#syntax)). Such values are expected by functions like `Content.Html.a_onclick`.
 
 ```ocaml
 val wrap : elt -> 'a -> 'a Wrap.wrapped_value

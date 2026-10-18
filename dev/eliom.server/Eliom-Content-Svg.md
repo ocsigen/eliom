@@ -2,7 +2,7 @@
 
 Building and pretty-printing valid SVG tree. Information about Svg api can be found at [`Svg_sigs.T`](./../../tyxml/tyxml.functor/Svg_sigs-module-type-T.md)
 
-See the Eliom manual for more information on[dom semantics vs. functional semantics](./../clientserver-html.md#unique) for SVG tree manipulated by client/server application.
+See the Eliom manual for more information on[dom semantics vs. functional semantics](./../clientserver/html.md#unique) for SVG tree manipulated by client/server application.
 
 ```ocaml
 type +'a elt

@@ -2,7 +2,7 @@
 
 ### Client and shared values
 
-See the [manual](./../eliom-language.md).
+See the [manual](./../clientserver/multitier.md).
 
 ```ocaml
 type 'a t = 'a

@@ -2,7 +2,7 @@
 
 Building Html tree.
 
-See the Eliom manual for more information on [dom semantics vs. functional semantics](./../clientserver-html.md#unique) for SVG tree manipulated by client/server application.
+See the Eliom manual for more information on [dom semantics vs. functional semantics](./../clientserver/html.md#unique) for SVG tree manipulated by client/server application.
 
 ```ocaml
 type +'a elt
@@ -44,7 +44,7 @@ Node identifiers
 ```ocaml
 module Custom_data : sig ... end
 ```
-Type-safe custom data for HTML5. See the [examples in the manual](./../clientserver-html.md#custom_data).
+Type-safe custom data for HTML5. See the [examples in the manual](./../clientserver/html.md#custom_data).
 
 ```ocaml
 module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt

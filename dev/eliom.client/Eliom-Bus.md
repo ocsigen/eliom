@@ -2,7 +2,7 @@
 
 Broadcasting facilities between clients and server.
 
-See the Eliom manual for a detailed introduction to the concept of [client server communication](./../clientserver-communication.md).
+See the Eliom manual for a detailed introduction to the concept of [client server communication](./../clientserver/communication.md).
 
 ```ocaml
 type ('a, 'b) t

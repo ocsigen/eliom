@@ -76,7 +76,7 @@ If given the optional parameter `~fragment` is prefixed by `#` and appended to t
 
 The optional parameter `keep_nl_params` allows one to override the `keep_nl_params` parameter used when creating the `service`, see `Service.create` for a detailed description.
 
-The optional parameter `nl_params` allows one to add non localized GET parameter to the URL. See the eliom manual for more information about [non localized parameters](./../server-params.md#nonlocalizedparameters).
+The optional parameter `nl_params` allows one to add non localized GET parameter to the URL. See the eliom manual for more information about [non localized parameters](./../server/services/parameters.md#nonlocalizedparameters).
 
 ```ocaml
 val uri_of_string : (unit -> string) -> uri

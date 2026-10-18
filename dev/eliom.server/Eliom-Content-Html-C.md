@@ -4,7 +4,7 @@ Creation of HTML content from client-side values. This makes possible to insert 
 
 ### Content injection
 
-See Eliom manual for more detail on [DOM & Client-values](./../clientserver-html.md#inject).
+See Eliom manual for more detail on [DOM & Client-values](./../clientserver/html.md#inject).
 
 ```ocaml
 val node : ?init:'a elt -> 'a elt Client_value.t -> 'a elt

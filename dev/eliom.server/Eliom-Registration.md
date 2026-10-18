@@ -2,7 +2,7 @@
 
 Eliom services registration for various kinds of page content: Eliom application, valid [`Html`](./Eliom-Registration-Html.md), actions, redirections, static files, ...
 
-**Please read the Eliom manual before this page to learn how to use [services](./../server-services.md) and [predefined outputs](./../server-outputs.md).**
+**Please read the Eliom manual before this page to learn how to use [services](./../server/services/types.md) and [predefined outputs](./../server/services/handlers.md).**
 
 ### Type definitions
 
@@ -98,7 +98,7 @@ Function to modify the global\_app URI for some obscure reason
 ```ocaml
 module App (_ : Registration_sigs.APP_PARAM) : APP
 ```
-Functor for application creation. See [the chapter on applications](./../clientserver-applications.md) in the Eliom manual for details.
+Functor for application creation. See [the chapter on applications](./../clientserver/applications.md) in the Eliom manual for details.
 
 ```ocaml
 module type TMPL_PARAMS = sig ... end
@@ -158,7 +158,7 @@ module Action :
      and type options = [ `Reload | `NoReload ]
      and type result = browser_content kind
 ```
-Eliom service registration for services that only execute actions. See the Eliom manual for more information about [Actions outputs](./../server-outputs.md#actions).
+Eliom service registration for services that only execute actions. See the Eliom manual for more information about [Actions outputs](./../server/services/handlers.md#actions).
 
 ```ocaml
 module Unit : 
@@ -190,7 +190,7 @@ Auxiliarry type to hide non-interesting type parameters
 ```ocaml
 module Redirection : sig ... end
 ```
-Eliom service registration for services that returns a redirections towards another service. See the Eliom manual for more information about [Redirections outputs](./../server-outputs.md#redirections).
+Eliom service registration for services that returns a redirections towards another service. See the Eliom manual for more information about [Redirections outputs](./../server/services/handlers.md#redirections).
 
 ```ocaml
 module String_redirection : 
@@ -206,12 +206,12 @@ module String_redirection :
      and type return = Service.non_ocaml
      and type result = browser_content kind
 ```
-Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about [Redirections outputs](./../server-outputs.md#redirections). The URL given must be an absolute URI.
+Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about [Redirections outputs](./../server/services/handlers.md#redirections). The URL given must be an absolute URI.
 
 ```ocaml
 module File : sig ... end
 ```
-Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server-outputs.md#eliomfiles). The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server/services/handlers.md#eliomfiles). The option is the optional "Cache-policy: max-age" header value to be sent.
 
 ```ocaml
 module File_ct : sig ... end
@@ -236,7 +236,7 @@ module Any :
      and type 'a return = Service.non_ocaml
      and type 'a result = 'a kind
 ```
-Eliom service registration for services that choose dynamically what they want to send. The content is created using for example [`Html.send`](./Eliom-Registration-Html.md#val-send) or [`String.send`](./Eliom-Registration-String.md#val-send) functions. See the Eliom manual for more information about [services that choose dynamically what they want to send](./../server-outputs.md#any)
+Eliom service registration for services that choose dynamically what they want to send. The content is created using for example [`Html.send`](./Eliom-Registration-Html.md#val-send) or [`String.send`](./Eliom-Registration-String.md#val-send) functions. See the Eliom manual for more information about [services that choose dynamically what they want to send](./../server/services/handlers.md#any)
 
 ```ocaml
 val appl_self_redirect : 

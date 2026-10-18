@@ -4,7 +4,7 @@ Client-side service registration.
 
 The interface is meant to be compatible with server-side [`Registration`](#).
 
-See [the manual chapter on client-side services](./../clientserver-services.md) for details.
+See [the manual chapter on client-side services](./../clientserver/services.md) for details.
 
 ```ocaml
 type 'a kind

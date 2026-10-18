@@ -2,7 +2,7 @@
 
 ### Server side state data, a.k.a Eliom references
 
-**Please read the [Eliom manual](./../server-state.md) before this page to learn how server side state works.**
+**Please read the [Eliom manual](./../server/state.md) before this page to learn how server side state works.**
 
 ```ocaml
 type ('a, +'storage) eref'
@@ -27,7 +27,7 @@ val eref :
   'a ->
   'a eref
 ```
-The function `eref ~scope value` creates an Eliom reference for the given `scope` and initialize it with `value`. See the Eliom manual for more information about [scopes](./../server-state.md).
+The function `eref ~scope value` creates an Eliom reference for the given `scope` and initialize it with `value`. See the Eliom manual for more information about [scopes](./../server/state.md).
 
 Use the optional parameter `?persistent` if you want the data to survive after relaunching the server. The argument is a pair `(name, json)` where `name` is a unique table name used by Ocsipersist on disk, and `json` is a [`Deriving_Json.t`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md#type-t) codec (typically `[%json: t]` when `t` has `[@@deriving json]`). Be very careful to use unique names, and to change the name if you change the type of the data. This parameter has no effect for scope [`Common.request_scope`](./Eliom-Common.md#type-request_scope). With scope [`Common.site_scope`](./Eliom-Common.md#type-site_scope), a site is identified by its directory, as for sessions: sites at the same path of different virtual hosts share the value.
 

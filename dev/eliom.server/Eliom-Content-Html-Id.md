@@ -10,7 +10,7 @@ The type of global HTML element identifier.
 ```ocaml
 val new_elt_id : ?global:bool -> unit -> 'a id
 ```
-The function `new_elt_id ()` creates a new global HTML element identifier (see the Eliom manual for more information on [global element](./../clientserver-html.md#global)).
+The function `new_elt_id ()` creates a new global HTML element identifier (see the Eliom manual for more information on [global element](./../clientserver/html.md#global)).
 
 ```ocaml
 val create_named_elt : id:'a id -> 'a elt -> 'a elt

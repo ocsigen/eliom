@@ -38,7 +38,7 @@ val menu :
   unit ->
   [> `Ul ] Content.Html.elt
 ```
-The function `menu elts ()`, where `elts` is a list of pair `(service, content)`, creates a list of link towards the `service`s. See the Eliom manual for an [example of menu](./../misc.md#basic_menu).
+The function `menu elts ()`, where `elts` is a list of pair `(service, content)`, creates a list of link towards the `service`s. See the Eliom manual for an [example of menu](./../server/widgets.md#basic_menu).
 
 The optional parameter `service` is used to find which item(s) to highlight (by adding the class `eliomtools_current` to the corresponding `<li>` node). The default is to highlight the item corresponding to the current url.
 

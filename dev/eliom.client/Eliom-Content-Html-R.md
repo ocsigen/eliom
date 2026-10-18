@@ -4,7 +4,7 @@ Creation of HTML5 content from [React](http://erratique.ch/software/react) signa
 
 ### Content creation
 
-See [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md), If you want to create an untyped form, you will have to use [`Content.Html.D.Raw`](./Eliom-Content-Html-D-Raw.md) otherwise, use the form module. For more information, see [the manual](./../server-links.md#forms).
+See [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md), If you want to create an untyped form, you will have to use [`Content.Html.D.Raw`](./Eliom-Content-Html-D-Raw.md) otherwise, use the form module. For more information, see [the manual](./../server/services/links.md#forms).
 
 ```ocaml
 val node : 'a elt React.signal Client_value.t -> 'a elt

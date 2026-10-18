@@ -87,7 +87,7 @@ module Error_pages : sig ... end
 ```ocaml
 module Extension : sig ... end
 ```
-Allows Ocsigen's extension to access Eliom data. See the Eliom manual for more information about [Eliom's extensions](./../workflow-configuration.md#extensions)
+Allows Ocsigen's extension to access Eliom data. See the Eliom manual for more information about [Eliom's extensions](./../workflow/configuration.md#extensions)
 
 ```ocaml
 module Form_sigs : sig ... end
@@ -221,7 +221,7 @@ module Syntax : sig ... end
 ```ocaml
 module Tools : sig ... end
 ```
-Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about [menu](./../misc.md#basic_menu) or [hierarchical site](./../misc.md#hier_menu).
+Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about [menu](./../server/widgets.md#basic_menu) or [hierarchical site](./../server/widgets.md#hier_menu).
 
 ```ocaml
 module Types : sig ... end

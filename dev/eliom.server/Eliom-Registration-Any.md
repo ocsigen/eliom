@@ -1,6 +1,6 @@
 # Module `Registration.Any`
 
-Eliom service registration for services that choose dynamically what they want to send. The content is created using for example [`Html.send`](./Eliom-Registration-Html.md#val-send) or [`String.send`](./Eliom-Registration-String.md#val-send) functions. See the Eliom manual for more information about [services that choose dynamically what they want to send](./../server-outputs.md#any)
+Eliom service registration for services that choose dynamically what they want to send. The content is created using for example [`Html.send`](./Eliom-Registration-Html.md#val-send) or [`String.send`](./Eliom-Registration-String.md#val-send) functions. See the Eliom manual for more information about [services that choose dynamically what they want to send](./../server/services/handlers.md#any)
 
 ```ocaml
 type 'a page = 'a kind

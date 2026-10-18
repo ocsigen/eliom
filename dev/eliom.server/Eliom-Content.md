@@ -30,7 +30,7 @@ In case of doubt, always use `D`\-nodes when you are writing a client-server Eli
 
 The `C` modules provides functions to inject client-side elements and attributes into server-side content.
 
-**Please read [Eliom's manual](./../clientserver-html.md) to learn how to generate HTML.**
+**Please read [Eliom's manual](./../clientserver/html.md) to learn how to generate HTML.**
 
 ```ocaml
 module Xml : sig ... end

@@ -1,6 +1,6 @@
 # Module `Registration.Redirection`
 
-Eliom service registration for services that returns a redirections towards another service. See the Eliom manual for more information about [Redirections outputs](./../server-outputs.md#redirections).
+Eliom service registration for services that returns a redirections towards another service. See the Eliom manual for more information about [Redirections outputs](./../server/services/handlers.md#redirections).
 
 The default returned HTTP code is `302 Found`. You could use the optional parameter `~options` to change this value:
 
