@@ -36,6 +36,7 @@
 (static-copy doc/redirects/eliom-language.html eliom-language.html)
 (static-copy doc/redirects/misc.html misc.html)
 (static-copy doc/redirects/mobile-apps.html mobile-apps.html)
+(static-copy doc/redirects/ppx-migration.html ppx-migration.html)
 (static-copy doc/redirects/ppx-syntax.html ppx-syntax.html)
 (static-copy doc/redirects/scalability.html scalability.html)
 (static-copy doc/redirects/server-links.html server-links.html)

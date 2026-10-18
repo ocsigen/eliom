@@ -1,4 +1,4 @@
-@children_order intro server/ clientserver/ workflow/ ppx-migration
+@children_order intro server/ clientserver/ workflow/
 
 {0 Eliom}
 {e The full-stack OCaml Web and mobile framework}
