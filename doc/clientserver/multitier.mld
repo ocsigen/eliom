@@ -63,7 +63,17 @@ let%shared sh = ...
 ]}
 
 This is equivalent to duplicating the code in a client and a server
-section.
+section. Each copy refers to the declarations of its own side, which
+may differ:
+
+{@ocaml[
+let%server output s = print_endline s
+let%client output s = Dom_html.window##alert (Js.string s)
+let%shared () = output "Hello"
+]}
+
+Here, [output] is the server function in the server copy, and the
+client function in the client copy.
 
 {1 Client fragments}
 
@@ -129,6 +139,31 @@ let%client c = 3 + ~%x
 The value inside the client fragment is extracted by [~%x], whose
 value is [4] here.
 
+Any server-side expression can be injected, with parentheses:
+[~%(f x)]. The injected expression is evaluated on the server once,
+when the server loads the module, just before the declaration that
+contains the injection. It can thus only refer to server-side values
+defined before this declaration, not to client-side variables. Each
+client process receives a copy of the value with its first page: later
+changes on the server are not seen by the client. To follow a
+server-side value, inject a reactive signal (see
+{!val:Eliom.Eliom_react.S.Down.of_react}).
+
+{@ocaml[
+let%client server_start = ~%(Unix.gettimeofday ())
+]}
+
+Here, [server_start] is the time when the server loaded the module,
+not the time of the request.
+
+In a shared section, the server copy uses the value of the injected
+expression directly, computed in the same way.
+
+Inside a client fragment, [~%] also accepts the local variables of
+the server code around the fragment: their value, when the fragment is
+created, is sent with the fragment (see [~%n] in the
+{{!section-clientvalues}example below}).
+
 {1 Restrictions}
 
 It is not possible to use injections on values containing a
@@ -140,13 +175,52 @@ and client or shared fragments to circumvent this limitation.
 To extend and customize the serialization from client to server, see
 chapter {{!//clientserver/page-wrapping}Wrapping values}.
 
-{1 Note about evaluation}
+{1:evaluation Evaluation}
+
+{2 Top-level code}
+
+On the server, top-level declarations are evaluated when the server
+loads the module, before any request: no information on a request is
+available at that time.
+
+On the client, top-level declarations are evaluated when the client
+process starts, before the page is in the DOM. To act on the page, use
+{!Eliom.Client.onload}.
+
+{2:clientvalues Global and request client fragments}
 
 Regardless of the construction used and their combination, there is
 only one communication from server to client, when the Web page is
-sent. This is due to the fact that client fragments are not executed
-immediately when encountered inside server code.  The intuitive
-semantic is the following: client code is not executed when
-encountered, instead it is registered for later execution, once the
-Web page has been sent to the client. Then all the client code is
-executed in the order it was encountered on the server.
+sent. Client fragments are not executed when the server meets them:
+the server registers them for later execution, and the client
+executes them once it has received the page.
+
+A client fragment created when the server loads the module is
+{e global}. Global fragments are executed when the client process
+starts, together with the client sections, in the order of the
+program. This example prints the numbers 1 to 5 in the browser
+console, in this order:
+
+{@ocaml[
+let%client () = print_endline "1"
+
+let%server f n = ignore [%client (print_endline (string_of_int ~%n) : unit)]
+
+let%server () =
+  ignore [%client (print_endline "2" : unit)];
+  f 3;
+  f 4
+
+let%client () = print_endline "5"
+]}
+
+A client fragment created while the server processes a request is a
+{e request} fragment. The client executes request fragments when it
+receives the response, in the order of their creation on the server.
+When the response is a page of an Eliom application (see
+{!Eliom.Registration.App}), they are executed once the new content is
+in the page, so they can use its elements.
+
+Creating a client fragment in any other context (for example in a
+thread that runs after the server has started, outside of any request)
+raises an exception.

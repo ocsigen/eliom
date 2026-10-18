@@ -19,14 +19,14 @@
 
 (** {2 Client and shared values}
 
-    See the {{!//clientserver/page-language}manual}. *)
+    See the {{!//clientserver/page-multitier}manual}. *)
 
 type +'a t
-(** Client values on the server are created by the syntax [{typ{ expr
-    }}] in the server section (cf. {{!//clientserver/page-language.clientvalues}the
-    manual}).  They are abstract, but become concrete once sent to
-    the client. See also {{!Client_value.t}the
-    concrete representation on the client}. *)
+(** Client values on the server are created by client fragments
+    [[%client (expr : typ)]] in server code (cf.
+    {{!//clientserver/page-multitier.clientvalues}the manual}).  They are
+    abstract, but become concrete once sent to the client. See also
+    {{!Client_value.t}the concrete representation on the client}. *)
 
 exception Client_value_creation_invalid_context of string
 (** Raised if a client value of the given closure ID is created at a

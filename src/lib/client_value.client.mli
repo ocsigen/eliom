@@ -19,7 +19,7 @@
 
 (** {2 Client and shared values}
 
-    See the {{!//clientserver/page-language}manual}. *)
+    See the {{!//clientserver/page-multitier}manual}. *)
 
 type 'a t = 'a
 (** An ['a] client value on the client is just an ['a].  See also {{!Client_value.t}the abstract representation on

@@ -1,4 +1,4 @@
-@children_order applications multitier language html communication services react cache wrapping
+@children_order applications multitier html communication services react cache wrapping
 @toc_status hidden
 
 {0 Client-server programming}
