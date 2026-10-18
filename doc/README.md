@@ -20,6 +20,7 @@ package — i.e. the documented version is whatever the build switch has install
 | Server / client API | `doc/server.indexdoc` / `doc/client.indexdoc` (curated module index) | odoc index |
 | API (`.mli`) | the installed `eliom` package | odoc comments |
 | Site configuration | [`doc/wodoc`](wodoc) | wodoc config (S-expression) |
+| Old manual URLs | [`doc/redirects/`](redirects), copied into each version by `(static-copy …)` in `doc/wodoc` | HTML redirects |
 
 The whole site — per-side API navs, the client/server switch, the body colour,
 the shared manual nav, and the rewriting of sibling Ocsigen projects' cross-refs

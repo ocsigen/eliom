@@ -22,6 +22,31 @@
  (section "Eliom's Reference manual"
   (page-tree)))
 
+;; Redirects from the URLs of the flat manual (Eliom 12 and before) to the
+;; pages of the tree, so that old links and bookmarks keep working. Paths are
+;; relative to the repository root, where wodoc build runs.
+(static-copy doc/redirects/clientserver-applications.html clientserver-applications.html)
+(static-copy doc/redirects/clientserver-cache.html clientserver-cache.html)
+(static-copy doc/redirects/clientserver-communication.html clientserver-communication.html)
+(static-copy doc/redirects/clientserver-html.html clientserver-html.html)
+(static-copy doc/redirects/clientserver-react.html clientserver-react.html)
+(static-copy doc/redirects/clientserver-services.html clientserver-services.html)
+(static-copy doc/redirects/clientserver-wrapping.html clientserver-wrapping.html)
+(static-copy doc/redirects/config.html config.html)
+(static-copy doc/redirects/eliom-language.html eliom-language.html)
+(static-copy doc/redirects/misc.html misc.html)
+(static-copy doc/redirects/mobile-apps.html mobile-apps.html)
+(static-copy doc/redirects/ppx-syntax.html ppx-syntax.html)
+(static-copy doc/redirects/scalability.html scalability.html)
+(static-copy doc/redirects/server-links.html server-links.html)
+(static-copy doc/redirects/server-outputs.html server-outputs.html)
+(static-copy doc/redirects/server-params.html server-params.html)
+(static-copy doc/redirects/server-security.html server-security.html)
+(static-copy doc/redirects/server-services.html server-services.html)
+(static-copy doc/redirects/server-state.html server-state.html)
+(static-copy doc/redirects/workflow-configuration.html workflow-configuration.html)
+(static-copy doc/redirects/workflow-distillery.html workflow-distillery.html)
+
 (client-server
   (server (lib eliom.server) (indexdoc doc/server.indexdoc) (heading "Server API") (wrapper Eliom))
   (client (lib eliom.client) (indexdoc doc/client.indexdoc) (heading "Client API") (wrapper Eliom)))
