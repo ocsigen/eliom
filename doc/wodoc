@@ -16,36 +16,11 @@
 (css /css/style.css /css/ocsigen-odoc.css)  ; shared Ocsigen theme (wodoc's default is a built-in one)
 (landing index.html)
 
-;; The shared manual nav (the manual .mld are built with the package by
-;; odoc_driver; this only orders them into the left column). Only `dev` is ever
-;; rebuilt, so this static nav always matches the current manual; released
-;; versions keep the nav they were frozen with.
+;; The manual nav is the page tree odoc builds from the manual's directories
+;; (doc/<dir>/index.mld: title, @children_order), the same as on ocaml.org.
 (nav
  (section "Eliom's Reference manual"
-  (link "Overview" index.html index)
-  (link "Introduction" intro.html intro)
-  (group "Server-side programming"
-   (group "Services"
-    (link "The different types of services" server/services/types.html)
-    (link "Typing service parameters" server/services/parameters.html)
-    (link "Service handlers" server/services/handlers.html)
-    (link "Creating links and forms" server/services/links.html))
-   (link "Sessions and server side state" server/state.html)
-   (link "Security" server/security.html))
-  (group "Client-server programming"
-   (link "Eliom applications" clientserver/applications.html)
-   (link "Multi-tier programming" clientserver/multitier.html)
-   (link "Generating HTML" clientserver/html.html)
-   (link "Communication" clientserver/communication.html)
-   (link "Client-side services" clientserver/services.html)
-   (link "Shared reactive programming" clientserver/react.html)
-   (link "Caching data and off-line applications" clientserver/cache.html)
-   (link "Custom wrapping" clientserver/wrapping.html))
-  (group "Workflows"
-   (link "Distillery" workflow/distillery.html)
-   (link "Mobile apps" workflow/mobile.html)
-   (link "Configuration & running" workflow/configuration.html)
-   (link "Scalability" workflow/scalability.html))))
+  (page-tree)))
 
 (client-server
   (server (lib eliom.server) (indexdoc doc/server.indexdoc) (heading "Server API") (wrapper Eliom))
