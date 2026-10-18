@@ -42,6 +42,13 @@ jobs:
         with:
           token: ${{ github.token }}
 
+      # The macOS image defaults to OpenSSL 4, which has no SSLv3: ssl 0.8.0
+      # then fails to create Conduit's default server context, and every
+      # test server dies at startup. Build ssl against OpenSSL 3 until ssl
+      # handles it.
+      - if: runner.os == 'macOS'
+        run: echo "PKG_CONFIG_PATH=$(brew --prefix openssl@3)/lib/pkgconfig" >> "$GITHUB_ENV"
+
       # Published js_of_ocaml (6.3.2) caps at ocaml < 5.5; pin master for
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
