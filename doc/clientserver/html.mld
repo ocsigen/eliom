@@ -1,3 +1,5 @@
+@short_title Generating HTML
+
 {0:server_generating_html Generating HTML pages}
 
 Ocsigen provides several ways to generate and type HTML pages.
