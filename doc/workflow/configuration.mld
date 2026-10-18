@@ -24,7 +24,7 @@ add the following lines to the Ocsigen configuration file
 <extension findlib-package="eliom.server"/>
 <host>
   <site path="examples">
-    <eliommodule module="~///path_to///example.cmo" />
+    <eliommodule module="/path/to/example.cmo" />
     <eliom />
   </site>
 </host>
@@ -34,7 +34,7 @@ The block surrounded by the [<site>] tag creates a sub-site on your
 host, in directory [examples]. The [<site>] tag is optional if
 you want to register your services at the root of the server path tree.
 
-The [<eliom>] tag defines an Eliom module to be loaded (dynamically while
+The [<eliommodule>] tag defines an Eliom module to be loaded (dynamically while
 starting Ocsigen server) for this subsite.
 
 {3 Running Ocsigen server}
@@ -49,7 +49,7 @@ or, if your configuration file is not in the default
 location:
 
 {v
-ocsigenserver -c //<your configuration file>//
+ocsigenserver -c <your configuration file>
 v}
 
 You should see the page corresponding to service ["coucou"] in site
@@ -64,9 +64,9 @@ Thus, Ocsigen server will display the exceptions raised during
 the generation of a page in error pages.
 
 {b Tip:} To debug your programs,
-add the option [-v] or [-V] of
-the [ocsigen] command to have verbose information on what succeeds
-during request. Also think to have look in the log files when something goes
+add the option [-v] (or [-vv], [-vvv]) of
+the [ocsigenserver] command to have verbose information on what happens
+during requests. Also have a look at the log files when something goes
 wrong.{%wodoc:end%}
 
 
@@ -87,7 +87,7 @@ it is also possible (and recommended!) to do:
 {v
 <host>
   <site path="examples">
-    <eliommodule findlib-package="//package-name//" />
+    <eliommodule findlib-package="package-name" />
     <eliom />
   </site>
 </host>
@@ -98,7 +98,8 @@ v}
 {2:reload Updating sites without shutting down the server}
 
 Ocsigen server has a feature that allows the configuration to be reloaded
-without shutting down the server (see section * *).
+without shutting down the server (see section "Reloading the configuration file"
+of the {{!/ocsigenserver/page-config}server's configuration}).
 This can be used to reload Eliom modules without closing volatile sessions.
 To do that use {%wodoc:span class="code"%}/etc/init.d/ocsigen reload{%wodoc:end%}
 for most of the distributions, or do it manually using:
@@ -110,14 +111,14 @@ v}
 Only modules loaded inside {%wodoc:span class="code"%}<host{%wodoc:end%}>,
 {%wodoc:span class="code"%}<site{%wodoc:end%}> or
 {%wodoc:span class="code"%}<library{%wodoc:end%}> will be reloaded.
-Module loaded using {%wodoc:span class="code"%}<extension{%wodoc:end%}> will not.
+Modules loaded using {%wodoc:span class="code"%}<extension{%wodoc:end%}> will not.
 
 Have a look at the logs to see if all went well during the reload.
 If something went wrong, old services may still be reachable.
 
 Warning:
 - Services created with the old modules or URLs that have not been
-  masked by new ones will still reachable after the update!
+  masked by new ones will still be reachable after the update!
 - During the reload, some information of the configuration file will
   not be re-read (for example port numbers, user and group, etc.).
 
@@ -149,15 +150,15 @@ Here is the handler used by the tutorial:
 You can add your own options in the configuration file for your Web
 site. For example:
 
-{@ocaml[
-    <eliommodule module="//path_to///yourmodule.cmo">
+{v
+    <eliommodule module="/path/to/yourmodule.cmo">
       <youroptions> ...
     </eliommodule>
-]}
+v}
 
 Use {!Eliom.Config.get_config} during the initialization
-of your module to get the data between {%wodoc:span class="code"%}<eliom{%wodoc:end%}>
-and {%wodoc:span class="code"%}</eliom{%wodoc:end%}>.
+of your module to get the data between {%wodoc:span class="code"%}<eliommodule{%wodoc:end%}>
+and {%wodoc:span class="code"%}</eliommodule{%wodoc:end%}>.
 
 {%wodoc:div class="wip"%}
  Warning: parsing these data is very basic for now.
@@ -179,40 +180,40 @@ configuration file. That function should register the module services
 (and possibly call {!Eliom.Config.get_config} if the module has
 configuration options).
 
-{%wodoc:div class="wip"%}How to improve this and this easier to use?{%wodoc:end%}
+{%wodoc:div class="wip"%}How to make this easier to use?{%wodoc:end%}
 
 To initialize the module from the configuration file, use the syntax:
 
 {v
-<eliommodule name="//name//"> ... </eliommodule>
+<eliommodule name="name"> ... </eliommodule>
 v}
 
-(or {%wodoc:span class="code"%}<eliommodule name="{e name}"> ... </eliom> {%wodoc:end%})
+(or {%wodoc:span class="code"%}<eliom name="{e name}"> ... </eliom> {%wodoc:end%})
 which is equivalent to:
 
 {v
-<eliommodule module="//name.cmxs//"> ... </eliommodule>
+<eliommodule module="name.cmxs"> ... </eliommodule>
 v}
 
-(or {%wodoc:span class="code"%}<eliommodules module="{e name.cmxs}"> ... </eliom> {%wodoc:end%})
+(or {%wodoc:span class="code"%}<eliom module="{e name.cmxs}"> ... </eliom> {%wodoc:end%})
 
 with the exception that it does not load the module using {%wodoc:span class="code"%}Dynlink{%wodoc:end%}, but calls the initialization function.{%html:<br/>%}
 
 You can use functions such as
 {!Eliom.State.create_volatile_table}
-that needs information about the site (here, volatile tables are
+that need information about the site (here, volatile tables are
 associated to a site), only during a request or during the
 initialization phase of the server.
 
 If you want to use this kind of function before the initialization
 phase, for example if your module is linked statically with the
-server, you must call these function using function
+server, you must call these functions using function
 {!Eliom.Service.register_eliom_module}.
 (One solution is to use a lazy value to delay the creation of the
 table, and force that value from the registration function).
 
 
-{2:extensions Advanced use: create an extension for the server that access Eliom's data}
+{2:extensions Advanced use: create an extension for the server that accesses Eliom's data}
 
 If you want an Ocsigen extension with access to Eliom's data (for
 example if you want an extension that will register some services),
@@ -229,7 +230,7 @@ Here are Eliom's options you can use in configuration files.
 
 {2 Timeouts}
 
-{%wodoc:div class="wip"%}Revoir les timeouts pour client processes et groupes{%wodoc:end%}
+{%wodoc:div class="wip"%}Review the timeouts for client processes and groups{%wodoc:end%}
 
 State timeouts can be set either inside tag
 [<extension findlib-package="eliom.server"/>] (default value
@@ -268,11 +269,11 @@ or [clientprocess] (tab).
 - [<persistenttimeout value="7200"/>]
   Idem for persistent state data
 - [<datatimeout value="30"  [hierarchyname=""] [level="session"]/>]
-     Like [<timeout>], but for in memory data
+     Like [<volatiletimeout>], but for in memory data
      states only
      (not service states).
 - [<servicetimeout value="30" [hierarchyname=""] [level="session"]/>]
-  Like [<timeout>], but for service states only
+  Like [<volatiletimeout>], but for service states only
      (not in memory data states).
 
 {2 Garbage collector of states and services}
@@ -314,10 +315,10 @@ This option can appear inside tag
 To fight denial of service, Eliom limits the number of sessions
 and the number of dynamic coservices. Without these limitations, it would
 be possible for an attacker to open repeatedly lots of sessions,
-or creating new services (for example CSRF safe coservices can create lots
+or to create new services (for example CSRF safe coservices can create lots
 of coservices when you reload repeatedly a page). When the limit is reached,
 it is still possible to open a new session or create a new service, but the
-oldest session or services disappear (the one that has not been used
+oldest sessions or services disappear (the ones that have not been used
 for the longest time).
 
 {3 Limiting sessions}
@@ -360,8 +361,8 @@ or by sub network if the service is registered in the global table.
 Default values: 1000 for one session, and 500000 for one subnet.
 
 Note that there is no limitation of named coservices or regular services.
-It is not a good practice to allow the creation of too much services
-of this kinds dynamically.
+It is not a good practice to allow the creation of too many services
+of these kinds dynamically.
 
 
 {3 How to set limits}
@@ -375,7 +376,7 @@ configuration)
 By default, functions like
 [Eliom.State.set_default_max_volatile_sessions_per_group]
 will not override a value set in the configuration file
-(but if you use [~override_configfile:true]).
+(unless you use [~override_configfile:true]).
 Thus, a Web site can set its own defaults and the user can still
 override them from the configuration file.
 
@@ -444,7 +445,7 @@ will receive stale data if global data changes over time.
 The syntax to activate this option is the following:
 - [<cacheglobaldata path="path" cache="604800"/>]
 
-All attributes are optional. The [path] option can be use to
+All attributes are optional. The [path] option can be used to
 indicate the path below which the JavaScript file providing the global
 data is served. The default path is the empty path. This script name
 is the MD5 checksum of its contents (with a [.js] suffix). Thus,
@@ -468,7 +469,7 @@ the content of the configuration of the Eliom module:
 {v
   <eliom ... xhr-links="no" />
 v}
-Then, all links will perform a normal HTTP request unless explicitely
+Then, all links will perform a normal HTTP request unless explicitly
 created with the [~xhr:true] option.
 
 This value can also be set through function
