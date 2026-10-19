@@ -9,7 +9,6 @@ let%server _ =
     ~veryverbose:()
     ~debugmode:true
     ~logdir:"local/var/log/%%%PROJECT_NAME%%%"
-    ~datadir:"local/var/data/%%%PROJECT_NAME%%%"
     ~uploaddir:(Some "/tmp")
     ~usedefaulthostname:true
     ~command_pipe:"local/var/run/%%%PROJECT_NAME%%%-cmd"

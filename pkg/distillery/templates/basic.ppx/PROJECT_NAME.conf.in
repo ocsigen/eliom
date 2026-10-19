@@ -8,13 +8,14 @@
     %%% Only set for running, not for testing
     %%USERGROUP%%
     <logdir>%%LOGDIR%%</logdir>
-    <datadir>%%DATADIR%%</datadir>
     <charset>utf-8</charset>
     %%% Only set when debugging
     %%DEBUGMODE%%
     <commandpipe>%%CMDPIPE%%</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
-    <extension findlib-package="ocsipersist-%%PERSISTENT_DATA_BACKEND%%-config"/>
+    <extension findlib-package="ocsipersist-%%PERSISTENT_DATA_BACKEND%%-config">
+      %%PERSISTENT_DATA_LOCATION%%
+    </extension>
     <extension findlib-package="eliom.server">
       <ignoredgetparams regexp="utm_[a-z]*|[a-z]*clid|li_fat_id"/>
     </extension>
