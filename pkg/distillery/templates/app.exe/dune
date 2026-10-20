@@ -76,7 +76,17 @@
 (subdir
  gen
  (rule
-  (deps ../tools/gen_dune.ml)
+  ; The generator lists the client modules by reading the set of source
+  ; files. Declaring that set as dependencies is what makes dune stage them
+  ; (and re-run the generator when an .eliom/.eliomi or asset is added,
+  ; removed or renamed). Without it the rule fails under a sandbox, and
+  ; dune.client goes stale so newly added client modules are silently
+  ; dropped.
+  (deps
+   ../tools/gen_dune.ml
+   (glob_files ../*.eliom)
+   (glob_files ../*.eliomi)
+   (glob_files ../assets/*))
   (action
    (with-stdout-to
     dune.client

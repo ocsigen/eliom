@@ -2,7 +2,7 @@
     (name eliom_ppx_client)
     (modes native)
     (modules eliom_ppx_client)
-    (libraries ocsigen-ppx-rpc eliom.ppx.client))
+    (libraries ocsigen-ppx-rpc js_of_ocaml-ppx_deriving_json eliom.ppx.client))
 
 (rule
   (action (with-stdout-to eliom_ppx_client.ml
