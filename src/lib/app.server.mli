@@ -42,6 +42,9 @@ val run :
   -> Ocsigen.Server.instruction
 (** [run ?app ()] run Eliom application [app] under current site.
     Use this to build a static executable without configuration file.
+    The program must then also configure Ocsipersist, for example with
+    [Ocsipersist_settings.set_db_file] for [ocsipersist-sqlite] (see the
+    {{!//workflow/page-configuration.no_config_file}manual}).
     Default value of [?app] is [default_app_name].
     Other optional values correspond to Eliom configuration for this site.
 

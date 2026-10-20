@@ -1072,8 +1072,9 @@ val create_persistent_table :
   -> json:'a Deriving_Json.t
   -> string
   -> 'a persistent_table Lwt.t
-(** creates a table on hard disk where you can store the session data
-    for all users. It uses {!Ocsipersist} with {!Deriving_Json} serialisation.
+(** creates a table in the Ocsipersist database where you can store the
+    session data for all users. It uses {!Ocsipersist} with
+    {!Deriving_Json} serialisation.
     (low level) *)
 
 val get_persistent_data :

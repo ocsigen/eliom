@@ -49,9 +49,11 @@ val eref :
     manual for more information about {{!//server/page-state}scopes}.
 
     Use the optional parameter [?persistent] if you want the data to
-    survive after relaunching the server. The argument is a pair
-    [(name, json)] where [name] is a unique table name used by
-    Ocsipersist on disk, and [json] is a {!Deriving_Json.t} codec
+    survive after relaunching the server. The data are stored with
+    Ocsipersist, whose backend and database location must be configured
+    (see the {{!//server/page-state.ocsipersist_config}manual}).
+    The argument is a pair [(name, json)] where [name] identifies the
+    reference in the database, and [json] is a {!Deriving_Json.t} codec
     (typically [\[%json: t\]] when [t] has [\[@@deriving json\]]).
     Be very careful to use unique names, and to change the name if
     you change the type of the data. This parameter has no effect for

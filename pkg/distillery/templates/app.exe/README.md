@@ -14,6 +14,9 @@ eliom-distillery:
  - %%%PROJECT_NAME%%%.eliom
    This is your initial source file.
 
+ - %%%PROJECT_NAME%%%_server.eliom
+   The main program: it starts the Web server, with its options.
+
  - static/
    The content of this folder is statically served. Put your CSS or
    additional JavaScript files here
@@ -37,18 +40,26 @@ Makefile targets
 
 Here's some help on how to work with this basic distillery project:
 
- - Test your application by compiling it and running ocsigenserver locally
+ - Test your application by compiling it and running the server locally
      $ make test.byte (or test.opt)
 
  - Compile it only
      $ make all (or byte or opt)
 
  - Deploy your project on your system:
-   Adapt the paths in your source code to match the installation.
+   There is no configuration file: the paths are set in your source code.
+   Adapt them to match the installation:
+    * the Ocsipersist database file (Ocsipersist_settings.set_db_file)
+      in %%%PROJECT_NAME%%%.eliom,
+    * the log directory (~logdir), the command pipe (~command_pipe) and
+      the static files directory (Staticmod.run ~dir) in
+      %%%PROJECT_NAME%%%_server.eliom.
+   They must match variables DATADIR, LOGDIR, CMDPIPE and FILESDIR in
+   file Makefile.options, under the installation prefix.
    The default source code is using local files in this directory.
    The default installation puts files in your opam directory
    (see variable PREFIX in file Makefile.options).
-     $ make install (or install.byte or install.opt)
+     $ make install
 
  - Run the server on the deployed project
      $ make run
