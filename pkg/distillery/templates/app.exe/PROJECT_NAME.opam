@@ -5,5 +5,6 @@ synopsis: "%%%PROJECT_NAME%%%"
 
 depends: [
   "eliom" {>= "13.0" & < "14.0"}
-  "ocsipersist-sqlite-config" {>= "3.0" & < "4.0"}
+  "ocsipersist-sqlite-config" {>= "3.1" & < "4.0"}
+  "ocsigen-ppx-rpc" {>= "2.0~" & < "3.0"}
 ]
