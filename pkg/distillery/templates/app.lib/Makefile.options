@@ -51,7 +51,7 @@ CMDPIPE               := var/run/${PROJECT_NAME}-cmd
 # Ocsigenserver's logging files
 LOGDIR                := var/log/${PROJECT_NAME}
 
-# Ocsigenserver's persistent data files
+# Persistent data files (Ocsipersist)
 DATADIR               := var/data/${PROJECT_NAME}
 
 # Project's static files
