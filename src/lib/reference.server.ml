@@ -48,6 +48,53 @@ let json_option (type x) (j : x Deriving_Json.t) : x option Deriving_Json.t =
   let module O = Deriving_Json.Json_option (Deriving_Json.Defaults'' (M)) in
   O.t
 
+let is_rejected p =
+  match Lwt.state p with
+  | Lwt.Fail _ -> true
+  | Lwt.Return _ | Lwt.Sleep -> false
+
+(* [open_on_first_use f] runs [f ()] at its first call and gives its promise
+   to the later calls, unless it is rejected: the callers waiting for it get
+   the error, and the next call runs [f ()] again. Cancelling the promise
+   given to one caller does not cancel the shared one. A persistent reference
+   created at the toplevel of a module thus opens its store when it is first
+   used, after Ocsipersist is configured.
+   TODO: drop it once Eliom requires an Ocsipersist whose
+   [Store_json.make_persistent] does not access the database
+   (ocsigen/ocsipersist#46). *)
+let open_on_first_use f =
+  let opened = ref None in
+  fun () ->
+    (* A rejected promise is replaced when it is asked for again. Clearing it
+       in a callback of the promise would not do: Lwt may run the failure
+       handler of a caller first, and a retry from that handler would get the
+       rejection. *)
+    let p =
+      match !opened with
+      | Some p when not (is_rejected p) -> p
+      | Some _ | None ->
+          let p = Lwt.apply f () in
+          opened := Some p;
+          p
+    in
+    Lwt.protected p
+
+(* [global_store ~name ~json ()] opens the store of the global persistent
+   reference [name]. A failure, for instance a backend not configured yet, is
+   logged with the name of the reference, which the exception of the backend
+   does not give, and reported to the caller. *)
+let global_store ~name ~json () =
+  Lwt.catch
+    (fun () ->
+       let* store = pers_ref_store in
+       Store_json.make_persistent ~store ~name ~json:(json_option json)
+         ~default:None)
+    (fun exc ->
+       Logs.err ~src:section (fun fmt ->
+         fmt "Cannot open the store of the persistent reference %s: %s" name
+           (Printexc.to_string exc));
+       Lwt.fail exc)
+
 type 'a typed_table =
   (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
 
@@ -56,7 +103,8 @@ type 'a eref_kind =
   | Sit of 'a Polytables.key
   | Ref of 'a lazy_t ref (* Ocaml reference *)
   | Vol of 'a volatile_table Lazy.t (* Vol. table (group, session, process) *)
-  | Ocsiper of 'a option Store_json.t Lwt.t (* Global persist. table *)
+  | Ocsiper of (unit -> 'a option Store_json.t Lwt.t)
+    (* Global persist. table, opened at the first access *)
   | Ocsiper_sit of 'a typed_table (* Persist. table for site *)
   | Per of 'a persistent_table Lwt.t
 (* Persist. table for group session or process *)
@@ -192,11 +240,7 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
     | Some (name, json) ->
         { default = f
         ; ext_safe = ext
-        ; kind =
-            Ocsiper
-              (let* store = pers_ref_store in
-               Store_json.make_persistent ~store ~name ~json:(json_option json)
-                 ~default:None) })
+        ; kind = Ocsiper (open_on_first_use (global_store ~name ~json)) })
   | `Site -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
@@ -261,7 +305,7 @@ let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
            match data with Data d -> Lwt.return d | _ -> reset ())
         (reset_unreadable ~reset)
   | Ocsiper r ->
-      let* r = r in
+      let* r = r () in
       let reset () =
         let value = f () in
         let* () = Store_json.set r (Some value) in
@@ -281,7 +325,7 @@ let set (type a) ({kind = table; _} as eref) (value : a) =
       let* t = t in
       set_persistent_data ~table:t value
   | Ocsiper r ->
-      let* r = r in
+      let* r = r () in
       Store_json.set r (Some value)
   | Ocsiper_sit t -> set_site_value t (get_site_id ()) value
   | _ -> Lwt.return (Volatile.set eref value)
@@ -302,7 +346,7 @@ let unset (type a) ({kind = table; _} as eref) =
       let* t = t in
       remove_persistent_data ~table:t ()
   | Ocsiper r ->
-      let* r = r in
+      let* r = r () in
       Store_json.set r None
   | Ocsiper_sit t ->
       let module T =
