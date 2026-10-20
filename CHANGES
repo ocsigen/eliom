@@ -395,6 +395,12 @@
    dbm, then pgsql, and sqlite when none is installed. It looked for the old
    names ocsipersist.dbm and the like, never found them, and always chose
    dbm, which is not available on macOS.
+** A persistent Eliom reference of global scope now accesses the database
+   only when it is read or written, as the other persistent references do.
+   It accessed it when created, often at the toplevel of a module, which
+   could be before the application configured Ocsipersist (the location of
+   the SQLite database, for instance): the reference then failed for good,
+   or used another database.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

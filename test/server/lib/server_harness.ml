@@ -145,7 +145,11 @@ let start instructions =
   let dir = Sys.argv.(1) in
   Sys.chdir dir;
   if not (Sys.file_exists "log") then Sys.mkdir "log" 0o700;
-  Ocsipersist_settings.set_db_file "ocsidb";
+  (* An absolute path. With ocsipersist-sqlite 3.1, a database opened before
+     this point, from the toplevel of a module, is the default file "ocsidb"
+     of the start directory. As the name differs, later accesses use this
+     file instead, and the tests notice that the data are not there. *)
+  Ocsipersist_settings.set_db_file (Filename.concat (Sys.getcwd ()) "ocsidb");
   Ocsigen.Server.start
     ~ports:[`Unix socket_name, 0]
     ~command_pipe ~logdir:"log" ~debugmode:true

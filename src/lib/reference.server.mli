@@ -74,11 +74,14 @@ val eref :
 
     {e Warning: Eliom references of scope {!Common.global_scope},
     {!Common.site_scope} or
-    {!Common.request_scope} may be created at any time ; but for other
-    scopes, they must be created when the site information is
-    available to Eliom, that is, either during the initialization
-    phase of the server (while reading the configuration file) or
-    during a request. Otherwise, it will raise the exception
+    {!Common.request_scope} may be created at any time. Persistent
+    references access the database only when they are read or written,
+    which must happen after Ocsipersist is configured, for instance with
+    [Ocsipersist_settings.set_db_file] for SQLite. Eliom references of
+    other scopes must be created when the site
+    information is available to Eliom, that is, either during the
+    initialization phase of the server (while reading the configuration
+    file) or during a request. Otherwise, it will raise the exception
     {!Common.Site_information_not_available}. If you are
     using static linking, you must delay the call to this function
     until the configuration file is read, using
@@ -265,3 +268,10 @@ module Ext : sig
     -> 'a eref
     -> unit Lwt.t
 end
+
+(**/**)
+
+val open_on_first_use : (unit -> 'a Lwt.t) -> unit -> 'a Lwt.t
+(** [open_on_first_use f ()] is the promise of [f ()], run at the first call
+    and shared by the later calls while it is pending or fulfilled. A rejected
+    promise is replaced by a new call of [f ()]. Exposed for the tests. *)
