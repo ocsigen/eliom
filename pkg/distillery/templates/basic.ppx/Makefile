@@ -113,11 +113,14 @@ depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 
 FINDLIB_PACKAGES=$(patsubst %,\<extension\ findlib-package=\"%\"\ /\>,$(SERVER_PACKAGES))
 EDIT_WARNING=DON\'T EDIT THIS FILE! It is generated from $(PROJECT_NAME).conf.in, edit that one, or the variables in Makefile.options
-# Where the persistent data go, in the tag of their backend
+# Location of the persistent data, in the syntax of the Ocsipersist backend.
+# None for pgsql, which uses its default connection settings.
 ifeq ($(PERSISTENT_DATA_BACKEND),dbm)
-  PERSISTENT_DATA_LOCATION := <store dir='%%DATADIR%%'/>
+  PERSISTENT_DATA_LOCATION := <store dir=\"%%DATADIR%%\"/>
+else ifeq ($(PERSISTENT_DATA_BACKEND),sqlite)
+  PERSISTENT_DATA_LOCATION := <database file=\"%%DATADIR%%/ocsidb\"/>
 else
-  PERSISTENT_DATA_LOCATION := <database file='%%DATADIR%%/ocsidb'/>
+  PERSISTENT_DATA_LOCATION :=
 endif
 SED_ARGS := -e "/^ *%%%/d"
 SED_ARGS += -e "s|%%PROJECT_NAME%%|$(PROJECT_NAME)|g"

@@ -18,10 +18,11 @@ CLIENT_PACKAGES := js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json
 # Directory with files to be statically served
 LOCAL_STATIC = static
 
-# The backend for persistent data. Can be dbm or sqlite.
+# The backend for persistent data. Can be dbm, sqlite or pgsql.
 # Make sure you have the following packages installed
 # - *dbm* if you use dbm --> opam install dbm.
 # - *sqlite* if you use sqlite --> opam install sqlite3.
+# - *pgsql* if you use pgsql --> opam install ocsipersist-pgsql-config.
 PERSISTENT_DATA_BACKEND = %%%PROJECT_DB%%%
 
 # Debug application (yes/no): Debugging info in compilation,
