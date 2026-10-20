@@ -383,6 +383,11 @@
    the error handler is logged and its code sent, as for the handler of the
    service. The result was sent alone, and the client-side program read it
    as a value of another type.
+** eliom-distillery chooses the persistent-data backend of the basic.ppx
+   template among the installed ocsipersist-*-config packages: sqlite, then
+   dbm, then pgsql, and sqlite when none is installed. It looked for the old
+   names ocsipersist.dbm and the like, never found them, and always chose
+   dbm, which is not available on macOS.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
