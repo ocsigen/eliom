@@ -167,6 +167,10 @@
 * Distillery templates no longer set the data directory of Ocsigen Server
   (<datadir>, ~datadir), which is going away. basic.ppx now gives
   Ocsipersist its location itself (<store> for dbm, <database> for sqlite).
+* Distillery templates app.exe and app.lib: the rule that lists the client
+  modules now works in the dune sandbox, and runs again when an .eliom or
+  .eliomi file or an asset is added, removed or renamed. Before, new client
+  modules could be silently left out.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
