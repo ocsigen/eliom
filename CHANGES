@@ -164,10 +164,9 @@
 * Comet: Config.set_comet_timeout and the option <comettimeout value="20"/>
   set the time after which the server answers a Comet request waiting for
   data with no data. It was fixed to 20 s, still the default.
-* Distillery templates: they no longer set the data directory of Ocsigen
-  Server (<datadir>, ~datadir), which is going away. basic.ppx now gives
-  Ocsipersist its location itself (<store> or <database>, depending on
-  PERSISTENT_DATA_BACKEND).
+* Distillery templates no longer set the data directory of Ocsigen Server
+  (<datadir>, ~datadir), which is going away. basic.ppx now gives
+  Ocsipersist its location itself (<store> for dbm, <database> for sqlite).
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
