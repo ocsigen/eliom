@@ -12,7 +12,7 @@ client-server applications.
   link to them.
 - {{!//server/page-state}Sessions and server side state}: Eliom references
   keep data on the server for one user, one client process or a group of
-  sessions, in memory or on disk.
+  sessions, in memory or in a database that survives restarts.
 - {{!//server/page-security}Security}: what Eliom and Ocsigen Server take
   care of, and what is left to the programmer.
 - {{!//server/page-widgets}HTML widgets}: images, style sheets, scripts and

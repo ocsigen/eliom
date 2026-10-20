@@ -104,8 +104,10 @@ Where scope can be:
 * `Eliom.Common.default_group_scope` (different value for each user),
 * `Eliom.Common.site_scope` (value for the whole site),
 * `Eliom.Common.global_scope` (global value for the whole server).
-Eliom references are persistant if you add optional parameter `~persistent`
-to function `Eliom.Reference.eref`.
+Eliom references are persistent if you add
+`~persistent:(name, json_codec)` to function `Eliom.Reference.eref`.
+Their values are then stored with Ocsipersist, whose database location
+must be configured.
 
 ## Learning Eliom
 

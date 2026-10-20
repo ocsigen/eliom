@@ -21,6 +21,9 @@ add the following lines to the Ocsigen configuration file
 ({%wodoc:span class="code"%}/etc/ocsigen/ocsigen.conf{%wodoc:end%} most of the times):
 
 {v
+<extension findlib-package="ocsipersist-sqlite-config">
+  <database file="/var/lib/mysite/ocsidb"/>
+</extension>
 <extension findlib-package="eliom.server"/>
 <host>
   <site path="examples">
@@ -29,6 +32,13 @@ add the following lines to the Ocsigen configuration file
   </site>
 </host>
 v}
+
+Eliom stores persistent session data and persistent Eliom references
+with Ocsipersist. The first extension loads the SQLite backend of
+Ocsipersist, and gives the database file, in an existing directory.
+Since ocsipersist 3.2, there is no default location. See
+{{!//server/page-state.ocsipersist_config}Configuring the database}
+for the other backends.
 
 The block surrounded by the [<site>] tag creates a sub-site on your
 host, in directory [examples]. The [<site>] tag is optional if
@@ -66,8 +76,11 @@ the generation of a page in error pages.
 {b Tip:} To debug your programs,
 add the option [-v] (or [-vv], [-vvv]) of
 the [ocsigenserver] command to have verbose information on what happens
-during requests. Also have a look at the log files when something goes
-wrong.{%wodoc:end%}
+during requests. Also have a look at the logs when something goes
+wrong: the files of the log directory ([<logdir>]), or syslog
+([<syslog>]). Since Ocsigen Server 8.1, there is no default log
+directory: without these tags, the logs go to the standard output and
+standard error.{%wodoc:end%}
 
 
 {2 Several Eliom modules for one site}
@@ -167,9 +180,27 @@ and {%wodoc:span class="code"%}</eliommodule{%wodoc:end%}>.
 
 {2:static_linking Static linking of Eliom modules}
 
-From version 1.2, it is possible to link extensions and Eliom modules
-{{!/ocsigenserver/page-staticlink}statically}.
-But this is not straightforward.  For Eliom modules, service
+It is possible to link extensions and Eliom modules
+{{!/ocsigenserver/page-staticlink}statically}, with or without a
+configuration file.
+
+{3 With a configuration file}
+
+The toplevel code of statically linked modules runs when the program
+starts, before the configuration file is read. The configuration file
+does not load statically linked extensions: it initialises them, with
+[<extension name="...">] instead of
+[<extension findlib-package="...">]. They take their options as usual.
+For example, for the SQLite backend of Ocsipersist and for Eliom:
+
+{v
+<extension name="ocsipersist">
+  <database file="/var/lib/mysite/ocsidb"/>
+</extension>
+<extension name="eliom"/>
+v}
+
+For Eliom modules, this is not straightforward: service
 registration and option settings must be delayed until the
 configuration file is read. To create a statically linkable Eliom
 module, use function
@@ -211,6 +242,34 @@ server, you must call these functions using function
 {!Eliom.Service.register_eliom_module}.
 (One solution is to use a lazy value to delay the creation of the
 table, and force that value from the registration function).
+
+{3:no_config_file Without a configuration file}
+
+A program can also start the server itself, without a configuration
+file, with {!/ocsigenserver/Ocsigen.Server.start} (see
+{{!/ocsigenserver/page-staticlink}Using Ocsigen Server as a library}).
+The instruction {!Eliom.App.run} runs your Eliom application in a host
+or a site, and its optional parameters replace the options of the
+[<eliom>] tag. The services can then be registered by the toplevel code
+of your modules.
+
+As there is no configuration file, the program must also give the
+location of the Ocsipersist database, with module [Ocsipersist_settings]
+(see {{!//server/page-state.ocsipersist_config}Configuring the database}).
+Since Ocsigen Server 8.1, without [~logdir] (nor [~syslog_facility]),
+the logs go to the standard output and standard error. For example,
+with the SQLite backend of Ocsipersist:
+
+{@ocaml[
+let () =
+  Ocsipersist_settings.set_db_file "/var/lib/mysite/ocsidb";
+  Ocsigen.Server.start ~logdir:"/var/log/mysite"
+    [ Ocsigen.Server.host
+        [Staticmod.run ~dir:"/var/www/mysite" (); Eliom.App.run ()] ]
+]}
+
+The template [app.exe] of {{!//workflow/page-distillery}Eliom's
+distillery} builds such a program.
 
 
 {2:extensions Advanced use: create an extension for the server that accesses Eliom's data}
@@ -425,7 +484,7 @@ The Eliom templates ([app.exe], [app.lib]) enable it explicitly.
 
 It can also be enabled programmatically using
 [Eliom.Config.set_enable_wasm true] or via the [~enable_wasm]
-parameter of [Eliom.run].
+parameter of {!Eliom.App.run}.
 
 For production, use [--profile release] (or [DEBUG := no] in
 [Makefile.options]) to bundle all WASM modules into a single file,
