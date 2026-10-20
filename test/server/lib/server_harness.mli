@@ -26,4 +26,6 @@ val start : Ocsigen.Server.instruction list -> unit
 (** [start instructions] starts Ocsigen Server in the directory given as
     argument of the program, listening on the socket and the command pipe
     that {!with_server} expects, with a single host running [instructions].
-    It does not return. To be called by the server program. *)
+    The persistent data go to the SQLite database [ocsidb] of that directory:
+    the server program links [ocsipersist-sqlite]. It does not return. To be
+    called by the server program. *)
