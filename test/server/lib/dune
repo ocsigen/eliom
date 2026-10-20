@@ -11,4 +11,5 @@
   cohttp-lwt
   cohttp-lwt-unix
   conduit-lwt-unix
+  ocsipersist-sqlite.settings
   uri))
