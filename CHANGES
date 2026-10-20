@@ -171,6 +171,9 @@
   modules now works in the dune sandbox, and runs again when an .eliom or
   .eliomi file or an asset is added, removed or renamed. Before, new client
   modules could be silently left out.
+* Distillery templates app.exe and app.lib: the client PPX driver applies
+  js_of_ocaml-ppx_deriving_json before eliom.ppx.client, so that
+  [@@deriving json] in shared sections gives the same sections on both sides.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
