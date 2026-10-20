@@ -221,14 +221,13 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
     (Sys.readdir source_dir)
 
 let env name =
+  (* The first backend whose configuration extension, loaded by the
+     configuration file of the basic.ppx template, is installed. *)
   let db =
-    if Utils.has_package "ocsipersist.dbm"
-    then "dbm"
-    else if Utils.has_package "ocsipersist.sqlite"
-    then "sqlite"
-    else if Utils.has_package "ocsipersist.pgsql"
-    then "pgsql"
-    else "dbm"
+    List.find_opt
+      (fun db -> Utils.has_package ("ocsipersist-" ^ db ^ "-config"))
+      ["sqlite"; "dbm"; "pgsql"]
+    |> Option.value ~default:"sqlite"
   in
   [ "PROJECT_NAME", name
   ; "MODULE_NAME", String.capitalize_ascii name
