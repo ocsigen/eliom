@@ -44,7 +44,7 @@ val run :
   unit ->
   Ocsigen.Server.instruction
 ```
-`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site.
+`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site.
 
 As for a site of a configuration file, the services with a path created during the initialisation of the application must be registered by then: otherwise `run` raises [`Common.Eliom_there_are_unregistered_services`](./Eliom-Common.md#exception-Eliom_there_are_unregistered_services), and the server does not start. Unregistered non-attached coservices are reported by a warning.
 

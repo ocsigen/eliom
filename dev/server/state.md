@@ -2,7 +2,7 @@
 
 **Summary**
 
-*Eliom references* allow to store data on server for one user (session data). The interface is very similar to regular OCaml references, with extra parameters `?scope` (session, client process, group of sessions) and `?persistent` (for keeping the values on hard disk). For example if you create an Eliom reference of *scope* session, its value will be different for each session (one session \= one browser process).
+*Eliom references* allow to store data on server for one user (session data). The interface is very similar to regular OCaml references, with extra parameters `?scope` (session, client process, group of sessions) and `?persistent` (for keeping the values across server restarts, in the Ocsipersist database). For example if you create an Eliom reference of *scope* session, its value will be different for each session (one session \= one browser process).
 
 To create an Eliom reference containing initial value `None`:
 
@@ -234,7 +234,7 @@ The [`Eliom.Reference`](./../eliom.server/Eliom-Reference.md) module also define
 
 ### Persistent references
 
-Persistent references are Eliom references that survives after relaunching the server. They are implemented using the [`Ocsipersist`](./../../ocsipersist/ocsipersist/Ocsipersist.md) module for which Ocsigenserver provides two implementations, one based on `SQLite`, the other one based on `DBM`.
+Persistent references are Eliom references that survive a restart of the server. Their values are stored with [`Ocsipersist`](./../../ocsipersist/ocsipersist/Ocsipersist.md), like the data of persistent sessions. Ocsipersist has three backends: SQLite (package `ocsipersist-sqlite`), DBM (`ocsipersist-dbm`) and PostgreSQL (`ocsipersist-pgsql`). Your program must link one of them, and give it the location of the database (see [Configuring the database](./#ocsipersist_config)). Since ocsipersist 3\.2, there is no default location.
 
 Persistent references are created by adding the `~persistent` parameter to the [`Eliom.Reference.eref`](./../eliom.server/Eliom-Reference.md#type-eref) function calls. Since Eliom 13, the value of this parameter is a pair `(name, codec)`: `name` is the name of the reference in the database, and `codec` is a `Deriving_Json` codec used to serialise the stored value:
 
@@ -256,9 +256,35 @@ Before Eliom 13, the value parameter of `~persistent` was just the table name (a
 - If you ever changed the type of serialised data, you had to also change the persistent reference name, or the server would crash while deserialising.
 The Deriving\_Json migration removes all of these limitations: serialised data is human-readable, stable across OCaml versions, and the `[@@deriving json]` annotation forces the codec to match the stored type at compile time.
 
-**Upgrading an existing site to Eliom 13 resets all persistent data.** The JSON tables are given new names (a `_json_` prefix for references and per-session/site state; new version suffixes for cookies and session groups), so the pre-13 Marshal tables are left orphaned and never read. Persistent references start again from their default value and users are logged out once. The old tables are kept on disk (they are not deleted), so their content can still be inspected or recovered by hand if needed. A stored value that cannot be deserialised is treated as an absent value rather than raising, so an incomplete migration never turns into a server error.
+**Upgrading an existing site to Eliom 13 resets all persistent data.** The JSON tables are given new names (a `_json_` prefix for references and per-session/site state; new version suffixes for cookies and session groups), so the pre-13 Marshal tables are left orphaned and never read. Persistent references start again from their default value and users are logged out once. The old tables are kept in the database (they are not deleted), so their content can still be inspected or recovered by hand if needed. A stored value that cannot be deserialised is treated as an absent value rather than raising, so an incomplete migration never turns into a server error.
 
 Beware that this reset concerns more than sessions: persistent references with the session-group scope are commonly keyed by user (the group name being the user id) and used to store *durable per-user data* such as preferences; those also restart from their default value, silently. If your application keeps data it cannot afford to lose in persistent references (group, site or global scope), export it *before* upgrading, with the Eliom 12 version of your application (for example into your SQL database), and re-import it through the new API afterwards. Reading the orphaned Marshal tables later remains possible in theory, but requires code built with the exact types the old application stored. Once the upgrade is validated, the old tables can be dropped from the storage backend to reclaim space.
+
+#### Configuring the database
+
+With a configuration file, load the configuration extension of your Ocsipersist backend before Eliom, and give it the location of the database. For SQLite, use `ocsipersist-sqlite-config`, whose `<database>` tag gives the database file (its directory must exist):
+
+```
+<extension findlib-package="ocsipersist-sqlite-config">
+  <database file="/var/lib/mysite/ocsidb"/>
+</extension>
+<extension findlib-package="eliom.server"/>
+```
+For DBM, use `ocsipersist-dbm-config`, whose `<store dir="..."/>` tag gives the directory of the database. For PostgreSQL, use `ocsipersist-pgsql-config`, whose `<database .../>` tag gives the connection parameters.
+
+Without a configuration file (when your program starts the server itself with [`Ocsigen.Server.start`](./../../ocsigenserver/ocsigenserver/Ocsigen-Server.md#val-start) and [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run)), give the location with module `Ocsipersist_settings` before the server starts. For SQLite, link library `ocsipersist-sqlite.settings` and call:
+
+```ocaml
+let () = Ocsipersist_settings.set_db_file "/var/lib/mysite/ocsidb"
+```
+For DBM, link library `ocsipersist-dbm.settings` and call:
+
+```ocaml
+let () =
+  Ocsipersist_settings.set_store "/var/lib/mysite/store";
+  Ocsipersist.init ()
+```
+For PostgreSQL, link library `ocsipersist-pgsql.settings`, give the connection parameters with its functions (`set_host`, `set_database`...), then call `Ocsipersist.init ()`.
 
 #### Volatile references
 

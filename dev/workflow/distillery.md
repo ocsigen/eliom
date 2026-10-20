@@ -11,7 +11,7 @@ The easiest way to initialize, compile, and run an Ocsigen/Eliom project is to u
 ```shell
 $ eliom-distillery -list-templates
 ```
-Templates "app.lib" and "app.exe" create a simple client-server app project (Dune-based build system, configuration file and main service). The first one builds a library that you can dynamically load in ocsigenserver using a configuration file. The second builds a static executable without configuration file.
+Templates "app.lib" and "app.exe" create a simple client-server app project (Dune-based build system and main service). The first one builds a library that you can dynamically load in ocsigenserver using a configuration file. The second builds a static executable [without a configuration file](./configuration.md#no_config_file): its paths are set in the code. The Ocsipersist database file is set in `<name>.eliom` (with `Ocsipersist_settings.set_db_file`), and the log directory, the command pipe and the static files in `<name>_server.eliom`.
 
 Alternatively, you might want to use the legacy "basic.ppx" template, with a Makefile-based build system.
 
