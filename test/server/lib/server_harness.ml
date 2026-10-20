@@ -144,10 +144,8 @@ let restart server =
 let start instructions =
   let dir = Sys.argv.(1) in
   Sys.chdir dir;
-  List.iter
-    (fun d -> if not (Sys.file_exists d) then Sys.mkdir d 0o700)
-    ["log"; "data"];
+  if not (Sys.file_exists "log") then Sys.mkdir "log" 0o700;
   Ocsigen.Server.start
     ~ports:[`Unix socket_name, 0]
-    ~command_pipe ~logdir:"log" ~datadir:"data" ~debugmode:true
+    ~command_pipe ~logdir:"log" ~debugmode:true
     [Ocsigen.Server.host instructions]

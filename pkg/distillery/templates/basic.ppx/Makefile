@@ -113,12 +113,19 @@ depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 
 FINDLIB_PACKAGES=$(patsubst %,\<extension\ findlib-package=\"%\"\ /\>,$(SERVER_PACKAGES))
 EDIT_WARNING=DON\'T EDIT THIS FILE! It is generated from $(PROJECT_NAME).conf.in, edit that one, or the variables in Makefile.options
+# Where the persistent data go, in the tag of their backend
+ifeq ($(PERSISTENT_DATA_BACKEND),dbm)
+  PERSISTENT_DATA_LOCATION := <store dir='%%DATADIR%%'/>
+else
+  PERSISTENT_DATA_LOCATION := <database file='%%DATADIR%%/ocsidb'/>
+endif
 SED_ARGS := -e "/^ *%%%/d"
 SED_ARGS += -e "s|%%PROJECT_NAME%%|$(PROJECT_NAME)|g"
 SED_ARGS += -e "s|%%DATABASE_NAME%%|$(DATABASE_NAME)|g"
 SED_ARGS += -e "s|%%DATABASE_USER%%|$(DATABASE_USER)|g"
 SED_ARGS += -e "s|%%CMDPIPE%%|%%PREFIX%%$(CMDPIPE)|g"
 SED_ARGS += -e "s|%%LOGDIR%%|%%PREFIX%%$(LOGDIR)|g"
+SED_ARGS += -e "s|%%PERSISTENT_DATA_LOCATION%%|$(PERSISTENT_DATA_LOCATION)|g"
 SED_ARGS += -e "s|%%DATADIR%%|%%PREFIX%%$(DATADIR)|g"
 SED_ARGS += -e "s|%%PERSISTENT_DATA_BACKEND%%|$(PERSISTENT_DATA_BACKEND)|g"
 SED_ARGS += -e "s|%%LIBDIR%%|%%PREFIX%%$(LIBDIR)|g"
