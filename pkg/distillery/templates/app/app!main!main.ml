@@ -8,10 +8,10 @@ let staticdir = "local/var/www/%%%PROJECT_NAME%%%"
 
 let () =
   Ocsipersist_settings.set_db_file (datadir ^ "/%%%PROJECT_NAME%%%_db");
-  Ocsigen_server.start
+  Ocsigen.Server.start
     ~ports:[`All, 8080]
     ~veryverbose:() ~debugmode:true ~logdir ~datadir ~uploaddir:(Some "/tmp")
     ~usedefaulthostname:true
     ~command_pipe:(Filename.concat rundir "%%%PROJECT_NAME%%%-cmd")
     ~default_charset:(Some "utf-8")
-    [Ocsigen_server.host [Staticmod.run ~dir:staticdir (); Eliom.run ()]]
+    [Ocsigen.Server.host [Staticmod.run ~dir:staticdir (); Eliom.App.run ()]]
