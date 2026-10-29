@@ -21,16 +21,15 @@ To see all available templates, you can use
 $ eliom-distillery -list-templates
 ]}
 
-Templates "app.lib" and "app.exe" create a simple
-client-server app project (Dune-based build system and main service).
-The first one builds a library that you can dynamically load in
-ocsigenserver using a configuration file. The second builds a static
-executable
-{{!//workflow/page-configuration.no_config_file}without a configuration file}:
-its paths are set in the code. The Ocsipersist database file is
-set in [<name>.eliom] (with [Ocsipersist_settings.set_db_file]), and
-the log directory, the command pipe and the static files in
-[<name>_server.eliom].
+Template "app" creates a simple client-server application project
+(Dune-based build system and main service), with build rules generated
+by {{:https://github.com/ocsigen/ocsigen-dune-rules}ocsigen-dune-rules}.
+The project runs either as a static executable
+{{!//workflow/page-configuration.no_config_file}without a configuration file},
+whose paths (log directory, command pipe, static files and Ocsipersist
+database file) are set in [app/main/main.ml], or as a library
+dynamically loaded by ocsigenserver with the configuration file
+[<name>.conf].
 
 Alternatively, you might want to use the legacy "basic.ppx" template,
 with a Makefile-based build system.
@@ -38,10 +37,10 @@ with a Makefile-based build system.
 To create your project, do:
 
 {@shell[
-$ eliom-distillery -name <name> -template app.exe [-target-directory <dir>]
+$ eliom-distillery -name <name> -template app [-target-directory <dir>]
 ]}
 
-This creates a project named [<name>] from the ["app.exe"]
+This creates a project named [<name>] from the ["app"]
 template in the directory [<dir>] or [<name>] by default.
 The project name should be a valid name for an OCaml compilation unit.
 
@@ -98,5 +97,5 @@ list all reserved project names in the special file
 [%%%MODULE_NAME%%%]) by the project name (resp. by the project
 name with the first letter capitalized).
 
-For examples, see pre-defined templates like [app.exe], [app.lib], 
-[basic.ppx] and [os.pgocaml].
+For examples, see pre-defined templates like [app], [basic.ppx] and [os] (from
+Ocsigen Start).

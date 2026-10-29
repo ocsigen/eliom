@@ -8,8 +8,6 @@
  (section lib_root)
  (files
   (glob_files_rec
-   (templates/app.exe/* with_prefix eliom/templates/app.exe))
-  (glob_files_rec
-   (templates/app.lib/* with_prefix eliom/templates/app.lib))
+   (templates/app/* with_prefix eliom/templates/app))
   (glob_files_rec
    (templates/basic.ppx/* with_prefix eliom/templates/basic.ppx))))
