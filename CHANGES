@@ -187,6 +187,12 @@
   content, not only browser content: My_app.send ~code:404 sends a page of
   the application for unknown URLs, which the client-side program displays
   without leaving the application.
+* Session groups
+** The default maximum number of tab sessions in a browser session is now
+   100 instead of 50. A closed tab does not tell the server, so the limit
+   must exceed the number of tabs of the site that a user keeps open at
+   the same time; beyond it, the tab session used least recently is
+   closed.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

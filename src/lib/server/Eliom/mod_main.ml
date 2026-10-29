@@ -39,9 +39,9 @@ let default_max_service_sessions_per_group = ref 50
 let default_max_service_sessions_per_subnet = ref 1000000
 let default_max_volatile_data_sessions_per_group = ref 50
 let default_max_volatile_data_sessions_per_subnet = ref 1000000
-let default_max_persistent_data_tab_sessions_per_group = ref 50
-let default_max_service_tab_sessions_per_group = ref 50
-let default_max_volatile_data_tab_sessions_per_group = ref 50
+let default_max_persistent_data_tab_sessions_per_group = ref 100
+let default_max_service_tab_sessions_per_group = ref 100
+let default_max_volatile_data_tab_sessions_per_group = ref 100
 let default_secure_cookies = ref false
 let default_application_script = ref {Common.defer = false; async = false}
 let default_enable_wasm = ref false

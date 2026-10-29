@@ -398,7 +398,7 @@ sessions from several computers. All the sessions belong to the same
 group (the group name is usually the user name). The limit is 50 sessions
 per group by default, for all kinds of sessions (service sessions,
 volatile and persistent data sessions); the tab sessions of a browser
-session are limited in the same way, 50 by default. For persistent
+session are limited in the same way, 100 by default. For persistent
 sessions, the implementation is not very efficient for very large limits.
 
 It is highly recommended to use session groups when possible.

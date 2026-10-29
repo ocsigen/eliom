@@ -387,7 +387,7 @@ sessions without a group is not limited.
 
 By default, a group may hold 50 sessions of each kind (service sessions,
 volatile data sessions and persistent data sessions), and a browser
-session may hold 50 tab sessions. To change these limits:
+session may hold 100 tab sessions. To change these limits:
 - for one group, give the optional parameter [?set_max] when attaching a
   session to it, with the functions above, or call
   {!Eliom.State.set_max_volatile_states_for_group_or_subnet} from a

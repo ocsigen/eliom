@@ -305,7 +305,7 @@ val get_persistent_data_session_group :
     a group is not limited.
 
     - Default number of sessions in a group: 50
-    - Default number of tab sessions in a browser session: 50
+    - Default number of tab sessions in a browser session: 100
     - Default number of sessions without a group in a sub network: 1000000
     - Default IPV4 sub network: /16
     - Default IPV6 sub network: /56
