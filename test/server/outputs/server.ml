@@ -144,9 +144,13 @@ let () =
 let error_page text =
   Content.Html.F.(html (head (title (txt text)) []) (body [p [txt text]]))
 
+(* The exception handler of the site sends pages of the application: with
+   its own status for the exception of a handler, with status 404 for unknown
+   URLs. *)
 let () =
   Registration.set_exn_handler (function
-    | Boom -> Registration.Html.send (error_page "error page")
+    | Boom -> Test_app.send (error_page "error page")
+    | Common.Eliom_404 -> Test_app.send ~code:404 (error_page "not found")
     | e -> Lwt.fail e)
 
 (* Links to the actions *)

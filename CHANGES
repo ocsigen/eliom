@@ -183,6 +183,10 @@
   It takes precedence over the ?code given at registration, and is dropped
   if the handler raises an exception. It does nothing on the client, so
   that %shared handlers can call it. Registration.get_status reads it.
+* Registration.set_exn_handler accepts a handler sending any kind of
+  content, not only browser content: My_app.send ~code:404 sends a page of
+  the application for unknown URLs, which the client-side program displays
+  without leaving the application.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

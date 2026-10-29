@@ -119,7 +119,25 @@ let app server =
         check_occurrences "first" 1 r.body "<p>initial request</p>";
         let+ r = Eliom_test_client.Tab.get tab "/app" in
         check_occurrences "next" 1 r.body "<p>request of the client process</p>")
-    ] )
+    ; case "unknown URL" (fun b ->
+        (* The exception handler of the site sends a page of the
+           application, with its status, to the browser and to the client
+           process alike. *)
+        let check msg (r : Browser.response) =
+          check_response msg ~status:404 r;
+          Alcotest.(check (option string))
+            (msg ^ ": application") (Some "test_app")
+            (Browser.header r "x-eliom-application");
+          check_occurrences (msg ^ ": content") 1 r.body "<p>not found</p>"
+        in
+        let* r = Browser.get b "/unknown" in
+        check "browser" r;
+        let tab = Eliom_test_client.Tab.create b in
+        let* _ = Eliom_test_client.Tab.get tab "/app" in
+        let+ r =
+          Eliom_test_client.Tab.get ~expecting_process_page:true tab "/unknown"
+        in
+        check "client process" r) ] )
 
 (* The HTTP status set by the handler with [Registration.set_status] *)
 let status server =

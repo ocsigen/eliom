@@ -571,6 +571,11 @@ let () =
     Lwt.fail e
 ]}
 
+The handler may send any kind of content. In a client-server
+application, send the error page with the [send] function of the
+application, as in [My_app.send ~code:404 page]: the client-side program
+then displays it without leaving the application.
+
 {3 Fallback services}
 
 You can check whether a service was directly called or if it was used

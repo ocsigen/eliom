@@ -483,9 +483,14 @@ module Customize
 
 (** {2 Using your own error pages} *)
 
-val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
+val set_exn_handler : (exn -> _ kind Lwt.t) -> unit
 (** The [set_exn_handler handler] allows redefinition of error pages:
     [404] or any exception during page generation.
+
+    The handler may send any kind of content, for instance a page of an
+    application with [My_app.send ~code:404 page]: the client-side program
+    then displays it without leaving the application. The status comes from
+    the [?code] of [send]: {!set_status} has no effect in this handler.
 
     Note that you should not catch every exception here since some
     Eliom mechanisms are done using exceptions, like redirections.  Do
