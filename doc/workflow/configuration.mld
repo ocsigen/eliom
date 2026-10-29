@@ -380,7 +380,7 @@ This option can appear inside tag
      new request. Keep it below the timeouts of the proxies between
      clients and the server.
 
-{2 Limiting the number of sessions or coservices}
+{2:limits Limiting the number of sessions or coservices}
 
 To fight denial of service, Eliom limits the number of sessions
 and the number of dynamic coservices. Without these limitations, it would
@@ -395,11 +395,11 @@ for the longest time).
 First of all, there is a limitation of the number of sessions in a
 session group. A typical use is when a user opens several
 sessions from several computers. All the sessions belong to the same
-group (the group name is usually the user name).
-The limit is usually small (5 sessions per group by default).
-This limit is implemented for all kinds of sessions (service session,
-volatile and persistent data sessions). For persistent sessions, the
-implementation is not very efficient for very large limits.
+group (the group name is usually the user name). The limit is 50 sessions
+per group by default, for all kinds of sessions (service sessions,
+volatile and persistent data sessions); the tab sessions of a browser
+session are limited in the same way, 50 by default. For persistent
+sessions, the implementation is not very efficient for very large limits.
 
 It is highly recommended to use session groups when possible.
 
@@ -461,9 +461,14 @@ The syntax is:
 - [<maxservicesessionspergroup value="10"/>]
 - [<maxdatasessionspergroup value="10"/>]
 - [<maxpersistentsessionspergroup value="10"/>]
+- [<maxvolatiletabsessionspergroup value="10"/>]
+- [<maxservicetabsessionspergroup value="10"/>]
+- [<maxdatatabsessionspergroup value="10"/>]
+- [<maxpersistenttabsessionspergroup value="10"/>]
 - [<maxvolatilesessionspersubnet value="500000"/>]
 - [<maxservicesessionspersubnet value="500000"/>]
 - [<maxdatasessionspersubnet value="500000"/>]
+- [<maxvolatilegroupspersite value="500000"/>]
 - [<maxanonymouscoservicespersession value="1000"/>]
 - [<maxanonymouscoservicespersubnet value="500000"/>]
 - [<ipv4subnetmask value="255.255.128.0"/>]

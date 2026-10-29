@@ -286,24 +286,31 @@ val get_persistent_data_session_group :
 
 (** {3 Maximum group size} *)
 
-(** The following functions of this section set the maximum number of
-    sessions in a session group, for the different kinds of session.
-    This won't modify existing groups.
-    That value will be used only as default value if you do not specify the
-    optional parameter [?set_max] of function
-    {!State.set_volatile_data_session_group}.
+(** The functions of this section set the default maximum number of
+    sessions in a session group, for the different kinds of session. When a
+    group is full, opening a session in it closes the session of the group
+    that has been used least recently. The value applies to the groups
+    created afterwards: it does not modify existing groups, and it is not
+    used for a group whose size has been set with the optional parameter
+    [?set_max] of {!set_volatile_data_session_group} (and of the other
+    functions that put a session in a group) or with
+    {!set_max_volatile_states_for_group_or_subnet}.
 
-    If there is no group, the number of sessions is limitated by sub network
-    (which can be a problem for example if the server is behind a
-    reverse proxy).
-    It is highly recommended to use session groups!
+    This limit bounds the memory that one user can take by opening sessions,
+    and a user who floods the server with sessions only closes their own:
+    put every session of a user in a group, usually named after the user.
+    Sessions without a group are counted together, by sub network of the
+    client, with a much larger limit; behind a reverse proxy, all clients
+    are in the same sub network. The number of persistent sessions without
+    a group is not limited.
 
-    - Default number of sessions in a group: 5
-    - Default number of sessions in a sub network: 1000000
+    - Default number of sessions in a group: 50
+    - Default number of tab sessions in a browser session: 50
+    - Default number of sessions without a group in a sub network: 1000000
     - Default IPV4 sub network: /16
     - Default IPV6 sub network: /56
 
-    These default can be changed from configuration file and/or
+    These defaults can be changed from the configuration file and/or
     using these functions.
 
     If [~override_configfile] is [true] (default ([false]),
