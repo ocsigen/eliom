@@ -57,7 +57,7 @@ To run your application locally:
 The first command updates the generated files in local/ and the second runs
 the application.
 
-Running locally (using ocsigenserver)
+Running locally (as a module for Ocsigen Server)
 ---
 
 To run your application locally:

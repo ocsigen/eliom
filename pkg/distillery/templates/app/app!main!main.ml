@@ -2,12 +2,12 @@
 *)
 
 let logdir = "local/var/log/%%%PROJECT_NAME%%%"
-let datadir = "local/var/data/%%%PROJECT_NAME%%%"
+let dbfile = "local/var/data/%%%PROJECT_NAME%%%/ocsidb"
 let rundir = "local/var/run"
 let staticdir = "local/var/www/%%%PROJECT_NAME%%%"
 
 let () =
-  Ocsipersist_settings.set_db_file (Filename.concat datadir "ocsidb");
+  Ocsipersist_settings.set_db_file dbfile;
   Ocsigen.Server.start
     ~ports:[`All, 8080]
     ~veryverbose:() ~debugmode:true ~logdir ~uploaddir:(Some "/tmp")
