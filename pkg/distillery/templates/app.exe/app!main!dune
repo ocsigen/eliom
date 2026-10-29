@@ -1,0 +1,11 @@
+(executable
+ (public_name %%%PROJECT_NAME%%%)
+ (name main)
+ (package %%%PROJECT_NAME%%%)
+ (modes byte native)
+ (libraries
+  eliom.server
+  ocsigenserver
+  ocsipersist-sqlite
+  ocsigenserver.ext.staticmod
+  %%%PROJECT_NAME%%%))

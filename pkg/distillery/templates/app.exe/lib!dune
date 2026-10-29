@@ -1,0 +1,76 @@
+(rule
+ (with-stdout-to
+  dune.corrected
+  (run
+   ocsigen-dune-rules
+   gen-library
+   --wrapped
+   false
+   --public-name
+   %%%PROJECT_NAME%%%.lib
+   %%%PROJECT_NAME%%%_lib
+   --dune
+   %{dep:dune})))
+
+; [ocsigen-dune-rules] Do not remove this line.
+; Below this line, any changes will be overwritten.
+;
+; To update the rules below, modify the invocation of ocsigen-dune-rules above
+; and run:
+;
+;     dune runtest --auto-promote
+;
+
+(rule
+ (alias runtest)
+ (action
+  (diff dune dune.corrected)))
+
+(library
+ (public_name %%%PROJECT_NAME%%%.lib.server)
+ (name %%%PROJECT_NAME%%%_lib)
+ (modes byte native)
+ (wrapped false)
+ (library_flags
+  (:standard -linkall))
+ (preprocess
+  (pps
+   eliom.ppx.server
+   ocsigen-ppx-rpc
+   js_of_ocaml-ppx_deriving_json
+   --rpc-raw))
+ (libraries eliom.server))
+
+(subdir
+ client
+ (library
+  (public_name %%%PROJECT_NAME%%%.lib.client)
+  (name %%%PROJECT_NAME%%%_lib)
+  (modes byte)
+  (wrapped false)
+  (library_flags
+   (:standard -linkall))
+  (libraries eliom.client js_of_ocaml js_of_ocaml-lwt))
+ (dynamic_include ../dune.client))
+
+(subdir
+ client/ppx
+ (rule
+  (write-file main.ml "let () = Ppxlib.Driver.standalone ()"))
+ (executable
+  (name main)
+  (libraries
+   ppxlib
+   eliom.ppx.client
+   ocsigen-ppx-rpc
+   js_of_ocaml-ppx
+   js_of_ocaml-ppx_deriving_json)))
+
+(rule
+ (deps
+  (glob_files *.eliom)
+  (glob_files *.eliomi))
+ (action
+  (with-stdout-to
+   dune.client
+   (run ocsigen-dune-rules gen-client-modules . -- --rpc-raw))))
