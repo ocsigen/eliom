@@ -502,6 +502,8 @@ type server_params =
   ; mutable sp_client_appl_name : string option
   ; (* The application name,
                                                  as sent by the browser *)
+    mutable sp_response_status : Cohttp.Code.status option
+  ; (* HTTP status set by the service handler, used when sending its page *)
     sp_suffix : Url.path option
   ; sp_full_state_name : full_state_name option
   ; sp_client_process_info : client_process_info

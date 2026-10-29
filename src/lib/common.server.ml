@@ -426,6 +426,8 @@ type server_params =
   ; mutable sp_client_appl_name : string option
   ; (* The application name,
                                                   as sent by the browser *)
+    mutable sp_response_status : Cohttp.Code.status option
+  ; (* HTTP status set by the service handler, used when sending its page *)
     sp_suffix : Url.path option (* suffix *)
   ; sp_full_state_name : full_state_name option
     (* the name of the session
@@ -684,6 +686,7 @@ let make_server_params
   ; sp_user_cookies = Ocsigen_cookie_map.empty
   ; sp_user_tab_cookies = info.user_tab_cookies
   ; sp_client_appl_name = appl_name
+  ; sp_response_status = None
   ; sp_suffix = suffix
   ; sp_full_state_name = full_state_name
   ; sp_client_process_info = cpi }

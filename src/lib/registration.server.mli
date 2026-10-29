@@ -504,6 +504,33 @@ val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
     get this exception.}
 *)
 
+(** {2 HTTP status of the response} *)
+
+val set_status : Cohttp.Code.status -> unit
+(** [set_status status] makes the response to the current request carry
+    the HTTP status [status], whatever the service handler returns. Call
+    it from a service handler, before returning the page: for instance
+    [set_status `Not_found] to send a page saying that something does not
+    exist, with status 404. The last call wins, and this status takes
+    precedence over the [?code] given at registration.
+
+    It is not used when the handler raises an exception: the handler set
+    with {!set_exn_handler} then decides alone, with the [?code] of [send].
+    Likewise, a handler registered with {!Any} gives the status to the
+    [send] function it calls. Output modules that build the whole response
+    themselves ignore it: {!File}, and {!Action} with the [`Reload] option,
+    since the reloaded page has its own status. It is not meant for
+    {!Ocaml} services either: the client-side program takes any status but
+    200 for a failed request.
+
+    @raise Common.Request_information_not_available outside a request. *)
+
+val get_status : unit -> Cohttp.Code.status option
+(** [get_status ()] is the status set by {!set_status} during the current
+    request, if any.
+
+    @raise Common.Request_information_not_available outside a request. *)
+
 (** {2 Unsafe cast of contents} *)
 
 val cast_unknown_content_kind : unknown_content kind -> 'a kind

@@ -1451,3 +1451,9 @@ end
 let set_exn_handler h =
   let sitedata = Request_info.find_sitedata "set_exn_handler" in
   Request_info.set_site_handler sitedata (Result_types.cast_function_http h)
+
+let set_status status =
+  let sp = Common.get_sp () in
+  sp.Common.sp_response_status <- Some status
+
+let get_status () = (Common.get_sp ()).Common.sp_response_status

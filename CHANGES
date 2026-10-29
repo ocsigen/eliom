@@ -177,6 +177,12 @@
   now visible to every file loaded for it, not only to the last one. The
   libraries of an application split into several packages, as the templates
   now are, read it when they are loaded as dependencies.
+* Registration.set_status sets the HTTP status of the answer to the current
+  request from a service handler, which then returns its page as usual:
+  set_status `Not_found for a page about something that does not exist.
+  It takes precedence over the ?code given at registration, and is dropped
+  if the handler raises an exception. It does nothing on the client, so
+  that %shared handlers can call it. Registration.get_status reads it.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
