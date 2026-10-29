@@ -161,7 +161,7 @@ let () =
     [ Ocsigen.Server.host
         [Staticmod.run ~dir:"/var/www/mysite" (); Eliom.App.run ()] ]
 ```
-The template `app.exe` of [Eliom's distillery](./distillery.md) builds such a program.
+The template `app` of [Eliom's distillery](./distillery.md) builds such a program.
 
 ### Advanced use: create an extension for the server that accesses Eliom's data
 
@@ -263,7 +263,7 @@ Eliom applications can be compiled to WebAssembly using `wasm_of_ocaml`. When en
 The syntax is:
 
 - `<wasm enabled="true"/>`
-WebAssembly support is disabled by default for backward compatibility. The Eliom templates (`app.exe`, `app.lib`) enable it explicitly.
+WebAssembly support is disabled by default for backward compatibility. The Eliom template `app` enables it explicitly.
 
 It can also be enabled programmatically using `Eliom.Config.set_enable_wasm true` or via the `~enable_wasm` parameter of [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run).
 
