@@ -184,6 +184,30 @@ let scenarios =
   ; "limit the browser sessions of a group", limit_browser_sessions
   ; "limit the groups of a site", limit_groups ]
 
+(* The list of the sessions of a persistent group, in the database *)
+let persistent_up () =
+  let sitedata = new_sitedata "persistent groups" in
+  let g =
+    Common.make_persistent_full_group_name ~cookie_level:`Session
+      (Common.get_site_dir_string sitedata)
+      (Some "g")
+  in
+  let check msg expected =
+    Lwt.map (Alcotest.(check (list string)) msg expected) (Groups.Pers.find g)
+  in
+  Lwt_main.run
+    (let open Lwt.Syntax in
+     let* _ = Groups.Pers.add None "s1" g in
+     let* _ = Groups.Pers.add None "s2" g in
+     let* () = check "newest first" ["s2"; "s1"] in
+     let* () = Groups.Pers.up "s1" g in
+     let* () = check "used, moved up" ["s1"; "s2"] in
+     let* () = Groups.Pers.remove sitedata "s1" g in
+     (* A request of a session that has left the group, during its
+        closing, does not put it back. *)
+     let* () = Groups.Pers.up "s1" g in
+     check "left the group" ["s2"])
+
 let suite =
   ( "session groups"
   , List.concat_map
@@ -194,4 +218,5 @@ let suite =
                 (Printf.sprintf "%s (%s)" name k.name)
                 `Quick (run name f k))
            scenarios)
-      [service; data] )
+      [service; data]
+    @ [Alcotest.test_case "persistent group, use" `Quick persistent_up] )

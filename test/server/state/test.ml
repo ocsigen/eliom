@@ -241,7 +241,33 @@ let groups server =
         let* () = check "services" "fallback" a url_a in
         let* () = check "persistent" "" a "/persistent/get" in
         let* () = check "data" "" a "/get" in
-        check "other member" "" b "/get") ] )
+        check "other member" "" b "/get")
+    ; case "simultaneous requests" (fun browser ->
+        (* The sessions of a persistent group are listed in one entry of the
+           database, which each request that opens or uses a session of the
+           group reads and writes back. Two simultaneous requests must not
+           lose each other's change: here pairs of browsers join the group
+           at the same time, and every session must be closed with the
+           group. *)
+        let admin = browser () and a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = join a "simultaneous-g" in
+        let* members =
+          Lwt_list.map_s
+            (fun _ ->
+               let b = browser () and c = browser () in
+               let* _ = text b "/persistent/set?v=b" in
+               let* _ = text c "/persistent/set?v=c" in
+               let+ _ =
+                 Lwt.both (join b "simultaneous-g") (join c "simultaneous-g")
+               in
+               [b; c])
+            (List.init 5 Fun.id)
+        in
+        let* _ = text admin "/group/close_sessions?name=simultaneous-g" in
+        Lwt_list.iter_s
+          (fun b -> check "closed" "" b "/persistent/get")
+          (a :: List.concat members)) ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->

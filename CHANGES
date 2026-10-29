@@ -420,6 +420,19 @@
    could be before the application configured Ocsipersist (the location of
    the SQLite database, for instance): the reference then failed for good,
    or used another database.
+** The list of the persistent sessions of a group is no longer overwritten
+   by simultaneous requests of the group, such as two logins of the same
+   user at the same time: a session dropped from the list escaped the
+   limit of the group and State.discard with the group scope. The
+   operations on a group are now serialised within a server process
+   (several processes sharing a database can still lose an update); a
+   request of the session already first in the list no longer writes it
+   back, and a request of a session that has left the list (closed by the
+   limit while the request runs) no longer puts it back. Closing a group
+   removes its data before its sessions are closed, and keeps a session
+   that joins it meanwhile, and a session that could not be closed. A
+   session missing from the list of its group (possible when several
+   server processes share a database) stays out of it until it expires.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
