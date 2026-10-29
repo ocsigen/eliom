@@ -156,9 +156,9 @@ let groups server =
         let* () = check "persistent group data" "" b "/group/persistent/get" in
         check "other group" "c" c "/get")
     ; case "discard a group without a named group" (fun browser ->
-        (* Without a session group, the group of a session is its subnet,
-           which holds the sessions of other users: only the session is
-           closed. The browsers of the tests all have the same address. *)
+        (* Without a session group, a session is counted with the sessions
+           without a group of the site, which belong to other users: only
+           the session is closed. *)
         let a = browser () and b = browser () in
         let* _ = text a "/set?v=a" in
         let* _ = text a "/persistent/set?v=a" in
@@ -216,6 +216,16 @@ let groups server =
         let* () = check "persistent, oldest" "" a "/persistent/get" in
         let* () = check "persistent, second" "b" b "/persistent/get" in
         check "persistent, newest" "c" c "/persistent/get")
+    ; case "group coservice without a group" (fun browser ->
+        (* Without a session group, the session is its own group: a service
+           of the group scope is not visible to the other sessions without a
+           group. *)
+        let a = browser () and b = browser () in
+        let* _ = text a "/set?v=a" in
+        let* _ = text b "/set?v=b" in
+        let* url = text a "/group/coservice" in
+        let* () = check "own" "group coservice of a" a url in
+        check "other session without a group" "fallback" b url)
     ; case "close the sessions of a group" (fun browser ->
         (* From outside the group, as Os.Session.disconnect_all does *)
         let admin = browser () and a = browser () and b = browser () in

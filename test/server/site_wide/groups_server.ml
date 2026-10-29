@@ -32,7 +32,7 @@ let () =
   register
     (get ["service"; "max_groups"] P.(int "n"))
     (fun n () ->
-       State.set_max_service_states_for_group_or_subnet ~scope:group_scope n;
+       State.set_max_service_states_in_parent ~scope:group_scope n;
        text "set")
 
 (* Data: the browser joins a group of data, then sets a session reference,
@@ -50,8 +50,7 @@ let () =
   register
     (get ["data"; "max_groups"] P.(int "n"))
     (fun n () ->
-       State.set_max_volatile_data_states_for_group_or_subnet ~scope:group_scope
-         n;
+       State.set_max_volatile_data_states_in_parent ~scope:group_scope n;
        text "set")
 
 let () = Services.start ()

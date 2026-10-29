@@ -52,8 +52,10 @@ let limits =
   Main.
     [ "service sessions per group", default_max_service_sessions_per_group
     ; "data sessions per group", default_max_volatile_data_sessions_per_group
-    ; "service sessions per subnet", default_max_service_sessions_per_subnet
-    ; "data sessions per subnet", default_max_volatile_data_sessions_per_subnet
+    ; ( "service sessions without group"
+      , default_max_service_sessions_without_group )
+    ; ( "data sessions without group"
+      , default_max_volatile_data_sessions_without_group )
     ; ( "persistent sessions per group"
       , default_max_persistent_data_sessions_per_group )
     ; ( "service tab sessions per group"
@@ -72,10 +74,10 @@ let limit_options =
     , ["service sessions per group"; "data sessions per group"] )
   ; "maxservicesessionspergroup", ["service sessions per group"]
   ; "maxdatasessionspergroup", ["data sessions per group"]
-  ; ( "maxvolatilesessionspersubnet"
-    , ["service sessions per subnet"; "data sessions per subnet"] )
-  ; "maxservicesessionspersubnet", ["service sessions per subnet"]
-  ; "maxdatasessionspersubnet", ["data sessions per subnet"]
+  ; ( "maxvolatilesessionswithoutgroup"
+    , ["service sessions without group"; "data sessions without group"] )
+  ; "maxservicesessionswithoutgroup", ["service sessions without group"]
+  ; "maxdatasessionswithoutgroup", ["data sessions without group"]
   ; "maxpersistentsessionspergroup", ["persistent sessions per group"]
   ; ( "maxvolatiletabsessionspergroup"
     , ["service tab sessions per group"; "data tab sessions per group"] )
@@ -102,6 +104,27 @@ let test_limits () =
   check_error "not an integer"
     "Eliom: Wrong attribute value for maxdatasessionspergroup tag"
     {|<maxdatasessionspergroup value="many"/>|}
+
+(* The options renamed in Eliom 13 are errors, with their new name. In the
+   configuration of a site, unknown options are left to the Eliom modules:
+   [check_renamed] rejects them before. *)
+let test_renamed () =
+  List.iter
+    (fun (tag, new_tag) ->
+       let expected =
+         Printf.sprintf
+           "Eliom: <%s> is now <%s>, which limits the sessions without a group of the whole site"
+           tag new_tag
+       in
+       let option = Printf.sprintf {|<%s value="10"/>|} tag in
+       check_error tag expected option;
+       match Main.check_renamed (Xml.parse_string option) with
+       | () -> Alcotest.failf "%s: accepted in a site" tag
+       | exception Ocsigen.Extensions.Error_in_config_file e ->
+           Alcotest.(check string) (tag ^ ", in a site") expected e)
+    [ "maxvolatilesessionspersubnet", "maxvolatilesessionswithoutgroup"
+    ; "maxservicesessionspersubnet", "maxservicesessionswithoutgroup"
+    ; "maxdatasessionspersubnet", "maxdatasessionswithoutgroup" ]
 
 let test_cookies_and_subnets () =
   parse {|<securecookies value="true"/><ipv4subnetmask value="16"/>|};
@@ -191,6 +214,7 @@ let suite =
   , [ Alcotest.test_case "GC frequencies" `Quick test_gc_frequencies
     ; Alcotest.test_case "Comet timeout" `Quick test_comet_timeout
     ; Alcotest.test_case "limits" `Quick test_limits
+    ; Alcotest.test_case "renamed options" `Quick test_renamed
     ; Alcotest.test_case "cookies and subnets" `Quick test_cookies_and_subnets
     ; Alcotest.test_case "client program" `Quick test_client_program
     ; Alcotest.test_case "ignored parameters" `Quick test_ignored_params

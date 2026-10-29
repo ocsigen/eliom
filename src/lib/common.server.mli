@@ -300,9 +300,10 @@ module SessionCookies : Hashtbl.S with type key = string
 (* session groups *)
 type session_group =
   | Group_name of string
-  | Subnet of Ipaddr.t
-  (** The group of a session: a named group or, for sessions that are not in a
-    group, the subnet of the client. *)
+  | No_group
+  (** The group of a session: a named group or, for the sessions that are not
+    in a group, the automatic group of the site, which limits their number
+    together. *)
 
 type full_session_group =
   {sg_site_dir : string; sg_level : cookie_level; sg_group : session_group}
@@ -315,8 +316,8 @@ type 'a sessgrp = full_session_group
 (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
-       If there is no session group,
-       we limit the number of sessions by IP address. *)
+       Persistent sessions without a group are in no group (None),
+       and their number is not limited. *)
 type perssessgrp (* the same information, JSON-encoded *) [@@deriving json]
 
 val make_persistent_full_group_name :
@@ -326,6 +327,12 @@ val make_persistent_full_group_name :
   -> perssessgrp option
 
 val getperssessgrp : perssessgrp -> 'a sessgrp
+
+val name_of_perssessgrp : perssessgrp -> string
+(** [name_of_perssessgrp g] is the name of the persistent session group [g].
+
+    @raise Eliom_Session_expired if [g] cannot be read. *)
+
 val string_of_perssessgrp : perssessgrp -> string
 
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
@@ -578,11 +585,10 @@ and tables =
     *)
   }
 
-(* An entry of the group of groups of a site: a group of browser sessions of
-   one kind. The service sessions and the data sessions of a group are in
-   two distinct entries. *)
-and group_of_groups_entry =
-  {gg_kind : [`Service | `Data]; gg_group : [`Session_group] sessgrp}
+(* An entry of the group of groups of a site: the named group of browser
+   sessions of one kind. The service sessions and the data sessions of a
+   group are in two distinct entries. *)
+and group_of_groups_entry = {gg_kind : [`Service | `Data]; gg_name : string}
 
 and sitedata =
   { mutable site_dir : Url.path option
@@ -615,10 +621,10 @@ and sitedata =
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int configured
-  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_sessions_without_group : int configured
   ; mutable max_volatile_data_tab_sessions_per_group : int configured
   ; mutable max_service_sessions_per_group : int configured
-  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_sessions_without_group : int configured
   ; mutable max_service_tab_sessions_per_group : int configured
   ; mutable max_persistent_data_sessions_per_group : int option configured
   ; mutable max_persistent_data_tab_sessions_per_group : int option configured
@@ -791,7 +797,6 @@ val remove_naservice_table :
 
 val get_mask4 : sitedata -> int
 val get_mask6 : sitedata -> int
-val network_of_request : Ocsigen.Request.t -> mask4:int -> mask6:int -> Ipaddr.t
 val ipv4mask : int ref
 val ipv6mask : int ref
 val create_dlist_ip_table : int -> dlist_ip_table

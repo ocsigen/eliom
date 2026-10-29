@@ -188,11 +188,37 @@
   the application for unknown URLs, which the client-side program displays
   without leaving the application.
 * Session groups
+** The sessions that are not in a session group are now counted together
+   for the whole site, 1000000 by default, instead of 1000000 per sub
+   network of the client. The sub network was the one of the reverse proxy
+   for every client, or one of the many an IPv6 client has, so the limit
+   neither bounded the memory of the server nor isolated an attacker from
+   the other users. New names:
+   State.set_default_max_volatile_sessions_without_group (and the service
+   and data variants), which now apply at once, and the option
+   <maxvolatilesessionswithoutgroup> (and <maxservicesessionswithoutgroup>,
+   <maxdatasessionswithoutgroup>). The old names are removed, as are the
+   sub networks of the sessions; an old option is a configuration error,
+   also in the configuration of a site. <ipv4subnetmask> and
+   <ipv6subnetmask> now only concern the anonymous coservices of the global
+   table. Common.session_group has No_group instead of Subnet. The group
+   of the sessions without a group is not one of the groups of the site:
+   when the site has too many groups, it is not closed with all its
+   sessions at once. A service registered with the session-group scope for
+   a session without a group is registered for the session, as the data of
+   the group scope are.
+** State.set_max_*_states_for_group_or_subnet are renamed
+   set_max_*_states_in_parent. With a session scope, for a session that is
+   not in a group, they no longer change the limit of all the sessions
+   without a group (a warning is logged); with a session group scope, they
+   change the limit of groups of the site also for a session without a
+   group. The optional parameter ?set_max of
+   State.unset_service_session_group and unset_volatile_data_session_group
+   is removed: it set the limit of the sessions without a group.
 ** When a site has too many session groups (<maxvolatilegroupspersite>,
-   State.set_max_*_states_for_group_or_subnet with a session-group scope),
-   the group used least recently is closed: a request of a session of a
-   group moves the group up. The oldest group was closed, even if it was
-   in use.
+   State.set_max_*_states_in_parent with a session-group scope), the group
+   used least recently is closed: a request of a session of a group moves
+   the group up. The oldest group was closed, even if it was in use.
 ** The default maximum number of tab sessions in a browser session is now
    100 instead of 50. A closed tab does not tell the server, so the limit
    must exceed the number of tabs of the site that a user keeps open at
@@ -224,11 +250,12 @@
 ** State.set_default_global_persistent_data_state_timeout now sets the
    default timeout of persistent states. It used to set the default
    timeout of service states.
-** State.set_max_service_states_for_group_or_subnet and
-   set_max_volatile_data_states_for_group_or_subnet with a session group
-   scope now change the maximum number of session groups of the site also
-   when the group has no state of the other kind. They looked the group up
-   in each other's table, and did nothing in that case.
+** State.set_max_service_states_in_parent and
+   set_max_volatile_data_states_in_parent (then named
+   set_max_*_states_for_group_or_subnet) with a session group scope now
+   change the maximum number of session groups of the site also when the
+   group has no state of the other kind. They looked the group up in
+   each other's table, and did nothing in that case.
 ** State.unset_service_session_group now keeps a browser service session
    that still has tab service sessions. It used to count the tab data
    sessions instead, and could close a browser session in use.
@@ -347,8 +374,8 @@
    they did nothing: neither the data (volatile and persistent) nor the
    services of the group and of its sessions were removed. A session that
    is not in a session group is closed alone: it is its own group, as for the
-   data of the group scope (the automatic group of such sessions, their
-   subnet, holds the sessions of other users).
+   data of the group scope (the automatic group of such sessions holds the
+   sessions of other users).
 ** A form submitted through XHR by an image button (Form.image_input)
    sends the point of the click as name.x and name.y, as a native
    submission does, so that the service receives its

@@ -190,4 +190,18 @@ let () =
        in
        text "closed")
 
+(* A coservice registered for the session group of the browser *)
+
+let () =
+  string
+    (get ["group"; "coservice"] P.unit)
+    (fun () () ->
+       let service =
+         Service.create_attached_get ~fallback ~get_params:P.unit ()
+       in
+       let owner = V.get session_value in
+       Registration.String.register ~scope:group_scope ~service (fun () () ->
+         text ("group coservice of " ^ owner));
+       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+
 let () = Eliom_test_server.Server_harness.start [App.run ()]

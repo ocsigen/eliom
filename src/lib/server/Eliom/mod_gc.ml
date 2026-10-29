@@ -203,7 +203,7 @@ let collect_service_sessions sitedata =
                else Lwt.return_unit
              in
              (match !session_group with
-             | {Common.sg_group = Common.Subnet _; _}
+             | {Common.sg_group = Common.No_group; _}
              (* no group *)
              (*VVV check this *)
                when Mod_sessiongroups.Serv.group_size
@@ -259,7 +259,7 @@ let collect_data_sessions sitedata =
              Lwt.return_unit
          | _ -> (
            match !session_group with
-           | {Common.sg_level = scope; sg_group = Common.Subnet _; _}
+           | {Common.sg_level = scope; sg_group = Common.No_group; _}
            (* no group *)
              when Mod_sessiongroups.Data.group_size
                     { Common.sg_site_dir = Common.get_site_dir_string sitedata
@@ -278,7 +278,7 @@ let collect_data_sessions sitedata =
                then
                  Logs.err ~src:section (fun fmt ->
                    fmt
-                     "Eliom: Group associated to IP has scope different from `Session. Please report the problem.");
+                     "Eliom: Group of the sessions without a group has scope different from `Session. Please report the problem.");
                Mod_sessiongroups.Data.remove session_group_node;
                (* See also the finalisers in Mod_sessiongroups
                           and Mod_main.ml *)

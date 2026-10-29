@@ -378,19 +378,18 @@ opening a session in it closes the session of the group that has been
 used least recently. This bounds the memory that one user can take by
 opening sessions, and a user who floods the server with sessions only
 closes their own, as each group has its own limit. Sessions that are not
-in a group are counted together, by sub network of the client, with a
-much larger limit; behind a reverse proxy or a NAT, many users share one
-sub network, and a flood of sessions by one of them closes the sessions
-of the others. That is why we recommend to always put the sessions of a
-user in a group, usually named after the user. The number of persistent
-sessions without a group is not limited.
+in a group are counted together, for the whole site, with a much larger
+limit; a flood of such sessions by one user closes the sessions without a
+group of the other users. That is why we recommend to always put the
+sessions of a user in a group, usually named after the user. The number
+of persistent sessions without a group is not limited.
 
 By default, a group may hold 50 sessions of each kind (service sessions,
 volatile data sessions and persistent data sessions), and a browser
 session may hold 100 tab sessions. To change these limits:
 - for one group, give the optional parameter [?set_max] when attaching a
   session to it, with the functions above, or call
-  {!Eliom.State.set_max_volatile_states_for_group_or_subnet} from a
+  {!Eliom.State.set_max_volatile_states_in_parent} from a
   session of the group;
 - for the other groups, call
   {!Eliom.State.set_default_max_volatile_sessions_per_group} and the other

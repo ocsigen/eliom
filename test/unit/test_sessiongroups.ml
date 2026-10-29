@@ -22,6 +22,7 @@ type kind =
       -> string Dlist.node
   ; remove : 'a. 'a Dlist.node -> unit
   ; set_max : 'a. 'a Dlist.node -> int -> unit
+  ; set_group_max : Common.cookie_level Common.sessgrp -> int -> unit
   ; size : Common.cookie_level Common.sessgrp -> int
   ; entry :
       Common.cookie_level Common.sessgrp
@@ -32,6 +33,7 @@ let service =
   ; add = (fun sitedata id g -> Groups.Serv.add sitedata id g)
   ; remove = Groups.Serv.remove
   ; set_max = Groups.Serv.set_max
+  ; set_group_max = Groups.Serv.set_group_max
   ; size = Groups.Serv.group_size
   ; entry =
       (fun g -> Option.map snd (Groups.Serv.find_node_in_group_of_groups g)) }
@@ -41,6 +43,7 @@ let data =
   ; add = (fun sitedata id g -> Groups.Data.add sitedata id g)
   ; remove = Groups.Data.remove
   ; set_max = Groups.Data.set_max
+  ; set_group_max = Groups.Data.set_group_max
   ; size = Groups.Data.group_size
   ; entry = Groups.Data.find_node_in_group_of_groups }
 
@@ -147,7 +150,7 @@ let evict_group sitedata k _ =
     ~changed:["g1", 0; "b11 tabs", 0; "b12 tabs", 0]
 
 (* Limits: [set_max] on a node sets the maximum of the dlist holding it,
-   which is what State.set_max_*_states_for_group_or_subnet do. *)
+   which is what State.set_max_*_states_in_parent do. *)
 
 let limit_tabs sitedata k s =
   k.set_max s.t112 1;
@@ -184,6 +187,28 @@ let scenarios =
   ; "limit the browser sessions of a group", limit_browser_sessions
   ; "limit the groups of a site", limit_groups ]
 
+(* The sessions without a group of a site are in one group, which is not a
+   group of the site: when the site has too many groups, they are not closed
+   with the oldest one. *)
+let without_group k () =
+  let sitedata = new_sitedata ("without a group " ^ k.name) in
+  let anonymous =
+    Groups.make_full_group_name ~cookie_level:`Session ~sitedata None
+  in
+  ignore (k.add sitedata (id k "a1") anonymous);
+  ignore (k.add sitedata (id k "a2") anonymous);
+  Alcotest.(check bool)
+    "not in the group of groups" true
+    (Option.is_none (k.entry anonymous));
+  ignore (Dlist.set_maxsize sitedata.Common.group_of_groups 1);
+  ignore (k.add sitedata (id k "b11") (group sitedata "g1"));
+  ignore (k.add sitedata (id k "b21") (group sitedata "g2"));
+  Alcotest.(check int) "oldest group closed" 0 (k.size (group sitedata "g1"));
+  Alcotest.(check int) "sessions without a group" 2 (k.size anonymous);
+  (* A new limit for the group applies at once *)
+  k.set_group_max anonymous 1;
+  Alcotest.(check int) "after a new limit" 1 (k.size anonymous)
+
 (* The list of the sessions of a persistent group, in the database *)
 let persistent_up () =
   let sitedata = new_sitedata "persistent groups" in
@@ -212,11 +237,14 @@ let suite =
   ( "session groups"
   , List.concat_map
       (fun k ->
-         List.map
-           (fun (name, f) ->
-              Alcotest.test_case
-                (Printf.sprintf "%s (%s)" name k.name)
-                `Quick (run name f k))
-           scenarios)
+         Alcotest.test_case
+           (Printf.sprintf "sessions without a group (%s)" k.name)
+           `Quick (without_group k)
+         :: List.map
+              (fun (name, f) ->
+                 Alcotest.test_case
+                   (Printf.sprintf "%s (%s)" name k.name)
+                   `Quick (run name f k))
+              scenarios)
       [service; data]
     @ [Alcotest.test_case "persistent group, use" `Quick persistent_up] )

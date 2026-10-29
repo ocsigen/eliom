@@ -1,8 +1,8 @@
 val default_max_persistent_data_sessions_per_group : int ref
 val default_max_service_sessions_per_group : int ref
-val default_max_service_sessions_per_subnet : int ref
+val default_max_service_sessions_without_group : int ref
 val default_max_volatile_data_sessions_per_group : int ref
-val default_max_volatile_data_sessions_per_subnet : int ref
+val default_max_volatile_data_sessions_without_group : int ref
 val default_max_persistent_data_tab_sessions_per_group : int ref
 val default_max_service_tab_sessions_per_group : int ref
 val default_max_volatile_data_tab_sessions_per_group : int ref
@@ -63,6 +63,12 @@ val create_sitedata :
   -> Common.sitedata
 
 val parse_global_config : Xml_light_types.xml list -> unit
+
+val check_renamed : Xml_light_types.xml -> unit
+(** [check_renamed e] raises [Ocsigen.Extensions.Error_in_config_file] if [e]
+    is an option renamed in Eliom 13, in the global configuration as in the
+    configuration of a site. *)
+
 val exception_during_eliommodule_loading : bool ref
 val end_init : unit -> unit
 val handle_init_exn : exn -> string

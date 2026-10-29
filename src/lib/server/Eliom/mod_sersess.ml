@@ -64,7 +64,7 @@ let close_service_state ~scope ~secure_o ?sp () =
                 Logs.err ~src:eliom_logs_src (fun fmt ->
                   fmt "No group of groups. Please report this problem.")
             | Some (_service_table, g) -> Mod_sessiongroups.Serv.remove g)
-          | {Common.sg_group = Common.Subnet _; _} ->
+          | {Common.sg_group = Common.No_group; _} ->
               (* Without a session group, the session is its own group (see
                  Mod_datasess.close_data_state). *)
               Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node)
@@ -77,7 +77,6 @@ let close_service_state ~scope ~secure_o ?sp () =
 let fullsessgrp ~cookie_level ~sp set_session_group =
   let sitedata = Request_info.get_sitedata_sp ~sp in
   Mod_sessiongroups.make_full_group_name ~cookie_level ~sitedata
-    (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
     set_session_group
 
 let rec find_or_create_service_cookie_

@@ -146,10 +146,9 @@ end = struct
   let to_string x = x
 end
 
-(* The group of a session: a named group or, for sessions that are not in a
-   group, the subnet of the client (to limit the number of sessions by IP
-   address) *)
-type session_group = Group_name of string | Subnet of Ipaddr.t
+(* The group of a session: a named group or, for the sessions that are not in
+   a group, the automatic group of the site (to limit their number) *)
+type session_group = Group_name of string | No_group
 
 (* A full session group: the site, the cookie level of the group members
    (`Session by default) and the group *)
@@ -183,12 +182,9 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
            ; p_cookie_level = cookie_level
            ; p_group = g })
 
-let getperssessgrp a : 'a sessgrp =
+let decode_perssessgrp a =
   match Deriving_Json.from_string [%json: perssessgrp_payload] a with
-  | {p_site_dir_str; p_cookie_level; p_group} ->
-      { sg_site_dir = p_site_dir_str
-      ; sg_level = p_cookie_level
-      ; sg_group = Group_name p_group }
+  | p -> p
   | exception Failure msg ->
       (* Old (pre-Eliom-13, Marshal-encoded) or corrupt persistent
          session-group cookie: treat it as an expired session instead of
@@ -198,6 +194,14 @@ let getperssessgrp a : 'a sessgrp =
           "Unreadable persistent session group (pre-13 or corrupt), session expired: %s"
           msg);
       raise Eliom_Session_expired
+
+let getperssessgrp a : 'a sessgrp =
+  let {p_site_dir_str; p_cookie_level; p_group} = decode_perssessgrp a in
+  { sg_site_dir = p_site_dir_str
+  ; sg_level = p_cookie_level
+  ; sg_group = Group_name p_group }
+
+let name_of_perssessgrp a = (decode_perssessgrp a).p_group
 
 (* Client-supplied JSON (tab cookies, client process info): a malformed value
    falls back to the default, with a debug trace to keep the request alive
@@ -342,11 +346,6 @@ let network_of_ip k mask4 mask6 =
   match k with
   | Ipaddr.V4 ip -> Ipaddr.(V4 V4.Prefix.(network (make mask4 ip)))
   | Ipaddr.V6 ip -> Ipaddr.(V6 V6.Prefix.(network (make mask6 ip)))
-
-let network_of_request r ~mask4 ~mask6 =
-  match Ocsigen.Request.client_conn r with
-  | `Inet (ip, _) -> network_of_ip ip mask4 mask6
-  | _ -> Ipaddr.(V6 V6.localhost)
 
 module Net_addr_Hashtbl : sig
   type key = Ipaddr.t
@@ -499,8 +498,7 @@ and tables =
 (* An entry of the group of groups of a site: a group of browser sessions of
    one kind. The service sessions and the data sessions of a group are in
    two distinct entries. *)
-and group_of_groups_entry =
-  {gg_kind : [`Service | `Data]; gg_group : [`Session_group] sessgrp}
+and group_of_groups_entry = {gg_kind : [`Service | `Data]; gg_name : string}
 
 and sitedata =
   { mutable site_dir : Url.path option
@@ -542,10 +540,10 @@ and sitedata =
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int configured
-  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_sessions_without_group : int configured
   ; mutable max_volatile_data_tab_sessions_per_group : int configured
   ; mutable max_service_sessions_per_group : int configured
-  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_sessions_without_group : int configured
   ; mutable max_service_tab_sessions_per_group : int configured
   ; mutable max_persistent_data_sessions_per_group : int option configured
   ; mutable max_persistent_data_tab_sessions_per_group : int option configured
