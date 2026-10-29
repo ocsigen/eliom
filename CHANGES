@@ -173,6 +173,10 @@
   loaded by ocsigenserver with <name>.conf. The template is maintained in
   the eliom_template_exe repository; script/update_templates.sh copies it
   here.
+* <eliommodule findlib-package="...">: the configuration of the element is
+  now visible to every file loaded for it, not only to the last one. The
+  libraries of an application split into several packages, as the templates
+  now are, read it when they are loaded as dependencies.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

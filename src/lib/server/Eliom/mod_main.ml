@@ -740,15 +740,20 @@ let site_init firstmodule =
     firstmodule := false)
 
 let load_eliom_module _sitedata cmo_or_name parent_tag content =
-  let preload () =
-    config := Some content;
-    config_in_tag := parent_tag
-  in
-  let postload () = config := Some [] in
+  (* The configuration of the <eliommodule> is visible to every file loaded
+     for it, not only to the last one: with a findlib package, the libraries
+     of the application are loaded first and may read it too. *)
+  config := Some content;
+  config_in_tag := parent_tag;
+  let nothing () = () in
   try
-    match cmo_or_name with
-    | Files cmo -> Ocsigen_base.Loader.loadfiles preload postload true cmo
-    | Name name -> Ocsigen_base.Loader.init_module preload postload true name
+    Fun.protect
+      ~finally:(fun () -> config := Some [])
+      (fun () ->
+         match cmo_or_name with
+         | Files cmo -> Ocsigen_base.Loader.loadfiles nothing nothing true cmo
+         | Name name ->
+             Ocsigen_base.Loader.init_module nothing nothing true name)
   with Ocsigen_base.Loader.Dynlink_error (n, e) ->
     raise
       (Common.Eliom_error_while_loading_site
