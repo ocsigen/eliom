@@ -271,7 +271,7 @@ let change_option =
 
 In Eliom applications, changing the current page does not always do the
 same thing. When going to a page inside the same application by
-clicking on a link (or calling {!Eliom.Client.change_page}) the client
+clicking on a link (or calling {{:../../eliom.client/Eliom/Client/index.html#val-change_page}[Eliom.Client.change_page]}) the client
 application performs an [XMLHttpRequest] and modifies the displayed page
 according to the result. When going to content outside the
 application (another site, a static file, etc.) the client leaves the

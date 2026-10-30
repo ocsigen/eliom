@@ -186,7 +186,7 @@ available at that time.
 
 On the client, top-level declarations are evaluated when the client
 process starts, before the page is in the DOM. To act on the page, use
-{!Eliom.Client.onload}.
+{{:../eliom.client/Eliom/Client/index.html#val-onload}[Eliom.Client.onload]}.
 
 {2:clientvalues Global and request client fragments}
 
