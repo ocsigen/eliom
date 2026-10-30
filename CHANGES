@@ -233,7 +233,8 @@
 ** A browser service session in a session group is no longer closed with
    its last tab service session, as for data sessions. When it had no
    service of its own, it was closed, which took it out of its group and
-   could close the services of the group.
+   could close the services of the group. Afterwards,
+   State.get_service_session_group returned None.
 ** When a site has too many session groups (<maxvolatilegroupspersite>,
    State.set_max_*_states_in_parent with a session-group scope), the group
    used least recently is closed: a request of a session of a group moves

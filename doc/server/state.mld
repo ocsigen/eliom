@@ -377,6 +377,8 @@ attach the service session with {!Eliom.State.set_service_session_group},
 attaching the data sessions is not enough. Like volatile group data, these
 services are discarded when the last service session of the group is
 closed, for example when a user who has only one session disconnects.
+A service session without a group is its own group: the services it
+registers with the group scope go to its own table.
 
 {3 Limit the number of sessions within a group}
 
