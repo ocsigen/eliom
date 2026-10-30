@@ -2,13 +2,7 @@
 // new document; history and reload work.
 "use strict";
 const { test, expect } = require("@playwright/test");
-
-// The number of documents loaded in [page] since the call
-function countLoads(page) {
-  const loads = { count: 0 };
-  page.on("load", () => loads.count++);
-  return loads;
-}
+const { open, countLoads } = require("./helpers");
 
 // Clicks the button of the main page and checks that its counter changes:
 // the client program handles the events of the page
@@ -25,7 +19,7 @@ test("a link of the application does not load a document", async ({
   page,
 }) => {
   const loads = countLoads(page);
-  await page.goto("/");
+  await open(page, "/");
   await expect(page.locator("#onload")).toHaveText("ran at load");
   await page.click("#to-two");
   await expect(page).toHaveURL(/\/two$/);
@@ -36,7 +30,7 @@ test("a link of the application does not load a document", async ({
 
 test("back and forward", async ({ page }) => {
   const loads = countLoads(page);
-  await page.goto("/");
+  await open(page, "/");
   await page.click("#to-two");
   await expect(page.locator("#title")).toHaveText("two");
   await page.goBack();
@@ -51,7 +45,7 @@ test("back and forward", async ({ page }) => {
 
 test("reload loads the page again", async ({ page }) => {
   const loads = countLoads(page);
-  await page.goto("/");
+  await open(page, "/");
   await page.click("#to-two");
   await expect(page.locator("#title")).toHaveText("two");
   await page.reload();
@@ -62,7 +56,7 @@ test("reload loads the page again", async ({ page }) => {
 
 test("the page does not reload itself", async ({ page }) => {
   const loads = countLoads(page);
-  await page.goto("/");
+  await open(page, "/");
   await expect(page.locator("#onload")).toHaveText("ran at load");
   await page.waitForTimeout(2000);
   expect(loads.count).toBe(1);
@@ -70,7 +64,7 @@ test("the page does not reload itself", async ({ page }) => {
 
 test("a link to a page outside the application loads it", async ({ page }) => {
   const loads = countLoads(page);
-  await page.goto("/");
+  await open(page, "/");
   await page.click("#to-server");
   await expect(page).toHaveURL(/\/server$/);
   await expect(page.locator("#title")).toHaveText("server");
