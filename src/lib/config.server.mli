@@ -193,7 +193,7 @@ val parse_config :
 (** Process the configuration
     (same as the one returned by
     {!Config.get_config})
-    by a given specification (cf. {!Ocsigen.Extensions.Configuration.element}) *)
+    by a given specification (cf. {!type:Ocsigen.Extensions.Configuration.element}) *)
 
 val get_config_info : unit -> Ocsigen.Extensions.config_info
 (** The function [get_config_info ()] returns the information
