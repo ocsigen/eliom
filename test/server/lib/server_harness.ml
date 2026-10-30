@@ -150,7 +150,13 @@ let start instructions =
      of the start directory. As the name differs, later accesses use this
      file instead, and the tests notice that the data are not there. *)
   Ocsipersist_settings.set_db_file (Filename.concat (Sys.getcwd ()) "ocsidb");
+  (* No default charset, which the test "no default charset" of
+     services/test.ml relies on. Given to the host, as Ocsigen Server may give
+     one by default, and as [~default_charset] of [start] only reaches the
+     hosts since Ocsigen Server 8.1. *)
   Ocsigen.Server.start
     ~ports:[`Unix socket_name, 0]
     ~command_pipe ~logdir:"log" ~debugmode:true
-    [Ocsigen.Server.host instructions]
+    [ Ocsigen.Server.host
+        ~charset_assoc:(Ocsigen_http.Charset_mime.empty_charset_assoc ())
+        instructions ]
