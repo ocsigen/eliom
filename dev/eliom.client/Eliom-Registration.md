@@ -97,3 +97,13 @@ val appl_self_redirect :
   'appl application_content kind Lwt.t
 ```
 For compatibility with server-side `appl_self_redirect`
+
+```ocaml
+val set_status : Cohttp.Code.status -> unit
+```
+Does nothing on the client, where there is no HTTP response to send: for `%shared` service handlers. See the server-side `set_status`.
+
+```ocaml
+val get_status : unit -> Cohttp.Code.status option
+```
+`get_status ()` is `None` on the client.

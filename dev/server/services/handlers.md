@@ -154,7 +154,7 @@ let send_any =
 
 ##### Dynamically modifying register options using Any
 
-You may also use [`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) to dynamically modify the parameters usually set on the register function. You can set the HTTP code, the charset, the content\_type, the HTTP headers and the specific option of the output module.
+You may also use [`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) to dynamically modify the parameters usually set on the register function. You can set the HTTP code, the charset, the content\_type, the HTTP headers and the specific option of the output module. To change only the HTTP status of a page, [`Eliom.Registration.set_status`](./../../eliom.server/Eliom-Registration.md#val-set_status) is simpler, see [Error handling](./#error_handling).
 
 ```ocaml
 let change_option =
@@ -353,6 +353,21 @@ let looong2 =
 
 ### Error handling
 
+#### Sending a page with an HTTP error status
+
+A service handler can set the HTTP status of its answer with [`Eliom.Registration.set_status`](./../../eliom.server/Eliom-Registration.md#val-set_status), then return its page as usual:
+
+```ocaml
+let () =
+  My_app.register ~service:user_service (fun id () ->
+    match%lwt User.find id with
+    | Some user -> user_page user
+    | None ->
+      Eliom.Registration.set_status `Not_found;
+      not_found_page ())
+```
+This status takes precedence over the `?code` parameter of the registration function. It is dropped if the handler raises an exception. On the client, `set_status` does nothing, so that `%shared` handlers can call it. [`Eliom.Registration.get_status`](./../../eliom.server/Eliom-Registration.md#val-get_status) reads it.
+
 #### Exception handling
 
 You can catch exceptions raised during page generation in two places:
@@ -383,6 +398,7 @@ let () =
   | e ->
     Lwt.fail e
 ```
+The handler may send any kind of content. In a client-server application, send the error page with the `send` function of the application, as in `My_app.send ~code:404 page`: the client-side program then displays it without leaving the application.
 
 #### Fallback services
 
