@@ -173,6 +173,7 @@ var caml_unwrap_value_from_string = function (){
           case cst.CODE_DOUBLE_ARRAY32_BIG:
             var len = reader.read32u();
             var v = [0];
+            intern_obj_table[obj_counter++] = v;
             for (var i = 1;i <= len;i++) {
               var t = [];
               for (var j = 0;j < 8;j++) t[j] = reader.read8u();

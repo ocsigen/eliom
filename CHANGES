@@ -515,6 +515,8 @@
 ** The client reports data that are not a marshalled value with a Failure
    outside a window too (Node.js, web workers): the message used
    window.btoa, which raised a ReferenceError there.
+** The client reads the long float arrays sent by a big-endian server
+   correctly: the shared values read after them were wrong.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
