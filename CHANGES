@@ -561,6 +561,9 @@
    values of suffix parameters, which the server read as separators.
    BREAKING for direct callers on the client: slashes were kept, ~plus told
    whether + is encoded, and spaces were always %20.
+** The fragments of URLs and of the actions of forms built by the server
+   encode spaces as %20, as on the client, not +, which is not a space in a
+   fragment.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
