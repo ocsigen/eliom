@@ -192,13 +192,13 @@ let collection server =
         check "collected" "0" a "/count") ] )
 
 (* The limit of groups of the site, set by a member of a group that has
-   states of one kind only: the oldest group is closed. *)
+   states of one kind only: the group used least recently is closed. *)
 let limit_of_groups kind server =
   let case = case server in
   ( "limit of groups"
-  , [ (match kind with
-      | `Service ->
-          case "service states" (fun browser ->
+  , match kind with
+    | `Service ->
+        [ case "service states" (fun browser ->
             let a = browser () and b = browser () and c = browser () in
             let* url_a = text a "/service/join?name=ga" in
             let* _ = text a "/service/max_groups?n=2" in
@@ -207,8 +207,20 @@ let limit_of_groups kind server =
             let* () = check "second" "coservice" b url_b in
             let* () = check "newest" "coservice" c url_c in
             check "oldest" "fallback" a url_a)
-      | `Data ->
-          case "data states" (fun browser ->
+        ; case "service states, least recently used" (fun browser ->
+            (* [a] uses its group after [b] creates its own: the group of
+               [b] is closed. *)
+            let a = browser () and b = browser () and c = browser () in
+            let* url_a = text a "/service/join?name=ga2" in
+            let* _ = text a "/service/max_groups?n=2" in
+            let* url_b = text b "/service/join?name=gb2" in
+            let* () = check "used" "coservice" a url_a in
+            let* url_c = text c "/service/join?name=gc2" in
+            let* () = check "kept" "coservice" a url_a in
+            let* () = check "newest" "coservice" c url_c in
+            check "least recently used" "fallback" b url_b) ]
+    | `Data ->
+        [ case "data states" (fun browser ->
             let a = browser () and b = browser () and c = browser () in
             let* _ = text a "/data/join?name=da&v=a" in
             let* _ = text a "/data/max_groups?n=2" in
@@ -216,7 +228,19 @@ let limit_of_groups kind server =
             let* _ = text c "/data/join?name=dc&v=c" in
             let* () = check "second" "b" b "/get" in
             let* () = check "newest" "c" c "/get" in
-            check "oldest" "" a "/get")) ] )
+            check "oldest" "" a "/get")
+        ; case "data states, least recently used" (fun browser ->
+            let a = browser () and b = browser () and c = browser () in
+            let* _ = text a "/data/join?name=da2&v=a" in
+            let* _ = text a "/data/max_groups?n=2" in
+            let* _ = text b "/data/join?name=db2&v=b" in
+            let* () = check "used" "a" a "/get" in
+            let* _ = text c "/data/join?name=dc2&v=c" in
+            let* () = check "kept" "a" a "/get" in
+            let* () = check "newest" "c" c "/get" in
+            (* Last: reading a session reference without value opens a
+               session. *)
+            check "least recently used" "" b "/get") ] )
 
 let run name exe suites =
   Server_harness.with_server exe (fun server ->

@@ -72,6 +72,12 @@ module type MEMTAB = sig
     -> string Ocsigen_base.Cache.Dlist.node
 
   val up : string Ocsigen_base.Cache.Dlist.node -> unit
+
+  val up_group : [< Common.cookie_level] Common.sessgrp -> unit
+  (** [up_group g] makes [g] the group of the site used most recently, if
+      it is one: when the site has too many groups, the ones used least
+      recently are closed. *)
+
   val nb_of_groups : unit -> int
   val group_size : [< Common.cookie_level] Common.sessgrp -> int
   val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit

@@ -79,6 +79,11 @@ module type MEMTAB = sig
     -> string Ocsigen_base.Cache.Dlist.node
 
   val up : string Ocsigen_base.Cache.Dlist.node -> unit
+
+  val up_group : Common.cookie_level Common.sessgrp -> unit
+  (** [up_group g] makes [g] the group of the site used most recently, if
+      it is one. *)
+
   val nb_of_groups : unit -> int
   val group_size : Common.cookie_level Common.sessgrp -> int
   val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit
@@ -231,6 +236,11 @@ module Make (A : sig
     | None -> assert false
 
   let up node = Ocsigen_base.Cache.Dlist.up node
+
+  let up_group sess_grp =
+    match find_node_in_group_of_groups sess_grp with
+    | Some d -> Ocsigen_base.Cache.Dlist.up (A.node_of_group_of_group_data d)
+    | None -> ()
 
   let move ?set_max sitedata node sess_grp =
     let cl = get_cl ?set_max sitedata sess_grp in

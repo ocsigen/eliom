@@ -433,7 +433,7 @@ val set_max_service_states_for_group_or_subnet :
       This limit is shared by service and data states: a group with both
       counts twice.
 
-    If there are more, the oldest ones are closed. *)
+    If there are more, the ones used least recently are closed. *)
 
 val set_max_volatile_data_states_for_group_or_subnet :
    scope:Common.user_scope

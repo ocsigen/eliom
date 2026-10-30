@@ -188,6 +188,11 @@
   the application for unknown URLs, which the client-side program displays
   without leaving the application.
 * Session groups
+** When a site has too many session groups (<maxvolatilegroupspersite>,
+   State.set_max_*_states_for_group_or_subnet with a session-group scope),
+   the group used least recently is closed: a request of a session of a
+   group moves the group up. The oldest group was closed, even if it was
+   in use.
 ** The default maximum number of tab sessions in a browser session is now
    100 instead of 50. A closed tab does not tell the server, so the limit
    must exceed the number of tabs of the site that a user keeps open at

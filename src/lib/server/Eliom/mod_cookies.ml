@@ -166,6 +166,7 @@ let get_cookie_info
                (Common.Hashed_cookies.to_string hvalue)
            in
            Mod_sessiongroups.Serv.up session_group_node;
+           Mod_sessiongroups.Serv.up_group !session_group;
            match !expiry with
            | Some t when t < now ->
                (* session expired by timeout *)
@@ -227,6 +228,7 @@ let get_cookie_info
                   (Common.Hashed_cookies.to_string hvalue)
               in
               Mod_sessiongroups.Data.up session_group_node;
+              Mod_sessiongroups.Data.up_group !session_group;
               match !expiry with
               | Some t when t < now ->
                   (* session expired by timeout *)
