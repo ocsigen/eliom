@@ -12,12 +12,12 @@ service handler. The service handler is a function taking the GET and
 POST parameters as arguments and returning the content to be sent to
 the client. The return type of the service handler depends on the
 function used to register it. The most common case is HTML content
-build with the TyXML library, but Eliom additionally provides a lot of
+built with the TyXML library, but Eliom additionally provides a lot of
 output modules to ease the implementation of common Web
-interaction. See section {{!//server/services/page-handlers.predefined_outputs}Predefined output modules} for a
+interaction. See section {{!//server/services/page-handlers.list_outputs}List of predefined output modules} for a
 comprehensive list.
 
-{2 List of predefined output modules}
+{2:list_outputs List of predefined output modules}
 
 Services can send several types of data, using a variety of predefined modules.
 It is also possible to {{!//server/services/page-handlers.creating}create your own output modules}.
@@ -40,24 +40,22 @@ using polymorphic variant types. You may use constructor functions from {!Eliom.
 : Registration of functions that   generate text pages, without any validation of the content. The services return a pair of strings. The first string is the content   of the page, while the second string is the content type.
 ;{!Eliom.Registration.File}
 : Registration of services that send files. See {{!//server/services/page-handlers.eliomfiles}here} for an example of use.
-;{!Eliom.Registration.Streamlist}
-: Registration of services that send "byte" contents. It is used when big content (that does not fit in memory) is generated.
 
 {%wodoc:div class="paragraph"%} Generating content for client-server applications {%wodoc:end%}
 
 ;{!Eliom.Registration.App}
 : Functor that allows creation of services belonging to a client-server Eliom application (see {{!//clientserver/page-applications}chapter client-server applications}).
 
-{%wodoc:div class="paragraph"%} Special browser interraction {%wodoc:end%}
+{%wodoc:div class="paragraph"%} Special browser interaction {%wodoc:end%}
 
 ;{!Eliom.Registration.Action}
 : Registration of actions (functions that do not generate any page. See {{!//server/services/page-handlers.actions}Action}). The page corresponding to the URL (without the special parameter identifying the action) is reloaded after the action by default if possible.
 ;{!Eliom.Registration.Unit}
-: Like {!Eliom.Registration.Action}, but the URL is not reloaded after the action. (Same as [Eliom.Registration.Action] with [[`NoReload]] option).
+: Like {!Eliom.Registration.Action}, but the URL is not reloaded after the action. (Same as [Eliom.Registration.Action] with the [`NoReload] option).
 ;{!Eliom.Registration.Redirection}
-: Registration of HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the {%wodoc:span class="code"%}?options{%wodoc:end%} parameter of registration functions. For example: {%wodoc:span class="code"%}register ~options:`Permanent ...{%wodoc:end%} or {%wodoc:span class="code"%}register ~options:`Temporary ...{%wodoc:end%}.
+: Registration of HTTP redirections. The handler returns the service (without parameters) of the page you want to redirect to, wrapped in the [Redirection] constructor. The browser gets a 302 code by default and redoes the request to the new URL. To choose another code, use the [?options] parameter of registration functions, for example [register ~options:`MovedPermanently ...] (301) or [register ~options:`TemporaryRedirect ...] (307).
 ;{!Eliom.Registration.String_redirection}
-: Same but the ouput type is a string. Use with care! Warning: According to the RFC of the HTTP protocol, the URL must be absolute!
+: Same but the output type is a string. Use with care! Warning: the URL must be absolute.
 
 {%wodoc:div class="paragraph"%} Customization of other outputs {%wodoc:end%}
 
@@ -90,7 +88,7 @@ let sendfile =
   Eliom.Registration.File.create
     ~path:(Eliom.Service.Path ["sendfile"])
     ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
-    (fun () () -> return "filename")
+    (fun () () -> Lwt.return "filename")
 ]}
 
 Other example, with "suffix" services (see {{!//server/services/page-parameters.suffix}here}):
@@ -102,7 +100,7 @@ let sendfile2 =
       (Eliom.Service.Get
          Eliom.Parameter.(suffix (all_suffix "filename")))
     (fun s () -> Lwt.return @@
-      "//path//" ^
+      "/var/www/files/" ^
       Ocsigen_base.Lib.Url.string_of_url_path ~encode:false s)
 ]}
 
@@ -135,16 +133,9 @@ better-suited.
               p [txt "Blablablabla"] ]])
 ]}
 
-
-The
-{!Eliom.Registration.Make_typed_xml_registration}
-module allows the creation of new modules for registering portions of
-pages of other types.  For example, {!Eliom.Registration.Flow5} is defined by:
-
-{@ocaml[module Flow5 = Make_typed_xml_registration(Xml)(Html.F)(struct
-  type content = Html_types.body_content
-end)
-]}
+To send portions of pages of other types, create your own output module
+with {!Eliom.Mkreg.Make} (see
+{{!//server/services/page-handlers.creating}Creating your own output modules}).
 
 
 {3:redirections Redirections}
@@ -245,8 +236,8 @@ let send_any =
            (html
               (head (title (txt "")) [])
               (body [p [txt "This page has been statically checked. ";
-                        txt "If you change the parameter in the URL ";
-                        txt "will get an unchecked text page"]]))
+                        txt "If you change the parameter in the URL, ";
+                        txt "you will get an unchecked text page"]]))
        else
          Eliom.Registration.Html_text.send
            "<p>Not a valid page. Try with type=\"valid\" in the URL.</p>")
@@ -281,22 +272,21 @@ let change_option =
 In Eliom applications, changing the current page does not always do the
 same thing. When going to a page inside the same application by
 clicking on a link (or calling {!Eliom.Client.change_page}) the client
-application performs an [XmlHttpRequest] and modifies the displayed page
+application performs an [XMLHttpRequest] and modifies the displayed page
 according to the result. When going to content outside the
 application (another site, a static file, etc.) the client leaves the
 application by changing the browser URL.
 
 When using {!Eliom.Registration.Any}, there is no way to know before the request whether the content is
 from the same application or not. To this end, there are phantom type
-annotations to the type of the [send] functions: {!Eliom.Registration.kind}. The {!Eliom.Registration.Any.register} takes a
-service handler that can server only one kind of content: that way it
+annotations to the type of the [send] functions: {!Eliom.Registration.kind}. The function {!Eliom.Registration.Any.register} takes a
+service handler that can serve only one kind of content: that way it
 is not possible to inadvertently mix kinds. The different kinds of
 content are:
 
-- Browser content: everything that can't be handled by application
+- Browser content: everything that can't be handled by the application
   directly, e.g., HTML pages, files
-- Block content: subparts of pages sent as XML: e.g., [Flow5],
-  [Block].
+- Block content: subparts of pages sent as XML, e.g., [Flow5].
 - Application content: pages of application.
 - Ocaml content: marshalled OCaml values.
 - Unknown content: content generated as text.
@@ -320,6 +310,9 @@ let file_or_application =
     ~path:(Eliom.Service.Path ["file_or_application"])
     ~meth:(Eliom.Service.Get Eliom.Parameter.(string "filename"))
    (fun filename () ->
+     (* Never send a file named by the client without restricting it to
+        a directory. *)
+     let filename = Filename.concat "/var/www/files" (Filename.basename filename) in
      if Eliom.Registration.File.check_file filename
      then
        Eliom.Registration.appl_self_redirect
@@ -350,16 +343,18 @@ don't need to do the check in every service handler, and we can get
 the user information directly.
 
 In this example, we check if we are in a session group telling that
-the user is connected. If this not the case, we generate a login
+the user is connected. If this is not the case, we generate a login
 page. When we are in a group, we retrieve the user information and
 pass it to the service handler. It returns a title and the content of
-the body. That way, it also always generate the same CSS without code
+the body. That way, all pages also always get the same head (and CSS) without code
 duplication.
 
 {@ocaml[
 module Connected_param = struct
 
-  type page = user_info -> Eliom.Registration.Html.page Lwt.t
+  type page =
+    user_info ->
+    (string * Html_types.body_content Eliom.Content.Html.elt list) Lwt.t
 
   let translate page =
     match
@@ -399,49 +394,31 @@ instead.
 
 {@ocaml[
 module Int_reg_base = struct
-
   type page = int
-
   type options = unit
-
-  type return =
-    Eliom.Service.non_ocaml
-
-  type result =
-    Eliom.Registration.browser_content Eliom.Registration.kind
+  type result = Eliom.Registration.browser_content Eliom.Registration.kind
 
   let result_of_http_result = Eliom.Registration.cast_http_result
-
   let send_appl_content = Eliom.Service.XNever
 
-  let send ?options ?charset ?code ?content_type ?headers content =
-    let content = string_of_int content in
-    let%lwt r =
-      Ocsigen_senders.Text_content.result_of_content
-        (content, "text/plain")
+  let send ?options:_ ?charset ?code ?content_type ?headers content =
+    let charset =
+      Option.value charset ~default:(Eliom.Config.get_config_default_charset ())
+    and content_type = Option.value content_type ~default:"text/plain" in
+    let headers =
+      Cohttp.Header.replace
+        (Option.value headers ~default:(Cohttp.Header.init ()))
+        "content-type"
+        (content_type ^ "; charset=" ^ charset)
     in
-    Lwt.return @@ Ocsigen_http_frame.Result.update r ()
-      ~code:(match code with Some c -> c | None -> 200)
-      ~charset:
-        (match charset with
-         | None ->  Some (Eliom.Config.get_config_default_charset ())
-         | _ -> charset)
-      ~content_type:
-        (match content_type with
-         | None -> Ocsigen_http_frame.Result.content_type r
-         | _ -> content_type)
-      ~headers:
-        (match headers with
-         | None ->
-           Ocsigen_http_frame.Result.headers r
-         | Some headers ->
-           Http_headers.with_defaults
-             headers
-             (Ocsigen_http_frame.Result.headers r))
-
+    let status = Option.map Cohttp.Code.status_of_code code in
+    Lwt.return
+      (Ocsigen.Response.make
+         ~body:(Ocsigen.Response.Body.of_string (string_of_int content))
+         (Cohttp.Response.make ?status ~headers ()))
 end
 
-module Int = Eliom.Mkreg.Make(Int_reg_base)
+module Int = Eliom.Mkreg.Make (Int_reg_base)
 ]}
 
 If your [page] type has parameters you should use
