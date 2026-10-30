@@ -210,9 +210,11 @@ let outputs server =
         let* r = Browser.get b "/redirect" in
         check_response "found" ~status:302 r;
         check_header "location" "location" (Some "hello") r;
-        let+ r = Browser.get b "/moved" in
+        let* r = Browser.get b "/moved" in
         check_response "moved permanently" ~status:301 r;
-        check_header "moved location" "location" (Some "hello") r)
+        check_header "moved location" "location" (Some "hello") r;
+        let+ r = Browser.get b "/not_modified" in
+        check_response "not modified" ~status:304 r)
     ; case "String_redirection" (fun b ->
         let+ r = Browser.get b "/redirect_string" in
         check_response "found" ~status:302 r;

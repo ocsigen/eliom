@@ -310,7 +310,8 @@ type _ redirection =
     - [`MovedPermanently] to return [301 Moved Permanently].
     - [`Found] to return [302 Found].
     - [`SeeOther] to return [303 See Other].
-    - [`NotNodifed] to return [304 Not Modified].
+    - [`NotModified] to return [304 Not Modified] ([`NotNodifed], a former
+      misspelling, is still accepted).
     - [`UseProxy] to return [305 Use Proxy].
     - [`TemporaryRedirect] to return [307 Temporary Redirect]. *)
 module Redirection : sig
@@ -321,6 +322,7 @@ module Redirection : sig
       [ `MovedPermanently
       | `Found
       | `SeeOther
+      | `NotModified
       | `NotNodifed
       | `UseProxy
       | `TemporaryRedirect ]
@@ -352,6 +354,7 @@ module String_redirection :
     [ `MovedPermanently
     | `Found
     | `SeeOther
+    | `NotModified
     | `NotNodifed
     | `UseProxy
     | `TemporaryRedirect ]

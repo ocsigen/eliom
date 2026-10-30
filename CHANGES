@@ -192,6 +192,8 @@
   whether the program could change the value without
   ~override_configfile:true. They are now all kept, as those of a
   configuration file.
+* The redirection services accept the option `NotModified for a 304 answer.
+  The misspelled `NotNodifed is still accepted.
 * Session groups
 ** The sessions that are not in a session group are now counted together
    for the whole site, 1000000 by default, instead of 1000000 per sub
