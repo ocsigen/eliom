@@ -3707,7 +3707,7 @@ Warning:
 
 ### Defining an exception handler for the whole site
 
-When an exception is raised during the generation of a page, or when the page has not been found or has wrong parameters, an HTTP error 500 or 404 is sent to the client. You may want to catch these exceptions to print your own error page. Do this using [`Eliom.Registration.set_exn_handler`](./../eliom.server/Eliom-Registration.md#val-set_exn_handler). Here is the handler used by the tutorial:
+When an exception is raised during the generation of a page, or when the page has not been found or has wrong parameters, an HTTP error 500 or 404 is sent to the client. You may want to catch these exceptions to print your own error page. Do this using [`Eliom.Registration.set_exn_handler`](./../eliom.server/Eliom-Registration.md#val-set_exn_handler). Here is an example:
 
 ```ocaml
 let _ = Eliom.Registration.set_exn_handler
@@ -3718,8 +3718,11 @@ let _ = Eliom.Registration.set_exn_handler
              (head (title (txt "")) [])
              (body [h1 [txt "Eliom tutorial"];
                     p [txt "Page not found"]]))
-    | e -> fail e)
+    | e -> Lwt.fail e)
 ```
+The handler may send any kind of content. In a client-server application, send the error page with the `send` function of the application, as in `My_app.send ~code:404 page`: the client-side program then displays it without leaving the application.
+
+To send a page with an error status from a service handler, for instance a page about something that does not exist, there is no need for an exception: call [`Eliom.Registration.set_status`](./../eliom.server/Eliom-Registration.md#val-set_status) in the service handler, see [Error handling](./../server/services/handlers.md#error_handling).
 
 ### Giving configuration options to your sites
 
