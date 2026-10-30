@@ -1,0 +1,2 @@
+[%%shared:]
+val x : int
