@@ -65,6 +65,34 @@ let () =
        in
        text "timeout")
 
+(* Sets the global timeout of persistent sessions, and computes again the
+   expiration dates of the cookies. *)
+let () =
+  string
+    (get ["persistent"; "global"] P.(float "t"))
+    (fun t () ->
+       State.set_global_persistent_data_state_timeout
+         ~cookie_scope:session_scope ~recompute_expdates:true (Some t);
+       text "global")
+
+(* Whether the expiration dates of the persistent cookies are all more than
+   50 s away ("far"), not all ("near"), or there is no cookie ("none"). *)
+let () =
+  string
+    (get ["persistent"; "expiry"] P.unit)
+    (fun () () ->
+       let now = Unix.gettimeofday () in
+       let* expiries =
+         Mod_cookies.Persistent_cookies.Cookies.fold
+           (fun _ {Mod_cookies.expiry; _} l -> Lwt.return (expiry :: l))
+           []
+       in
+       let far = function Some t -> t > now +. 50. | None -> true in
+       text
+         (match expiries with
+         | [] -> "none"
+         | l -> if List.for_all far l then "far" else "near"))
+
 (* Sets the timeout of the cookie of the session after closing it. *)
 let () =
   string
@@ -79,6 +107,53 @@ let () =
          State.Ext.set_persistent_data_cookie_timeout ~cookie (Some 100.)
        in
        text "closed")
+
+(* Gives a timeout to the first persistent cookie while the expiration dates
+   are computed again for a global timeout of 100 s, after they have all been
+   read, then says whether the timeout is "kept". The cookies are updated in
+   the reverse order of the table: the update has begun when the last one has
+   a new date, and the first one is updated last. The dates are then set back
+   for a global timeout of 1 s. *)
+let () =
+  string
+    (get ["persistent"; "race"] P.unit)
+    (fun () () ->
+       let sitedata = Request_info.find_sitedata "race" in
+       let* cookies =
+         Mod_cookies.Persistent_cookies.Cookies.fold
+           (fun k c l -> Lwt.return ((k, c) :: l))
+           []
+       in
+       match cookies, List.rev cookies with
+       | (last, _) :: _, (first, {Mod_cookies.full_state_name; _}) :: _ ->
+           let update o n =
+             Mod_sessadmin.update_pers_exp full_state_name sitedata (Some o)
+               (Some n)
+           in
+           let rec wait_for_update n =
+             let* {Mod_cookies.expiry; _} =
+               Mod_cookies.Persistent_cookies.Cookies.find last
+             in
+             match expiry with
+             | Some t when t > Unix.gettimeofday () +. 50. -> Lwt.return_unit
+             | _ when n = 0 -> Lwt.fail_with "update not started"
+             | _ ->
+                 let* () = Lwt.pause () in
+                 wait_for_update (n - 1)
+           in
+           let updated = update 1. 100. in
+           let* () = wait_for_update 1000 in
+           let* () =
+             Mod_cookies.Persistent_cookies.set_timeout first
+               (Common.TSome 1000.)
+           in
+           let* () = updated in
+           let* {Mod_cookies.timeout; _} =
+             Mod_cookies.Persistent_cookies.Cookies.find first
+           in
+           let* () = update 100. 1. in
+           text (if timeout = Common.TSome 1000. then "kept" else "lost")
+       | _ -> text "no cookie")
 
 let fallback = get ["fallback"] P.unit
 let () = string fallback (fun () () -> text "fallback")
