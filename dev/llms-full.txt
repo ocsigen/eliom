@@ -1979,6 +1979,8 @@ A session could be only attached to one group at a time, but it is possible to c
 
 It's possible to fetch the current session group name of a session, if any, or to detach a session from a group. See the module [`Eliom.State`](./../eliom.server/Eliom-State.md) for more information.
 
+Services registered with scope [`Eliom.Common.default_group_scope`](./../eliom.server/Eliom-Common.md#val-default_group_scope) are found only by the requests whose service session is in the group: attach the service session with [`Eliom.State.set_service_session_group`](./../eliom.server/Eliom-State.md#val-set_service_session_group), attaching the data sessions is not enough. Like volatile group data, these services are discarded when the last service session of the group is closed, for example when a user who has only one session disconnects.
+
 #### Limit the number of sessions within a group
 
 The number of sessions in a group is limited: when a group is full, opening a session in it closes the session of the group that has been used least recently. This bounds the memory that one user can take by opening sessions, and a user who floods the server with sessions only closes their own, as each group has its own limit. Sessions that are not in a group are counted together, for the whole site, with a much larger limit; a flood of such sessions by one user closes the sessions without a group of the other users. That is why we recommend to always put the sessions of a user in a group, usually named after the user. The number of persistent sessions without a group is not limited.
