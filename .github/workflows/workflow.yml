@@ -65,6 +65,31 @@ jobs:
 
       - run: opam exec -- dune runtest -p eliom,eliom-compat
 
+      # Browser tests (test/e2e), not required to pass for now
+      - name: Browser tests
+        id: e2e
+        if: runner.os == 'Linux' && matrix.ocaml-compiler == 5
+        continue-on-error: true
+        working-directory: test/e2e
+        env:
+          E2E_BROWSERS: chromium,firefox,webkit
+        run: |
+          opam exec -- dune build @app/all
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+          npx playwright test
+
+      # With continue-on-error, failure() stays false: test the outcome
+      - name: Upload the logs of the browser tests
+        if: steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-tests
+          path: |
+            test/e2e/server-data/**/*.log
+            test/e2e/test-results/
+          if-no-files-found: ignore
+
   lint-fmt:
     runs-on: ubuntu-latest
     steps:
