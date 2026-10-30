@@ -59,9 +59,7 @@ test("signal of the server in two browsers", async ({ browser }) => {
 
 test("event sent up to the server", async ({ page }) => {
   await open(page, "/client-server");
-  // The server receives the event, but answers 204 (No Content), which the
-  // client takes for a failure.
-  await run(page, "up", "Eliom.Request.Failed_request(204)");
+  await run(page, "up", "sent");
   await page.reload();
   await expect(page.locator("#last-up")).toHaveText("sent up");
 });
