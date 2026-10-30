@@ -176,6 +176,11 @@ let () =
     Lwt.return (Registration.Redirection hello))
 
 let () =
+  Registration.Redirection.register ~options:`NotModified
+    ~service:(get ["not_modified"] P.unit) (fun () () ->
+    Lwt.return (Registration.Redirection hello))
+
+let () =
   Registration.String_redirection.register
     ~service:(get ["redirect_string"] P.unit) (fun () () ->
     Lwt.return "http://example.org/elsewhere")
