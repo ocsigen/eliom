@@ -103,7 +103,26 @@ let test_limits () =
     limit_options;
   check_error "not an integer"
     "Eliom: Wrong attribute value for maxdatasessionspergroup tag"
-    {|<maxdatasessionspergroup value="many"/>|}
+    {|<maxdatasessionspergroup value="many"/>|};
+  (* A limit must be positive *)
+  List.iter
+    (fun (tag, _) ->
+       List.iter
+         (fun v ->
+            let before = List.map (fun (_, r) -> !r) limits in
+            check_error
+              (Printf.sprintf "%s=%d" tag v)
+              (Printf.sprintf "Eliom: Wrong attribute value for %s tag" tag)
+              (Printf.sprintf {|<%s value="%d"/>|} tag v);
+            Alcotest.(check (list int))
+              (tag ^ ": unchanged") before
+              (List.map (fun (_, r) -> !r) limits))
+         [0; -1])
+    limit_options;
+  Alcotest.check_raises "Config"
+    (Invalid_argument
+       "Config.set_max_service_sessions_per_group: the maximum must be positive")
+    (fun () -> Eliom.Config.set_max_service_sessions_per_group 0)
 
 (* The options renamed in Eliom 13 are errors, with their new name. In the
    configuration of a site, unknown options are left to the Eliom modules:

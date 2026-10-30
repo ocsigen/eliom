@@ -25,8 +25,11 @@ let () =
   register
     (get ["max_without_group"] P.(int "n"))
     (fun n () ->
-       State.set_default_max_volatile_data_sessions_without_group
-         ~override_configfile:true n;
-       text "set")
+       match
+         State.set_default_max_volatile_data_sessions_without_group
+           ~override_configfile:true n
+       with
+       | () -> text "set"
+       | exception Invalid_argument _ -> text "invalid")
 
 let () = Services.start ()

@@ -380,6 +380,13 @@ let parse_eliom_option
         (Error_in_config_file
            (Printf.sprintf "Eliom: Wrong attribute value for %s tag" tag))
   in
+  (* [with_limit tag v f] is [with_int tag v f], for a maximum number of
+     sessions, groups or services, which must be positive. *)
+  let with_limit tag v f =
+    with_int tag v (fun i ->
+      if i < 1 then failwith "not positive";
+      f i)
+  in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
@@ -433,47 +440,47 @@ let parse_eliom_option
       let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
       set_persistent_timeout ct snoo t
   | Xml.Element (("maxvolatilesessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v (fun i ->
+      with_limit tag v (fun i ->
         set_max_service_sessions_per_group i;
         set_max_data_sessions_per_group i)
   | Xml.Element (("maxservicesessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_service_sessions_per_group
+      with_limit tag v set_max_service_sessions_per_group
   | Xml.Element (("maxdatasessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_data_sessions_per_group
+      with_limit tag v set_max_data_sessions_per_group
   | Xml.Element (("maxvolatilesessionswithoutgroup" as tag), [("value", v)], [])
     ->
-      with_int tag v (fun i ->
+      with_limit tag v (fun i ->
         set_max_service_sessions_without_group i;
         set_max_data_sessions_without_group i)
   | Xml.Element (("maxservicesessionswithoutgroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_service_sessions_without_group
+      with_limit tag v set_max_service_sessions_without_group
   | Xml.Element (("maxdatasessionswithoutgroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_data_sessions_without_group
+      with_limit tag v set_max_data_sessions_without_group
   | Xml.Element (("maxpersistentsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_persistent_sessions_per_group
+      with_limit tag v set_max_persistent_sessions_per_group
   | Xml.Element (("maxvolatiletabsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v (fun i ->
+      with_limit tag v (fun i ->
         set_max_service_tab_sessions_per_group i;
         set_max_data_tab_sessions_per_group i)
   | Xml.Element (("maxservicetabsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_service_tab_sessions_per_group
+      with_limit tag v set_max_service_tab_sessions_per_group
   | Xml.Element (("maxdatatabsessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_data_tab_sessions_per_group
+      with_limit tag v set_max_data_tab_sessions_per_group
   | Xml.Element (("maxpersistenttabsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_persistent_tab_sessions_per_group
+      with_limit tag v set_max_persistent_tab_sessions_per_group
   | Xml.Element (("maxanonymouscoservicespersession" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_services_per_session
+      with_limit tag v set_max_services_per_session
   | Xml.Element (("maxanonymouscoservicespersubnet" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_services_per_subnet
+      with_limit tag v set_max_services_per_subnet
   | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
-      with_int tag v set_max_volatile_groups_per_site
+      with_limit tag v set_max_volatile_groups_per_site
   | Xml.Element ("securecookies", [("value", v)], []) -> (
     try
       let i =

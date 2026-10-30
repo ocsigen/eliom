@@ -187,6 +187,16 @@ let without_group server =
         let* () = check "number of sessions" "2" b "/count" in
         let* () = check "other session" "b" b "/get" in
         check "session of the request" "a" a "/get")
+    ; case "limit not positive" (fun browser ->
+        (* The function raises Invalid_argument, and the limit does not
+           change. *)
+        let a = browser () and b = browser () in
+        let* _ = text a "/set?v=a" in
+        let* _ = text b "/set?v=b" in
+        let* () = check "rejected" "invalid" a "/max_without_group?n=0" in
+        let* () = check "number of sessions" "2" b "/count" in
+        let* () = check "newest" "b" b "/get" in
+        check "oldest" "a" a "/get")
     ; case "new limit" (fun browser ->
         (* A new limit applies at once: the session used least recently is
            closed. *)

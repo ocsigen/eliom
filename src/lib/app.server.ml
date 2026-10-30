@@ -27,6 +27,23 @@ let run
       conf_info
       site_dir
   =
+  let check name v = Common.check_limit ("App.run ~" ^ name) v in
+  let check_pair name = Option.iter (fun (v, _) -> check name v) in
+  check_pair "max_service_sessions_per_group" max_service_sessions_per_group;
+  check_pair "max_volatile_data_sessions_per_group"
+    max_volatile_data_sessions_per_group;
+  check_pair "max_service_tab_sessions_per_group"
+    max_service_tab_sessions_per_group;
+  check_pair "max_volatile_data_tab_sessions_per_group"
+    max_volatile_data_tab_sessions_per_group;
+  check_pair "max_anonymous_services_per_session"
+    max_anonymous_services_per_session;
+  Option.iter
+    (check "max_persistent_data_sessions_per_group")
+    max_persistent_data_sessions_per_group;
+  Option.iter
+    (check "max_persistent_data_tab_sessions_per_group")
+    max_persistent_data_tab_sessions_per_group;
   let sitedata = Mod_main.update_sitedata app vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
   Option.iter

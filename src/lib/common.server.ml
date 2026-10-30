@@ -400,6 +400,9 @@ let set_configured ~override c v =
 
 let configured_of_pair (cf_value, cf_from_config) = {cf_value; cf_from_config}
 
+let check_limit name n =
+  if n < 1 then invalid_arg (name ^ ": the maximum must be positive")
+
 (* The global timeouts of a site for one kind of state: the defaults for
    browser sessions and for tabs, and the timeouts of given states *)
 type site_timeouts =

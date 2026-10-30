@@ -485,6 +485,13 @@ val set_configured : override:bool -> 'a configured -> 'a -> 'a configured
 
 val configured_of_pair : 'a * bool -> 'a configured
 
+val check_limit : string -> int -> unit
+(** [check_limit name n] checks that [n], a maximum number of sessions,
+    groups or services, is positive.
+
+    @raise Invalid_argument with a message naming the function [name]
+    otherwise. *)
+
 type site_timeouts =
   { browser_default : float option configured option
   ; tab_default : float option configured option

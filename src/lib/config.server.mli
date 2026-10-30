@@ -83,7 +83,13 @@ val set_max_service_tab_sessions_per_group : int -> unit
 val set_max_volatile_data_tab_sessions_per_group : int -> unit
 val set_max_persistent_data_tab_sessions_per_group : int -> unit
 val set_max_anonymous_services_per_session : int -> unit
+
 val set_max_volatile_groups_per_site : int -> unit
+(** The functions [set_max_*] set the default limits of the sites created
+    afterwards, as the global options of the configuration file: they do
+    not change a site that already exists (the functions of {!State} do).
+    They raise [Invalid_argument] if the number is not positive. *)
+
 val set_secure_cookies : bool -> unit
 
 val set_comet_timeout : float -> unit

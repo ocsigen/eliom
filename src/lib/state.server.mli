@@ -174,10 +174,10 @@ val set_service_session_group :
   -> unit
 (** sets the group to which belong the service session.
 
-    If the optional [?set_max] parameter is present, also sets the
-    maximum number of sessions in the group. Default: follow current
-    configuration for the group or default configuration if the group
-    does not exist.
+    If the optional [?set_max] parameter is present (a positive number),
+    also sets the maximum number of sessions in the group. Default:
+    follow current configuration for the group or default configuration
+    if the group does not exist.
 
     If [~secure] is true, it will affect the secure session (secure cookies),
     otherwise (default), the unsecure one (behavior change in Eliom 4).
@@ -217,8 +217,8 @@ val set_volatile_data_session_group :
   -> unit
 (** sets the group to which belong the volatile data session.
 
-    If the optional [?set_max] parameter is present, also sets the maximum
-    number of sessions in the group.
+    If the optional [?set_max] parameter is present (a positive number),
+    also sets the maximum number of sessions in the group.
     Default: follow current configuration for the group
     or default configuration if the group does not exist.
 *)
@@ -257,11 +257,11 @@ val set_persistent_data_session_group :
   -> unit Lwt.t
 (** sets the group to which belong the persistent session.
 
-    If the optional [?set_max] parameter is present, also sets the
-    maximum number of sessions in the group. When [~set_max:None] is
-    present, the number of session is unlimited. Default: follow
-    current configuration for the group or default configuration if
-    the group does not exist.
+    If the optional [?set_max] parameter is present (a positive number),
+    also sets the maximum number of sessions in the group. When
+    [~set_max:None] is present, the number of session is unlimited.
+    Default: follow current configuration for the group or default
+    configuration if the group does not exist.
 *)
 
 val unset_persistent_data_session_group :
@@ -311,6 +311,8 @@ val get_persistent_data_session_group :
 
     These defaults can be changed from the configuration file and/or
     using these functions.
+    A maximum number must be positive: the functions raise
+    [Invalid_argument] otherwise, and the configuration file is rejected.
 
     If [~override_configfile] is [true] (default ([false]),
     then the function will set the value even if it has been

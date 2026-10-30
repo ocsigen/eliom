@@ -355,6 +355,7 @@ let set_service_session_group
       ?secure
       session_group
   =
+  Option.iter (Common.check_limit "State.set_service_session_group") set_max;
   let c =
     Mod_sersess.find_or_create_service_cookie ~set_session_group:session_group
       ~cookie_scope:(scope :> Common.cookie_scope)
@@ -427,6 +428,9 @@ let set_volatile_data_session_group
       ?secure
       session_group
   =
+  Option.iter
+    (Common.check_limit "State.set_volatile_data_session_group")
+    set_max;
   let c =
     Mod_datasess.find_or_create_data_cookie ~set_session_group:session_group
       ~cookie_scope:(scope :> Common.cookie_scope)
@@ -502,6 +506,9 @@ let set_persistent_data_session_group
       ?secure
       n
   =
+  Option.iter
+    (Option.iter (Common.check_limit "State.set_persistent_data_session_group"))
+    set_max;
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let* c =
@@ -583,9 +590,15 @@ let get_persistent_data_session_group
       | exc -> Lwt.fail exc)
 
 (* max *)
+(* [limit_sitedata name n] is the current site, if [n] is a valid limit for
+   the function [name] *)
+let limit_sitedata name n =
+  Common.check_limit ("State." ^ name) n;
+  Request_info.find_sitedata name
+
 let set_default_max_service_sessions_per_group ?(override_configfile = false) n =
   let sitedata =
-    Request_info.find_sitedata "set_default_max_service_sessions_per_group"
+    limit_sitedata "set_default_max_service_sessions_per_group" n
   in
   sitedata.Common.max_service_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -596,8 +609,7 @@ let set_default_max_volatile_data_sessions_per_group
       n
   =
   let sitedata =
-    Request_info.find_sitedata
-      "set_default_max_volatile_data_sessions_per_group"
+    limit_sitedata "set_default_max_volatile_data_sessions_per_group" n
   in
   sitedata.Common.max_volatile_data_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -607,6 +619,10 @@ let set_default_max_persistent_data_sessions_per_group
       ?(override_configfile = false)
       n
   =
+  Option.iter
+    (Common.check_limit
+       "State.set_default_max_persistent_data_sessions_per_group")
+    n;
   let sitedata =
     Request_info.find_sitedata
       "set_default_max_persistent_data_sessions_per_group"
@@ -619,12 +635,7 @@ let set_default_max_persistent_data_sessions_per_group
    the first of them: a new limit applies to it at once. Before the site is
    linked to the application, there is no session yet. *)
 let sessions_without_group name n =
-  if n < 1
-  then
-    invalid_arg
-      (Printf.sprintf
-         "State.%s: the maximum number of sessions must be positive" name);
-  let sitedata = Request_info.find_sitedata name in
+  let sitedata = limit_sitedata name n in
   ( sitedata
   , Option.map
       (fun sg_site_dir ->
@@ -678,7 +689,7 @@ let set_default_max_service_tab_sessions_per_group
       n
   =
   let sitedata =
-    Request_info.find_sitedata "set_default_max_service_tab_sessions_per_group"
+    limit_sitedata "set_default_max_service_tab_sessions_per_group" n
   in
   sitedata.Common.max_service_tab_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -689,8 +700,7 @@ let set_default_max_volatile_data_tab_sessions_per_group
       n
   =
   let sitedata =
-    Request_info.find_sitedata
-      "set_default_max_volatile_data_tab_sessions_per_group"
+    limit_sitedata "set_default_max_volatile_data_tab_sessions_per_group" n
   in
   sitedata.Common.max_volatile_data_tab_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -700,6 +710,10 @@ let set_default_max_persistent_data_tab_sessions_per_group
       ?(override_configfile = false)
       n
   =
+  Option.iter
+    (Common.check_limit
+       "State.set_default_max_persistent_data_tab_sessions_per_group")
+    n;
   let sitedata =
     Request_info.find_sitedata
       "set_default_max_persistent_data_tab_sessions_per_group"
@@ -746,6 +760,7 @@ let set_max_in_parent name ~scope session_group set_max =
 
 let set_max_service_states_in_parent ~scope ?secure m =
   let name = "set_max_service_states_in_parent" in
+  Common.check_limit ("State." ^ name) m;
   match scope with
   | `Session_group _ -> set_max_groups_of_site name m
   | `Session _ | `Client_process _ ->
@@ -759,6 +774,7 @@ let set_max_service_states_in_parent ~scope ?secure m =
 
 let set_max_volatile_data_states_in_parent ~scope ?secure m =
   let name = "set_max_volatile_data_states_in_parent" in
+  Common.check_limit ("State." ^ name) m;
   match scope with
   | `Session_group _ -> set_max_groups_of_site name m
   | `Session _ | `Client_process _ ->
