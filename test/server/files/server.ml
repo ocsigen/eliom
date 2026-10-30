@@ -38,6 +38,7 @@ let () =
     ~headers:(Cohttp.Header.init_with "content-type" "text/x-header")
     "file_content_type_headers"
 
+let () = file ~content_type:"image/svg+xml" "file_content_type_xml"
 let () = file ~charset:"iso-8859-1" "file_charset"
 
 let () =

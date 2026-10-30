@@ -31,7 +31,7 @@ let content_type_with_charset ?charset content_type =
       String.length content_type >= 5
       && (String.starts_with ~prefix:"text/" content_type
          || String.ends_with ~suffix:"/xml" content_type
-         || String.ends_with ~suffix:"=xml" content_type)
+         || String.ends_with ~suffix:"+xml" content_type)
     then
       (* No charset when the server has no default one *)
       match Config.get_config_default_charset () with

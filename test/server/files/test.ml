@@ -38,6 +38,9 @@ let content_type server =
     ; case "given at registration, over the one of the headers" (fun b ->
         check_content_type b "/file_content_type_headers?name=page.foo"
           "text/x-test; charset=utf-8")
+    ; case "given at registration, +xml" (fun b ->
+        check_content_type b "/file_content_type_xml?name=page.foo"
+          "image/svg+xml; charset=utf-8")
     ; case "charset given at registration" (fun b ->
         check_content_type b "/file_charset?name=page.foo"
           "text/x-foo; charset=iso-8859-1")
