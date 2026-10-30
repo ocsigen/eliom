@@ -1,6 +1,6 @@
 {0 Introduction}
 
-{e This document is the Eliom manual, where you will find an
+{e This document is the Eliom manual, where you will find a
 detailed explanation of all Eliom concepts.
 If you want to learn how to program with Ocsigen, please read
 the {{:https://ocsigen.org/tuto/}Ocsigen tutorial} first,
@@ -13,7 +13,7 @@ or advanced client-server applications accessible through a Web browser.
 From Eliom 6.0,
 it is also possible to implement, with a single code base,
 {b multi-platform applications} that will run on a {b Web browser} or
-a {b mobile} device (iOS, Android~ ...).
+a {b mobile} device (iOS, Android...).
 
 The goal of Eliom (and other projects of the Ocsigen framework)
 is to propose a new programming style that
@@ -45,8 +45,9 @@ applications.
 Eliom is not an entirely new language, but an extension of OCaml. An
 Eliom application can use any existing OCaml library.
 
-Eliom Web sites are written as OCaml modules (producing [cma] or
-[cmxs] files) that are loaded as plugins into the Ocsigen server.
+Eliom Web sites are written as OCaml modules, either linked statically
+with Ocsigen Server into an executable, or compiled to [cma] or [cmxs]
+files loaded as plugins by the server.
 
 {1 Client/server applications}
 
@@ -55,9 +56,9 @@ browser. An instance of the application is running in a browser tab,
 and can communicate with the server. The entire application is written
 in OCaml, as a single program, with special syntax to distinguish
 between server-side and client-side code.  Client-side code is
-compiled to JavaScript, using the Js~_of~_ocaml compiler, to be
+compiled to JavaScript, using the Js_of_ocaml compiler, to be
 executed by the browser. It can also be compiled to WebAssembly using
-wasm~_of~_ocaml, with automatic browser detection and fallback.
+Wasm_of_ocaml, with automatic browser detection and fallback.
 
 It is possible to refer on the client side to values defined in
 server-side code. Communication between the server and the client is
@@ -130,7 +131,7 @@ cookie. With Eliom, session data is stored in {e Eliom references},
 which are a kind of reference whose value depends on the session (the
 session identifier sent in the cookie).
 
-But you can choose other {e scope} than "session" for Eliom
+But you can choose other {e scopes} than "session" for Eliom
 references:
 - It is also possible to define references with scope {e "client
   process"}, which corresponds to a tab of your browser (if you are
