@@ -23,6 +23,14 @@ let form b url =
   | _ -> Alcotest.failf "%s: %d forms" url (List.length forms)
 
 (* [case server name f] is a test that runs [f b] with a new browser [b]. *)
+(* [contains s sub] tells whether [sub] occurs in [s] *)
+let contains s sub =
+  let n = String.length sub in
+  let rec from i =
+    i + n <= String.length s && (String.sub s i n = sub || from (i + 1))
+  in
+  from 0
+
 let case server name f =
   Alcotest.test_case name `Quick (fun () ->
     Lwt_main.run (f (Browser.create server)))
@@ -55,7 +63,13 @@ let fields server =
         submitted "submitted" "t=one\ntwo <&> sel=b r=y c=p,q" b form)
     ; case "list" (fun b ->
         let* form = form b "/list_form" in
-        submitted "submitted" "u,v,w" b form) ] )
+        submitted "submitted" "u,v,w" b form)
+    ; case "fragment" (fun b ->
+        (* In a fragment, + is not a space *)
+        let+ r = Browser.get b "/fragment_form" in
+        Alcotest.(check bool)
+          "fragment of the action" true
+          (contains r.body "#f%20r\"")) ] )
 
 let coservices server =
   let case = case server in

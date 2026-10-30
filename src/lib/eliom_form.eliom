@@ -286,7 +286,7 @@ module Make (Html : Html) = struct
       in
       match fragment with
       | None -> uri
-      | Some f -> String.concat "#" [uri; Lib.Url.encode f]
+      | Some f -> String.concat "#" [uri; Lib.Url.encode ~plus:false f]
     in
     bind (f paramnames) @@ fun inside ->
     let inside =

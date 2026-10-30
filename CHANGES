@@ -520,6 +520,8 @@
 ** URLs built by the client encode the slashes of the values of suffix
    parameters, as the server does. The server read them as separators of
    the suffix.
+** The fragments of URLs and of the actions of forms encode spaces as %20,
+   not +, which is not a space in a fragment.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

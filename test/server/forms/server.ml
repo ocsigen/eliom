@@ -120,6 +120,13 @@ let () =
     ; Form.post_form ~service:na_post field ()
     ; Form.post_form ~service:csrf field () ])
 
+(* A form whose action has a fragment *)
+
+let () =
+  page "fragment_form" (fun () ->
+    [ Form.get_form ~service:simple ~fragment:"f r" (fun (i, _) ->
+        [Form.input ~input_type:`Text ~name:i ~value:3 Form.int]) ])
+
 (* A suffix *)
 
 let suffix = get ["suffix"] P.(suffix (string "s"))
