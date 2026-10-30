@@ -79,6 +79,15 @@ let () =
                ; Request_info.get_original_full_path () ])))
 
 let () =
+  string (get ["client"] P.unit) (fun () () ->
+    text
+      (match Request_info.get_client_conn () with
+      | `Inet (ip, _) -> "inet " ^ Ipaddr.to_string ip
+      | `Forwarded_for ip -> "forwarded " ^ ip
+      | `Unix _ -> "unix"
+      | `Unknown -> "unknown"))
+
+let () =
   string suffix_service (fun (i, s) () -> text (Printf.sprintf "i=%d s=%s" i s))
 
 let form = get ["form"] P.unit

@@ -49,6 +49,10 @@ let get_full_url () =
   let sp = Common.get_sp () in
   get_full_url_sp sp
 
+let get_client_conn () =
+  let sp = Common.get_sp () in
+  Ocsigen.Request.client_conn sp.Common.sp_request.request_info
+
 let get_client_conn_to_string () =
   let sp = Common.get_sp () in
   Ocsigen.Request.client_conn_to_string sp.Common.sp_request.request_info
