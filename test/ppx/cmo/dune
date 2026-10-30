@@ -1,0 +1,20 @@
+; The server side of a fixture. The client pass (client/) reads the types of
+; its server cmo with -server-cmo. Both passes run in this directory, so that
+; they see the same file name.
+
+(rule
+ (target fixture.ml)
+ (deps fixture.eliom)
+ (action
+  (with-stdout-to
+   %{target}
+   (chdir
+    .
+    (run %{bin:ppx_eliom_server} --as-pp --impl fixture.eliom)))))
+
+(library
+ (name eliom_ppx_test_server)
+ (wrapped false)
+ (modes byte)
+ (modules fixture)
+ (libraries eliom.server))
