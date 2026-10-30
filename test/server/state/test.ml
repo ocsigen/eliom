@@ -283,6 +283,30 @@ let groups server =
         Alcotest.(check int) "persistent sessions alive" 3 n;
         let+ n = alive "/get" in
         Alcotest.(check int) "data sessions alive" 3 n)
+    ; case "limit, simultaneous logins of new browsers" (fun browser ->
+        (* Same, with browsers that have no session yet: each request opens
+           a persistent session in the group, which a request of another
+           browser may close before the end of the first request. The end
+           of the request must not write that session back. *)
+        let admin = browser () in
+        let browsers = List.init 8 (fun _ -> browser ()) in
+        let* () =
+          Lwt_list.iter_p
+            (fun b -> Lwt.map ignore (join b ~max:3 "limit-new"))
+            browsers
+        in
+        let* () =
+          check "persistent sessions of the group" "3" admin
+            "/group/persistent_sessions?name=limit-new"
+        in
+        let+ n =
+          Lwt_list.fold_left_s
+            (fun n b ->
+               let+ v = text b "/group/persistent/name" in
+               if v = "limit-new" then n + 1 else n)
+            0 browsers
+        in
+        Alcotest.(check int) "persistent sessions in the group" 3 n)
     ; case "simultaneous logins of a session" (fun browser ->
         (* Two requests of a session join the group at the same time (a
            double click, for instance): the session is listed once. *)
