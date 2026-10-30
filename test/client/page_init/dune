@@ -18,9 +18,10 @@
    test.js.output
    (run
     node
-    %{dep:../run.js}
-    %{dep:../stub.js}
-    %{dep:../page/page.js}
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
     %{dep:test.bc.js}))))
 
 (rule

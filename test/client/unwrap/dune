@@ -23,6 +23,8 @@
  (modules encoded test)
  (libraries eliom.client eliom_test_values))
 
+; Each program runs in the page, after the data scripts, as in a browser.
+
 (rule
  (enabled_if %{bin-available:node})
  (action
@@ -30,9 +32,10 @@
    test.js.output
    (run
     node
-    %{dep:../run.js}
-    %{dep:../stub.js}
-    %{dep:../page/page.js}
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
     %{dep:test.bc.js}))))
 
 (rule
