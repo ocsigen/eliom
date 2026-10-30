@@ -18,5 +18,5 @@ for a server-side cache that keeps the most recently used values.
 
 {1 Off-line applications}
 
-In the near future, Eliom.Cscache will make it possible to save persistent
+In the future, Eliom.Cscache will make it possible to save persistent
 data, which is useful for implementing off-line applications.

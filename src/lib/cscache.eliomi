@@ -20,7 +20,7 @@
     client-server (possibly reactive) applications, like, for example,
     handling delays correctly both on client and server sides.
 
-    In the near future, Cscache will make it possible to save persistent
+    In the future, Cscache will make it possible to save persistent
     data, which is useful for implementing off-line applications.
 
 *)
