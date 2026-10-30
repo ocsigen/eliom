@@ -65,6 +65,34 @@ let () =
        in
        text "timeout")
 
+(* Sets the global timeout of persistent sessions, and computes again the
+   expiration dates of the cookies. *)
+let () =
+  string
+    (get ["persistent"; "global"] P.(float "t"))
+    (fun t () ->
+       State.set_global_persistent_data_state_timeout
+         ~cookie_scope:session_scope ~recompute_expdates:true (Some t);
+       text "global")
+
+(* Whether the expiration dates of the persistent cookies are all more than
+   50 s away ("far"), not all ("near"), or there is no cookie ("none"). *)
+let () =
+  string
+    (get ["persistent"; "expiry"] P.unit)
+    (fun () () ->
+       let now = Unix.gettimeofday () in
+       let* expiries =
+         Mod_cookies.Persistent_cookies.Cookies.fold
+           (fun _ {Mod_cookies.expiry; _} l -> Lwt.return (expiry :: l))
+           []
+       in
+       let far = function Some t -> t > now +. 50. | None -> true in
+       text
+         (match expiries with
+         | [] -> "none"
+         | l -> if List.for_all far l then "far" else "near"))
+
 (* Sets the timeout of the cookie of the session after closing it. *)
 let () =
   string

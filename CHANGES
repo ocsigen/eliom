@@ -518,6 +518,12 @@
    closed session again, or undo a change of its session group. The unset
    function also removed the cookie from the index of expiration dates,
    so that it was never collected unless it was used again.
+** Changing the global timeout of persistent sessions with
+   ~recompute_expdates:true no longer runs without end with the SQLite
+   backend of Ocsipersist, which moves a row it writes: the cookies are
+   read before being updated. The update no longer writes back the whole
+   cookie either, nor drops it from the index of expiration dates when its
+   date does not change.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
