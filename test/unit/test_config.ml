@@ -175,6 +175,24 @@ let test_renamed () =
     ; removed "ipv4subnetmask"
     ; removed "ipv6subnetmask" ]
 
+(* When the configuration of a site is read again (the server reloads it),
+   a new limit of the sessions without a group applies to the existing ones:
+   the sessions used least recently are closed. *)
+let test_site_reload () =
+  let sitedata = Lazy.force site in
+  let group =
+    Eliom.Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
+      ~sitedata None
+  in
+  List.iter
+    (fun id -> ignore (Eliom.Mod_sessiongroups.Data.add sitedata id group))
+    ["s1"; "s2"; "s3"];
+  Alcotest.(check int)
+    "before" 3
+    (Eliom.Mod_sessiongroups.Data.group_size group);
+  ignore (parse_site {|<maxdatasessionswithoutgroup value="2"/>|});
+  Alcotest.(check int) "after" 2 (Eliom.Mod_sessiongroups.Data.group_size group)
+
 (* In the configuration of a site, the options of Eliom apply to the site,
    and the other ones are left to the Eliom modules. *)
 let test_site_options () =
@@ -276,6 +294,7 @@ let suite =
     ; Alcotest.test_case "limits" `Quick test_limits
     ; Alcotest.test_case "renamed options" `Quick test_renamed
     ; Alcotest.test_case "options of a site" `Quick test_site_options
+    ; Alcotest.test_case "options of a site, read again" `Quick test_site_reload
     ; Alcotest.test_case "secure cookies" `Quick test_cookies
     ; Alcotest.test_case "client program" `Quick test_client_program
     ; Alcotest.test_case "ignored parameters" `Quick test_ignored_params

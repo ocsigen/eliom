@@ -195,14 +195,15 @@
    neither bounded the memory of the server nor isolated an attacker from
    the other users. New names:
    State.set_default_max_volatile_sessions_without_group (and the service
-   and data variants), which now apply at once, and the option
-   <maxvolatilesessionswithoutgroup> (and <maxservicesessionswithoutgroup>,
-   <maxdatasessionswithoutgroup>). The old names are removed, as are the
-   sub networks of the sessions; an old option is a configuration error,
-   also in the configuration of a site. Common.session_group has No_group
-   instead of Subnet. The group of the sessions without a group is not one
-   of the groups of the site: when the site has too many groups, it is not
-   closed with all its sessions at once. A service registered with the
+   and data variants), and the option <maxvolatilesessionswithoutgroup>
+   (and <maxservicesessionswithoutgroup>, <maxdatasessionswithoutgroup>),
+   which apply at once, also when the server reads the configuration of
+   a site again. The old names are removed, as are the sub networks of the
+   sessions; an old option is a configuration error, also in the
+   configuration of a site. Common.session_group has No_group instead of
+   Subnet. The group of the sessions without a group is not one of the
+   groups of the site: when the site has too many groups, it is not closed
+   with all its sessions at once. A service registered with the
    session-group scope for a session without a group is registered for the
    session, as the data of the group scope are.
 ** The anonymous coservices registered in the global table during

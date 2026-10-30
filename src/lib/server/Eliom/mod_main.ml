@@ -848,6 +848,11 @@ Make possible to customize this? *)
 
 (** Parsing of config file for each site: *)
 let parse_site_options sitedata content =
+  (* The group of the sessions without a group exists already when the
+     configuration of the site is read again: a new limit applies to it. *)
+  let without_group () =
+    Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata None
+  in
   parse_eliom_options
     { set_volatile_timeout =
         (fun ct snoo v ->
@@ -868,7 +873,8 @@ let parse_site_options sitedata content =
     ; set_max_service_sessions_without_group =
         (fun v ->
           sitedata.Common.max_service_sessions_without_group <-
-            {Common.cf_value = v; cf_from_config = true})
+            {Common.cf_value = v; cf_from_config = true};
+          Mod_sessiongroups.Serv.set_group_max (without_group ()) v)
     ; set_max_data_sessions_per_group =
         (fun v ->
           sitedata.Common.max_volatile_data_sessions_per_group <-
@@ -876,7 +882,8 @@ let parse_site_options sitedata content =
     ; set_max_data_sessions_without_group =
         (fun v ->
           sitedata.Common.max_volatile_data_sessions_without_group <-
-            {Common.cf_value = v; cf_from_config = true})
+            {Common.cf_value = v; cf_from_config = true};
+          Mod_sessiongroups.Data.set_group_max (without_group ()) v)
     ; set_max_persistent_sessions_per_group =
         (fun v ->
           sitedata.Common.max_persistent_data_sessions_per_group <-
