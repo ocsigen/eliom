@@ -473,9 +473,9 @@ module type S = sig
   (** Returns the name of the application to which belongs the
       service, if any. *)
 
-  val xhr_with_cookies :
-     (_, _, _, _, _, _, _, _, _, _, _) t
-    -> string option option
+  type xhr = No_xhr | Xhr | Xhr_template of string
+
+  val xhr_with_cookies : (_, _, _, _, _, _, _, _, _, _, _) t -> xhr
 
   val internal_set_client_fun :
      service:('a, 'b, _, _, _, _, _, _, _, _, _) t
