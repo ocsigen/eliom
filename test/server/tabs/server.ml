@@ -53,6 +53,17 @@ let () =
          text "coservice of the tab");
        text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
 
+(* The maximum number of tabs of the browser session of the request *)
+
+let () =
+  string
+    (get ["tab"; "max"] P.(int "n"))
+    (fun n () ->
+       State.set_max_volatile_states_in_parent
+         ~scope:(tab_scope :> Common.user_scope)
+         n;
+       text "set")
+
 let () =
   string
     (get ["group"; "join"] P.(string "name"))

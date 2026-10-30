@@ -91,7 +91,47 @@ let closing server =
         let* _ = text a "/discard?scope=group" in
         check "tab of another session of the group" "" b "/tab/get") ] )
 
+let limits server =
+  let case = case server in
+  ( "limits"
+  , [ case "least recently used tab" (fun browser ->
+        (* Beyond the limit, the tab used least recently is closed: [t1] is
+           used after [t2] is opened, so [t2] is closed. *)
+        let b = browser () in
+        let t1 = tab b and t2 = tab b and t3 = tab b in
+        let* _ = text t1 "/tab/set?v=1" in
+        let* url1 = text t1 "/tab/coservice" in
+        let* _ = text t1 "/tab/max?n=2" in
+        let* _ = text t2 "/tab/set?v=2" in
+        let* url2 = text t2 "/tab/coservice" in
+        let* () = check "used" "1" t1 "/tab/get" in
+        let* _ = text t3 "/tab/set?v=3" in
+        let* _ = text t3 "/tab/coservice" in
+        let* () = check "kept" "1" t1 "/tab/get" in
+        let* () = check "kept, coservice" "coservice of the tab" t1 url1 in
+        let* () = check "newest" "3" t3 "/tab/get" in
+        let* () = check "closed, coservice" "fallback" t2 url2 in
+        (* Last: reading a tab reference without value opens a tab
+           session. *)
+        check "closed" "" t2 "/tab/get")
+    ; case "default limit of tabs" (fun browser ->
+        (* A browser session holds 100 tab sessions by default *)
+        let b = browser () in
+        let tabs = List.init 101 (fun _ -> tab b) in
+        let* () =
+          Lwt_list.iteri_s
+            (fun i t ->
+               Lwt.map ignore (text t ("/tab/set?v=" ^ string_of_int i)))
+            tabs
+        in
+        match tabs with
+        | first :: second :: _ ->
+            let* () = check "second" "1" second "/tab/get" in
+            let* () = check "last" "100" (List.nth tabs 100) "/tab/get" in
+            check "first, closed" "" first "/tab/get"
+        | _ -> Alcotest.fail "not enough tabs") ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-tabs"
-      [tabs server; closing server])
+      [tabs server; closing server; limits server])

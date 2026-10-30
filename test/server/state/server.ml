@@ -173,6 +173,30 @@ let () =
 
 let () =
   string
+    (get ["group"; "persistent_sessions"] P.(string "name"))
+    (fun name () ->
+       let state =
+         State.Ext.persistent_data_group_state ~scope:group_scope name
+       in
+       let* n =
+         State.Ext.fold_sub_states ~state (fun n _ -> Lwt.return (n + 1)) 0
+       in
+       text (string_of_int n))
+
+(* The timeout of the persistent session of the browser, in seconds *)
+
+let () =
+  string
+    (get ["persistent"; "timeout"] P.(float "t"))
+    (fun t () ->
+       let* () =
+         State.set_persistent_data_state_timeout ~cookie_scope:session_scope
+           (Some t)
+       in
+       text "set")
+
+let () =
+  string
     (get ["group"; "close_sessions"] P.(string "name"))
     (fun name () ->
        let close state =
