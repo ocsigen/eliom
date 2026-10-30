@@ -33,7 +33,13 @@ module Url = struct
   include Url_base
 
   let decode = Url.urldecode
-  let encode ?plus s = Url.urlencode ?with_plus:plus s
+
+  (* [Url.urlencode] keeps the slashes. Encode them, as the server does: a
+     slash in a segment of a path must not separate segments. *)
+  let encode ?plus s =
+    String.concat "%2F"
+      (String.split_on_char '/' (Url.urlencode ?with_plus:plus s))
+
   let make_encoded_parameters = Url.encode_arguments
   let split_path = Url.path_of_path_string
   let ssl_re = Regexp.regexp "^(https?):\\/\\/"

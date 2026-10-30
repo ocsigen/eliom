@@ -1,0 +1,67 @@
+; Values sent by the server, read back by the client in JavaScript and in
+; WebAssembly.
+
+(library
+ (name eliom_test_values)
+ (wrapped false)
+ (modules values))
+
+(executable
+ (name gen)
+ (modules gen)
+ (libraries eliom.server ocsipersist-sqlite eliom_test_values))
+
+(rule
+ (target encoded.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./gen.exe))))
+
+(executable
+ (name test)
+ (modes js wasm)
+ (modules encoded test)
+ (libraries eliom.client eliom_test_values))
+
+; Each program runs in the page, after the data scripts, as in a browser.
+
+(rule
+ (enabled_if %{bin-available:node})
+ (action
+  (with-stdout-to
+   test.js.output
+   (run
+    node
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
+    %{dep:test.bc.js}))))
+
+(rule
+ (alias runtest)
+ (enabled_if %{bin-available:node})
+ (action
+  (diff test.js.expected test.js.output)))
+
+(rule
+ (enabled_if %{bin-available:node})
+ (action
+  (with-stdout-to
+   test.wasm.output
+   (run
+    node
+    --require
+    ./%{dep:../wasm_node.js}
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
+    %{dep:test.bc.wasm.js}))))
+
+(rule
+ (alias runtest)
+ (enabled_if %{bin-available:node})
+ (action
+  (diff test.wasm.expected test.wasm.output)))
