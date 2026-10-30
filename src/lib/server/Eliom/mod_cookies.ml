@@ -117,27 +117,34 @@ module Persistent_cookies = struct
     in
     Cookies.add cookie content
 
-  (* Never inserts the cookie: [replace_if_exists] only updates an existing
+  (* [modify_existing cookie f] replaces the content [c] of [cookie] by [f c].
+     Never inserts the cookie: [replace_if_exists] only updates an existing
      entry, so a session closed between the reading and the writing stays
      closed. [modify_opt] would not do: the PostgreSQL backend writes its
      result with an insertion, without locking the entry it has read. *)
-  let update cookie ~expiry ~timeout ?session_group () =
+  let modify_existing cookie f =
     Lwt.catch
       (fun () ->
          let* c = Cookies.find cookie in
-         let* () =
-           match expiry with
-           | Some t -> Expiry_dates.add_cookie t cookie
-           | None -> Lwt.return_unit
-         in
-         Cookies.replace_if_exists cookie
-           { c with
-             expiry
-           ; timeout
-           ; session_group = Option.value session_group ~default:c.session_group
-           })
+         let* c = f c in
+         Cookies.replace_if_exists cookie c)
       (function
         | Not_found -> Lwt.return_unit (* closed meanwhile *) | e -> Lwt.fail e)
+
+  let update cookie ~expiry ~timeout ?session_group () =
+    modify_existing cookie @@ fun c ->
+    let+ () =
+      match expiry with
+      | Some t -> Expiry_dates.add_cookie t cookie
+      | None -> Lwt.return_unit
+    in
+    { c with
+      expiry
+    ; timeout
+    ; session_group = Option.value session_group ~default:c.session_group }
+
+  let set_timeout cookie timeout =
+    modify_existing cookie @@ fun c -> Lwt.return {c with timeout}
 
   let garbage_collect ~section gc_cookie =
     let now = Unix.gettimeofday () in

@@ -78,6 +78,11 @@ module Persistent_cookies : sig
       its session group if [?session_group] is given: the group may have been
       changed meanwhile by another request of the session. *)
 
+  val set_timeout : string -> Common.timeout -> unit Lwt.t
+  (** [set_timeout cookie timeout] changes the timeout of [cookie], if it
+      still exists. Its expiration date is computed again at its next
+      request. *)
+
   val garbage_collect :
      section:Logs.src
     -> (Cookies.key -> unit Lwt.t)

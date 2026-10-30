@@ -16,6 +16,22 @@ let check msg expected b url =
 
 let sleep = Lwt_unix.sleep
 
+(* [wait_for msg ok b url] waits until the answer of [url] satisfies [ok],
+   for at most 10 s: the expiration dates are computed again in the
+   background. *)
+let wait_for msg ok b url =
+  let rec loop n =
+    let* body = text b url in
+    if ok body
+    then Lwt.return_unit
+    else if n = 0
+    then Alcotest.failf "%s: %s" msg body
+    else
+      let* () = sleep 0.1 in
+      loop (n - 1)
+  in
+  loop 100
+
 (* [case server name f] is a test that runs [f browser admin], where
    [browser ()] is a new browser and [admin], which opens no session, counts
    and collects the states. *)
@@ -101,6 +117,61 @@ let collection server =
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
           "/count")
+    ; case "persistent timeout unset" (fun browser admin ->
+        (* The cookie expires with the global timeout, without being
+           visited again. *)
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text admin "/persistent/timeout?t=100" in
+        let* _ = text admin "/persistent/timeout" in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        check "collected" "data=0 services=0 persistent=0 groups=[]" admin
+          "/count")
+    ; case "persistent timeout of a cookie" (fun browser admin ->
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text admin "/persistent/timeout?t=100" in
+        let* _ = text a "/persistent/set?v=b" in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        let* () =
+          check "kept" "data=0 services=0 persistent=1 groups=[]" admin "/count"
+        in
+        let* _ = text admin "/persistent/timeout" in
+        let* _ = text a "/persistent/set?v=c" in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        check "collected" "data=0 services=0 persistent=0 groups=[]" admin
+          "/count")
+    ; case "global persistent timeout" (fun browser admin ->
+        (* Changing the global timeout computes the expiration dates of the
+           cookies again, in the background. *)
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text admin "/persistent/global?t=100" in
+        let* () =
+          wait_for "computed again" (( = ) "far") admin "/persistent/expiry"
+        in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        let* () =
+          check "kept" "data=0 services=0 persistent=1 groups=[]" admin "/count"
+        in
+        let* _ = text admin "/persistent/global?t=1" in
+        (* The cookie is closed, or has an expiration date in the past (the
+           dates are compared to the time in whole seconds). *)
+        let* () =
+          wait_for "computed again" (( <> ) "far") admin "/persistent/expiry"
+        in
+        let* () = collect admin in
+        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count")
+    ; case "persistent timeout of a closed session" (fun browser admin ->
+        (* Setting the timeout does not open the session again. *)
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text a "/persistent/close/timeout" in
+        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count")
     ; case "session groups" (fun browser admin ->
         (* A group goes with the last of its sessions. *)
         let a = browser () and b = browser () in

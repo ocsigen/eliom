@@ -193,35 +193,41 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
       close_all_persistent_states_of_name full_st_name sitedata
   | _ ->
       let now = Unix.time () in
-      Mod_cookies.Persistent_cookies.Cookies.iter
-        (fun
-            k
-             { Mod_cookies.full_state_name
-             ; expiry = old_exp
-             ; timeout = old_t
-             ; session_group }
-           ->
+      (* The cookies are read first: the SQLite backend moves a row it
+         writes, so that an iteration writing the cookies it reads would
+         find them again, without end. *)
+      let* cookies =
+        Mod_cookies.Persistent_cookies.Cookies.fold
+          (fun k ({Mod_cookies.full_state_name; timeout; _} as c) l ->
+             Lwt.return
+               (if full_st_name = full_state_name && timeout = Common.TGlobal
+                then (k, c) :: l
+                else l))
+          []
+      in
+      Lwt_list.iter_s
+        (fun ( k
+             , {Mod_cookies.full_state_name; expiry = old_exp; session_group; _}
+             ) ->
            let scope = full_state_name.Common.user_scope in
-           if full_st_name = full_state_name && old_t = Common.TGlobal
-           then
-             let newexp =
-               recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout old_exp
-             in
-             match newexp with
-             | Some t when t <= now ->
-                 Mod_persess.close_persistent_state_of_cookie ~scope sitedata
-                   session_group k
-             | _ ->
-                 let* () =
-                   Mod_cookies.Persistent_cookies.add k
-                     { Mod_cookies.full_state_name
-                     ; expiry = newexp
-                     ; timeout = Common.TGlobal
-                     ; session_group }
-                 in
-                 let* () =
+           let newexp =
+             recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout old_exp
+           in
+           match newexp with
+           | Some t when t <= now ->
+               Mod_persess.close_persistent_state_of_cookie ~scope sitedata
+                 session_group k
+           | _ ->
+               let* () =
+                 Mod_cookies.Persistent_cookies.update k ~expiry:newexp
+                   ~timeout:Common.TGlobal ()
+               in
+               let* () =
+                 if newexp = old_exp
+                 then Lwt.return_unit
+                 else
                    Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie
                      old_exp k
-                 in
-                 Lwt.pause ()
-           else Lwt.return_unit)
+               in
+               Lwt.pause ())
+        cookies
