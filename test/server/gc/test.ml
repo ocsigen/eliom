@@ -101,6 +101,39 @@ let collection server =
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
           "/count")
+    ; case "persistent timeout unset" (fun browser admin ->
+        (* The cookie expires with the global timeout, without being
+           visited again. *)
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text admin "/persistent/timeout?t=100" in
+        let* _ = text admin "/persistent/timeout" in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        check "collected" "data=0 services=0 persistent=0 groups=[]" admin
+          "/count")
+    ; case "persistent timeout of a cookie" (fun browser admin ->
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text admin "/persistent/timeout?t=100" in
+        let* _ = text a "/persistent/set?v=b" in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        let* () =
+          check "kept" "data=0 services=0 persistent=1 groups=[]" admin "/count"
+        in
+        let* _ = text admin "/persistent/timeout" in
+        let* _ = text a "/persistent/set?v=c" in
+        let* () = sleep 1.5 in
+        let* () = collect admin in
+        check "collected" "data=0 services=0 persistent=0 groups=[]" admin
+          "/count")
+    ; case "persistent timeout of a closed session" (fun browser admin ->
+        (* Setting the timeout does not open the session again. *)
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = text a "/persistent/close/timeout" in
+        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count")
     ; case "session groups" (fun browser admin ->
         (* A group goes with the last of its sessions. *)
         let a = browser () and b = browser () in

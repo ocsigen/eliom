@@ -512,6 +512,12 @@
    now the one set for tab sessions (<maxpersistenttabsessionspergroup>,
    State.set_default_max_persistent_data_tab_sessions_per_group, 100 by
    default). The maximum number of sessions in a group applied instead.
+** State.Ext.set_persistent_data_cookie_timeout and
+   unset_persistent_data_cookie_timeout now only change the timeout of the
+   cookie. They wrote back the whole cookie read before: they could open a
+   closed session again, or undo a change of its session group. The unset
+   function also removed the cookie from the index of expiration dates,
+   so that it was never collected unless it was used again.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
