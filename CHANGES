@@ -206,6 +206,10 @@
 * New Request_info.get_client_conn returns the connection of the client
   (Ocsigen.Request.client_conn). Unlike get_client_conn_to_string, meant for
   logs, it gives the address itself, also behind a trusted reverse proxy.
+* Parameter.suffix and suffix_prod raise Invalid_argument for a suffix that
+  contains any, unit, a file, raw POST data or non-localised parameters,
+  or a list or a set that does not end the path. Such a service
+  type-checked, then failed at each request.
 * Session groups
 ** The sessions that are not in a session group are now counted together
    for the whole site, 1000000 by default, instead of 1000000 per sub
