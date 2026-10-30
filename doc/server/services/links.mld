@@ -78,9 +78,9 @@ let linkrec =
     ~path:(Eliom.Service.Path ["linkrec"])
     ~meth:(Eliom.Service.Get Eliom.Parameter.unit) ()
 
-let _ =
+let () =
   Eliom.Registration.Html.register
-    linkrec
+    ~service:linkrec
     (fun () () ->
        Lwt.return
          (html
@@ -88,7 +88,7 @@ let _ =
             (body [p [a ~service:linkrec [txt "click"] ()]])))
 ]}
 
-(You can also refer to {e the current service} via [reload_action]
+You can also refer to {e the current service} via [reload_action]
 ({!Eliom.Service_sigs.S.reload_action}).
 
 {1:forms Forms}
@@ -118,7 +118,9 @@ let%shared mk_form ()
       [ a_onsubmit
           [%client
             fun ev ->
-              let value = Js.to_string ~%theinput##.value in
+              let value =
+                Js.to_string (Eliom.Content.Html.To_dom.of_input ~%theinput)##.value
+              in
               ...
           ]
       ]
@@ -131,8 +133,8 @@ let%shared mk_form ()
 In contrast, modules [Eliom.Content.Html.D.Form]
 and [Eliom.Content.Html.F.Form] provide functions
 for creating typed forms towards Eliom services.
-Use them if you want to create regular HTML forms,
-(with submit button).
+Use them if you want to create regular HTML forms
+(with a submit button).
 
 Our examples use shorthands to these modules, e.g.,
 simply [Form], assuming an appropriate context.
@@ -176,14 +178,14 @@ properly. The form-creating functions in {%wodoc:span class="code"%}Eliom.Conten
 [Eliom.Content.Html.D.Form.param] (respectively
 [Eliom.Content.Html.F.Form.param]), which needs to
 match the type of the parameter used. For example,
-{%wodoc:span class="code"%}number_name{%wodoc:end%} has type {%wodoc:span class="code"%}int param_name{%wodoc:end%}, so {%wodoc:span class="code"%}Form.int{%wodoc:end%}
+{%wodoc:span class="code"%}number_name{%wodoc:end%} has type [[`One of int] param_name], so {%wodoc:span class="code"%}Form.int{%wodoc:end%}
 must be used with {%wodoc:span class="code"%}Form.input{%wodoc:end%}
 (or with the other widgets), whereas
 {%wodoc:span class="code"%}string_name{%wodoc:end%} has type
-{%wodoc:span class="code"%}string param_name{%wodoc:end%}
+[[`One of string] param_name]
 and must be used in conjunction with the argument
 {%wodoc:span class="code"%}Form.string{%wodoc:end%}.
-Creating form widgets are described in detail in
+Form widgets are described in detail in
 [Eliom.Content.Html.D.Form]
 (and [Eliom.Content.Html.F.Form]).
 
@@ -204,10 +206,10 @@ let raw_form =
                        Form.get_form ~service:raw_serv
                          (fun () ->
                            [p [txt "Form to raw_serv: ";
-                               raw_input ~input_type:`Text ~name:"plop" ();
-                               raw_input ~input_type:`Text ~name:"plip" ();
-                               raw_input ~input_type:`Text ~name:"plap" ();
-                               raw_input ~input_type:`Submit ~value:"Click" ()]])
+                               input ~a:[a_input_type `Text; a_name "plop"] ();
+                               input ~a:[a_input_type `Text; a_name "plip"] ();
+                               input ~a:[a_input_type `Text; a_name "plap"] ();
+                               input ~a:[a_input_type `Submit; a_value "Click"] ()]])
                         ])))
 ]}
 
@@ -277,16 +279,18 @@ To create a POST form, use the
 [Eliom.Content.Html.D.Form.post_form] function.
 It is similar to [Eliom.Content.Html.D.Form.get_form]
 with an additional parameter for the GET parameters you want to put in
-the URL (if any). Here, {%wodoc:span class="code"%}form2{%wodoc:end%} is a page containing
-a form to the service {%wodoc:span class="code"%}post{%wodoc:end%} (using Html.F's
-functions) and {%wodoc:span class="code"%}form3{%wodoc:end%} (defined using the syntax
-contains a form to {%wodoc:span class="code"%}post2{%wodoc:end%}, with a GET parameter.
-{%wodoc:span class="code"%}form4{%wodoc:end%} is a form to an external page.
+the URL (if any). Here, [form2] is a page containing a form to the service
+[my_service_with_post_params], and [form3] (defined using the TyXML syntax
+extension) contains a form to [my_service_with_get_and_post], with a GET
+parameter.
+[form4] is a form to an external page.
 
 {e Warning:} Some examples in this section use the Tyxml syntax extension.
 (See {{!/tyxml/page-ppx}Tyxml's manual}).
-{e Warning:} After installing Tyxml, [tyxml-ppx] should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES
-in the Makefile.options file of your project.
+{e Warning:} After installing Tyxml, add [tyxml-ppx] to the PPX of your
+project: in a project made from the template [app], add
+[--preprocess tyxml-ppx] to the invocation of [ocsigen-dune-rules] in its
+[dune] files.
 
 {@ocaml[
   let form2 =
@@ -319,7 +323,7 @@ let form3 =
               [ [%html "<p> Write a string:
                       "[Form.input
                           ~input_type:`Text ~name:chaine
-                          Form.string)" </p>"])
+                          Form.string]" </p>"])
             222) in
        Lwt.return
          [%html "<html>
@@ -337,7 +341,7 @@ let form4 =
           ~service:(Eliom.Service.extern
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
-             ~meth:(Eliom.Service.Post (int "i", string "chaine"))
+             ~meth:(Eliom.Service.Post Eliom.Parameter.(int "i", string "chaine"))
              ())
           (fun chaine ->
             [ [%html "<p> Write a string:
@@ -358,37 +362,19 @@ corresponding forms.
 {2 Parsing parameters using regular expressions}
 
 
-Eliom.Parameter.regexp allows parsing page parameters using (Perl-compatible)
-regular expressions. We use the module {%wodoc:span class="code"%}Netstring_pcre{%wodoc:end%},
-from {e OCamlnet}. See the documentation about OCamlnet
-for more information.
+[Eliom.Parameter.regexp] allows parsing page parameters using (Perl-compatible)
+regular expressions, of type [Re.Pcre.regexp] (from the {{:https://github.com/ocaml/ocaml-re}Re} library).
 The following example shows a service that accepts only parameters
 values enclosed between {%wodoc:span class="code"%}[{%wodoc:end%} and {%wodoc:span class="code"%}]{%wodoc:end%}:
 
 {@ocaml[
-let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
-
-let regexp =
-  Eliom.Registration.Html.create
-    ~path:(Eliom.Service.Path ["regexp"])
-    ~meth:
-      (Eliom.Service.Get
-        Eliom.Parameter.(regexp r "$1" (fun s -> s) "myparam"))
-    (fun g () ->
-      Lwt.return
-        Html.D.(html
-                  (head (title (txt "")) [])
-                  (body [p [txt g]])))
-
-]}
-
-{@ocaml[let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
+let myregexp = Re.Pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
   Eliom.Registration.Html.create
     ~path:(Eliom.Service.Path ["regexp"])
     ~meth:(Eliom.Service.Get
-            Eliom.Parameter.(regexp myregexp "$1" (fun s -> s) "myparam"))
+            Eliom.Parameter.(regexp myregexp "$1" ~to_string:(fun s -> s) "myparam"))
     (fun g () ->
       Lwt.return
         Html.D.(html
@@ -398,7 +384,7 @@ let regexpserv =
 
 {2 Boolean checkboxes}
 
-Page may take parameter of type {%wodoc:span class="code"%}bool{%wodoc:end%}.
+A page may take a parameter of type {%wodoc:span class="code"%}bool{%wodoc:end%}.
 A possible use of this type is in a form
 with {e boolean checkboxes}, as in the example below:
 
@@ -458,7 +444,7 @@ See {!Eliom.Parameter_sigs.S}.
 
 {2 Type {%wodoc:span class="code"%}set{%wodoc:end%}}
 
-Page may take several parameters of the same name.
+A page may take several parameters of the same name.
 It is useful when you want to create a form with a variable number
 of fields.
 To do that with Eliom, use the type [Eliom.Parameter.set].
@@ -589,8 +575,8 @@ of type [Eliom.Parameter.set].
 {2 Clickable images}
 
 
-Here is an example of clickable image.
-      You receive the coordinates the user clicked on.
+Here is an example of a clickable image.
+You receive the coordinates the user clicked on.
 
 {@ocaml[
   let coord = Eliom.Registration.Html.create
@@ -652,7 +638,7 @@ if a request has no parameter, it will be considered as the empty list.
 Services with higher priority are tried first, otherwise
 they are tried in order of registration.
 
-As you see, the names of each list element is built from the name
+As you see, the name of each list element is built from the name
 of the list, the name of the list element, and an index.
 To spare you creating yourself these names, Eliom provides you an iterator
 to create them.
@@ -707,8 +693,8 @@ let create_suffixform ((suff, endsuff),i) =
      let module Html = Eliom.Content.Html.D in
     [%html "<p>Write the suffix:
       "[Form.input ~input_type:`Text ~name:suff Form.int]" <br/>
-      Write a string: "[Form.input
-         ~input_type:`Text ~name:endsuff Form.string]
+      Write a path: "[Form.input ~input_type:`Text ~name:endsuff
+         (Form.user (Ocsigen_base.Lib.Url.string_of_url_path ~encode:false))]
          " <br/>
       Write an int: "[Form.input ~input_type:`Text ~name:i Form.int]" <br/>
       "[Form.input ~input_type:`Submit ~value:"Click" Form.string]"</p> "]
@@ -727,14 +713,15 @@ let suffixform = Eliom.Registration.Html.create
 
 ]}
 
-Decode the URL encoded string using [Ocsigen_base.Lib.Url.string_of_url_path ~encode:false]
+The whole suffix [endsuff] is a list of strings: the form writes it with
+[Ocsigen_base.Lib.Url.string_of_url_path ~encode:false].
 
 {2 Uploading files}
 
 The [Eliom.Parameter.file] parameter type allows files to be sent in your
 request. The service gets something of type
  {!/ocsigenserver/Ocsigen.Extensions.type-file_info}. You can extract information
-using this using these functions (from  {!Eliom.Request_info}):
+from it using these functions (from  {!Eliom.Request_info}):
 
 {@ocaml[val get_tmp_filename : Ocsigen.Extensions.file_info -> string
 val get_filesize : Ocsigen.Extensions.file_info -> int64
@@ -761,7 +748,7 @@ it. (The destination must be on the same partition of the disk.)
 
 {@ocaml[let upload = Eliom.Service.create
     ~path:(Eliom.Service.Path ["upload"])
-    ~meth:(Eliom.Service.Get unit)
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     ()
 
 let upload2 = Eliom.Registration.Html.create
@@ -771,10 +758,9 @@ let upload2 = Eliom.Registration.Html.create
     (fun () file ->
       let to_display =
         let newname = "/tmp/thefile" in
-        (try
-          Unix.unlink newname;
-        with _ -> ());
-        Lwt_log.ign_debug (Eliom.Request_info.get_tmp_filename file);
+        (try Unix.unlink newname
+         with Unix.Unix_error (Unix.ENOENT, _, _) -> ());
+        Logs.debug (fun m -> m "%s" (Eliom.Request_info.get_tmp_filename file));
         Unix.link (Eliom.Request_info.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try
@@ -787,7 +773,7 @@ let upload2 = Eliom.Registration.Html.create
            (body [h1 [txt to_display]])))
 
 
-let uploadform = Eliom.Registration.Html.register upload
+let () = Eliom.Registration.Html.register ~service:upload
     (fun () () ->
       let f =
         (Form.post_form ~service:upload2
@@ -806,7 +792,7 @@ let uploadform = Eliom.Registration.Html.register upload
 
 {2 Raw POST data (advanced use)}
 
-By specifying [~post_params:Eliom.Parameter.raw_post_params],
+By specifying [~meth:(Eliom.Service.Post (g, Eliom.Parameter.raw_post_data))],
 it is possible to create a service that takes as parameter any POST
 data, as a stream. The only restriction is that it does not work if
 the content-type corresponds to URL encoded form data or multipart data

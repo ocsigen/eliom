@@ -276,7 +276,7 @@ module Svg : sig
     end
   end
 
-  (** Conversion from Svg [elt]s to Javascript DOM elements ([<:] {!Js_of_ocaml.Dom_html.element}).
+  (** Conversion from Svg [elt]s to Javascript DOM elements ([<:] {!type:Js_of_ocaml.Dom_html.element}).
       One conversion function per source type (stressed by the [of_] prefix). *)
   module To_dom : sig
     val of_element : 'a elt -> Dom_html.element Js.t
@@ -284,7 +284,7 @@ module Svg : sig
     val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t
   end
 
-  (** Conversion functions from DOM nodes ({!Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
+  (** Conversion functions from DOM nodes ({!type:Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
   module Of_dom : sig
     val of_element : Dom_html.element Js.t -> 'a elt
   end
@@ -493,7 +493,7 @@ module Html : sig
   end
 
   module To_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.TO with type 'a elt = 'a elt
-  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {!Js_of_ocaml.Dom_html.element}).
+  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {!type:Js_of_ocaml.Dom_html.element}).
       One conversion function per source type (stressed by the [of_] prefix). *)
 
   (** DOM-like manipulation functions.
@@ -925,7 +925,7 @@ module Html : sig
   end
 
   module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
-  (** Conversion functions from DOM nodes ({!Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
+  (** Conversion functions from DOM nodes ({!type:Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
 end
 
 val force_link : unit

@@ -17,10 +17,9 @@
 
 
 
-The function {!Eliom.Content.Html.D.make_uri}
-        creates a relative URL string from current URL
-        (see above) to the URL of the image (here in the static directory
-        configured in the configuration file).
+The function {!Eliom.Content.Html.F.make_uri} creates the URL of the
+image, relative to the current URL (here in the static directory
+configured in the configuration file).
 
 
 

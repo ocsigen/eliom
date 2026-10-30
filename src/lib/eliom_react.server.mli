@@ -49,7 +49,7 @@ module Down : sig
       To use this, call function [of_react] on server side,
       and just use the returned value as a react event on client side.
       Example:
-      [let e = of_react ... in ... {{ ... React.E.map f %e; ... }}]
+      [let e = of_react ... in ... [%client ... React.E.map f ~%e; ...]]
  *)
 
   type 'a t
@@ -84,7 +84,7 @@ module Up : sig
       [let e_up = Eliom_react.Up.create
         (Parameter.ocaml "a" [%json: string])
       in
-      ... {{ ignore ( %e_up "A") }} ...
+      ... [%client ignore (~%e_up "A")] ...
       ]
     *)
 
