@@ -255,6 +255,16 @@ let count =
       ( Eliom.Reference.Volatile.get tab_count
       , Eliom.Reference.Volatile.get session_count ))
 
+(* An action of the server, called by the client *)
+let server_action =
+  Eliom.Service.create ~path:Eliom.Service.No_path
+    ~meth:(Eliom.Service.Post (Eliom.Parameter.unit, Eliom.Parameter.unit))
+    ()
+
+let () =
+  Eliom.Registration.Action.register ~options:`NoReload ~service:server_action
+    (fun () () -> Lwt.return_unit)
+
 let client_server = get ["client-server"]
 
 let () =
@@ -301,6 +311,12 @@ let () =
         , [%client
             fun () ->
               Lwt.map (fun () -> "sent") (Eliom.Bus.write ~%bus "on the bus")] )
+      ; ( "action"
+        , [%client
+            fun () ->
+              Lwt.map
+                (fun _ -> "done")
+                (Eliom.Client.call_service ~service:~%server_action () ())] )
       ; ( "count"
         , [%client
             fun () ->

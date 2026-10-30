@@ -66,6 +66,14 @@ test("event sent up to the server", async ({ page }) => {
   await expect(page.locator("#last-up")).toHaveText("sent up");
 });
 
+// An action answers without content (204): Client.call_service, which returns
+// the content of the answer, fails with Failed_request 204, which the callers
+// that expect an action catch, as Bus.write does.
+test("action of the server", async ({ page }) => {
+  await open(page, "/client-server");
+  await run(page, "action", "Eliom.Request.Failed_request(204)");
+});
+
 test("state of the tabs and of the session", async ({ context }) => {
   const [one, two] = [await context.newPage(), await context.newPage()];
   await open(one, "/client-server");
