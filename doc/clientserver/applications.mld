@@ -177,3 +177,10 @@ launched on the server, but there are situations where an old client
 process is used instead: Browsers tend to take the result from their
 cache when using the back button even if the page was marked (by HTTP
 headers) as non-cacheable.
+
+When the browser restores the page from its back-forward cache, the
+client-side program resumes where it was, with the same client process:
+its state of scope client process on the server is used again, unless it
+has expired in the meantime (see
+{{!//server/page-state.timeouts}Timeouts and session duration}).
+Otherwise, the page is loaded again and a new client process starts.
