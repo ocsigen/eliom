@@ -27,6 +27,25 @@ let () =
 let () =
   string (get ["tab"; "get"] P.unit) (fun () () -> text (V.get tab_value))
 
+let persistent_tab_value =
+  Reference.eref ~scope:tab_scope
+    ~persistent:("test_tab_value", [%json: string])
+    ""
+
+let () =
+  string
+    (get ["tab"; "persistent"; "set"] P.(string "v"))
+    (fun v () ->
+       let* () = Reference.set persistent_tab_value v in
+       text "set")
+
+let () =
+  string
+    (get ["tab"; "persistent"; "get"] P.unit)
+    (fun () () ->
+       let* v = Reference.get persistent_tab_value in
+       text v)
+
 let () =
   string
     (get ["session"; "set"] P.(string "v"))

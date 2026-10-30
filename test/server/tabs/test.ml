@@ -129,6 +129,25 @@ let limits server =
             let* () = check "second" "1" second "/tab/get" in
             let* () = check "last" "100" (List.nth tabs 100) "/tab/get" in
             check "first, closed" "" first "/tab/get"
+        | _ -> Alcotest.fail "not enough tabs")
+    ; case "default limit of persistent tabs" (fun browser ->
+        (* The limit of tabs applies to persistent tab sessions too *)
+        let b = browser () in
+        let tabs = List.init 101 (fun _ -> tab b) in
+        let* () =
+          Lwt_list.iteri_s
+            (fun i t ->
+               Lwt.map ignore
+                 (text t ("/tab/persistent/set?v=" ^ string_of_int i)))
+            tabs
+        in
+        match tabs with
+        | first :: second :: _ ->
+            let* () = check "second" "1" second "/tab/persistent/get" in
+            let* () =
+              check "last" "100" (List.nth tabs 100) "/tab/persistent/get"
+            in
+            check "first, closed" "" first "/tab/persistent/get"
         | _ -> Alcotest.fail "not enough tabs") ] )
 
 let () =
