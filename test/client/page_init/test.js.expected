@@ -17,7 +17,7 @@ fragment: a/b?s=t&n=6#f%20r, NOT a/b?s=t&n=6#f+r on the server
 root: ./
 same page: page
 deeper: x/y/z
-suffix: suffix/7/a/b, NOT suffix/7/a%2Fb on the server
+suffix: suffix/7/a%2Fb
 non-attached coservice: page?__eliom_na__name=na
 attached coservice: ./?__co_eliom_n=8&__eliom__=co
 external service: http://example.org/e?s=e

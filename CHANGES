@@ -517,6 +517,9 @@
    window.btoa, which raised a ReferenceError there.
 ** The client reads the long float arrays sent by a big-endian server
    correctly: the shared values read after them were wrong.
+** URLs built by the client encode the slashes of the values of suffix
+   parameters, as the server does. The server read them as separators of
+   the suffix.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
