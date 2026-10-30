@@ -463,36 +463,13 @@ module Pers = struct
 
   let () = Common.Persistent_tables.add_functorial_table (module Grouptable)
 
-  (* The sessions of a group are listed in one entry of the table, that the
-     operations below read, change and write back. The operations on a group
-     are serialised, otherwise two simultaneous requests (two logins of the
-     same user, or two requests of sessions of the group, which move them up
-     in the list) lose each other's change, and a session dropped from the
-     list escapes the limit of the group and its closing. The lock is held
-     by one server process: a database shared by several processes needs the
-     same guarantee from its backend. *)
-  let locks : (string, Lwt_mutex.t) Hashtbl.t = Hashtbl.create 64
-
-  let with_group_lock sg f =
-    let m =
-      match Hashtbl.find_opt locks sg with
-      | Some m -> m
-      | None ->
-          let m = Lwt_mutex.create () in
-          Hashtbl.add locks sg m; m
-    in
-    Lwt.finalize
-      (fun () -> Lwt_mutex.with_lock m f)
-      (fun () ->
-         (* Last user of the lock: nobody waits for it, nobody took it when
-            it was released, and the entry is still this lock. *)
-         (match Hashtbl.find_opt locks sg with
-         | Some m'
-           when m' == m && Lwt_mutex.is_empty m && not (Lwt_mutex.is_locked m)
-           ->
-             Hashtbl.remove locks sg
-         | _ -> ());
-         Lwt.return_unit)
+  (* The sessions of a group are listed in one entry of the table. The
+     operations below change it with [Grouptable.modify_opt], which reads and
+     writes the entry atomically, also between server processes sharing the
+     database (since ocsipersist 3.2). Otherwise two simultaneous requests
+     (two logins of the same user, or two requests of sessions of the group,
+     which move them up in the list) lose each other's change, and a session
+     dropped from the list escapes the limit of the group and its closing. *)
 
   let find g =
     match g with
@@ -508,48 +485,30 @@ module Pers = struct
     match sess_grp with
     | Some sg ->
         let sg = Common.string_of_perssessgrp sg in
-        with_group_lock sg @@ fun () ->
-        Lwt.catch
-          (fun () ->
-             let* max2, cl = Grouptable.find sg in
-             let max, newmax =
-               match set_max with
-               | None ->
-                   ( (match max2 with
-                     | Default -> defaultmax
-                     | Nolimit -> None
-                     | Val m -> Some m)
-                   , max2 )
-               | Some None -> None, Nolimit
-               | Some (Some v) -> Some v, Val v
-             in
-             (* [sess_id] may be in the list already: another request of the
-                session added it (a double click on "log in", for instance) *)
-             let cl, toclose =
-               cut max (List.filter (fun s -> s <> sess_id) cl)
-             in
-             let* () =
-               Grouptable.replace_if_exists sg (newmax, sess_id :: cl)
-             in
-             Lwt.return toclose)
-          (function
-            | Not_found ->
-                let max =
-                  match set_max with
-                  | None -> Default
-                  | Some None -> Nolimit
-                  | Some (Some v) -> Val v
-                in
-                let* () = Grouptable.add sg (max, [sess_id]) in
-                Lwt.return_nil
-            | e -> Lwt.fail e)
+        (* Returns the sessions that leave the group because of its limit *)
+        Grouptable.modify sg @@ fun entry ->
+        let oldmax, cl = Option.value entry ~default:(Default, []) in
+        let newmax =
+          match set_max with
+          | None -> oldmax
+          | Some None -> Nolimit
+          | Some (Some v) -> Val v
+        in
+        let max =
+          match newmax with
+          | Default -> defaultmax
+          | Nolimit -> None
+          | Val m -> Some m
+        in
+        (* [sess_id] may be in the list already: another request of the
+           session added it (a double click on "log in", for instance) *)
+        let cl, closed = cut max (List.filter (fun s -> s <> sess_id) cl) in
+        Some (newmax, sess_id :: cl), closed
     | None -> Lwt.return_nil
 
-  (* [members sg] is the list of the sessions of the group [sg]: read with
-     the lock, unless a change of the list does not depend on it (the fast
-     path of [up], which only reads). [forget sg closed] removes the
-     sessions [closed] from the group, and the group when no session is
-     left. *)
+  (* [members sg] is the list of the sessions of the group [sg], read
+     without changing it. [forget sg closed] removes the sessions [closed]
+     from the group, and the group when no session is left. *)
   let members sg =
     Lwt.catch
       (fun () ->
@@ -558,14 +517,12 @@ module Pers = struct
       (function Not_found -> Lwt.return_nil | e -> Lwt.fail e)
 
   let forget sg closed =
-    with_group_lock sg @@ fun () ->
-    Lwt.catch
-      (fun () ->
-         let* max, cl = Grouptable.find sg in
-         match List.filter (fun s -> not (List.mem s closed)) cl with
-         | [] -> Grouptable.remove sg
-         | cl -> Grouptable.replace_if_exists sg (max, cl))
-      (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+    Grouptable.modify_opt sg @@ function
+    | None -> None
+    | Some (max, cl) -> (
+      match List.filter (fun s -> not (List.mem s closed)) cl with
+      | [] -> None
+      | cl -> Some (max, cl))
 
   let rec remove_group ~cookie_level sitedata sess_grp =
     (* cookie_level is the scope of group members *)
@@ -575,36 +532,31 @@ module Pers = struct
         let key = Common.string_of_perssessgrp sg in
         Lwt.catch
           (fun () ->
-             (* First the list of the sessions, and the removal of the group
-                data, under the lock of the group: a session that joins the
-                group meanwhile waits, then finds a group without data, as a
-                new one. *)
-             let* cl =
-               with_group_lock key @@ fun () ->
-               let* cl = members key in
-               let+ () =
-                 let group_name = Common.name_of_perssessgrp sg in
-                 let* () =
-                   Common.Persistent_tables.remove_key_from_all_tables
-                     group_name
-                 in
-                 (* If it is associated to a session,
-                    we remove the session from its group,
-                    and we remove cookie info: *)
-                 match cookie_level with
-                 | `Client_process grp ->
-                     (* We are closing a browser session,
-                        belonging to the group grp *)
-                     (* group_name is the cookie value *)
-                     remove sitedata group_name grp
-                 | `Session -> Lwt.return_unit
+             (* First the group data are removed, then the list of the
+                sessions is read, in this order and without a lock: a
+                session that joins the group before the reading, even in
+                another server process, is listed, hence closed below, and
+                a session that joins it after the reading finds a group
+                without data, as a new one. A session that joins the group
+                during its removal is thus closed with it. *)
+             let* () =
+               let group_name = Common.name_of_perssessgrp sg in
+               let* () =
+                 Common.Persistent_tables.remove_key_from_all_tables group_name
                in
-               cl
+               (* If it is associated to a session,
+                  we remove the session from its group,
+                  and we remove cookie info: *)
+               match cookie_level with
+               | `Client_process grp ->
+                   (* We are closing a browser session,
+                      belonging to the group grp *)
+                   (* group_name is the cookie value *)
+                   remove sitedata group_name grp
+               | `Session -> Lwt.return_unit
              in
-             (* Then the sessions are closed, without the lock: closing a
-                browser session takes the lock of its group of tab sessions,
-                then the one of its session group, while this function may
-                be closing that session group. A request of a session of the
+             let* cl = members key in
+             (* Then the sessions are closed. A request of a session of the
                 group running meanwhile may write group data again: they
                 remain, as the group stays for the sessions that join it. *)
              let close =
@@ -677,20 +629,16 @@ module Pers = struct
     match sess_grp with
     | Some sg0 ->
         let sg = Common.string_of_perssessgrp sg0 in
-        with_group_lock sg @@ fun () ->
-        Lwt.catch
-          (fun () ->
-             let* max, cl = Grouptable.find sg in
-             let newcl = List.remove_first_if_any sess_id cl in
-             (* Before 2018-10-18, we were closing the session group
-             when newcl was empty (no more session in the group).
-             But persistent session groups are usually used to store persistent
-             information about users. It makes no sense cleaning this
-             information when user closes all their sessions.
-             I remove this. -- Vincent
-             *)
-             Grouptable.replace_if_exists sg (max, newcl))
-          (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+        (* Before 2018-10-18, we were closing the session group
+           when the list was empty (no more session in the group).
+           But persistent session groups are usually used to store persistent
+           information about users. It makes no sense cleaning this
+           information when user closes all their sessions.
+           I remove this. -- Vincent
+        *)
+        Grouptable.modify_opt sg
+          (Option.map (fun (max, cl) ->
+             max, List.remove_first_if_any sess_id cl))
     | None -> Lwt.return_unit
 
   let up sess_id grp =
@@ -702,24 +650,22 @@ module Pers = struct
         match cl with
         | first :: _ when first = sess_id ->
             (* Already the most recent one: the usual case, which needs
-               neither the lock nor a write. *)
+               only a read, and no write. *)
             Lwt.return_unit
-        | _ ->
-            with_group_lock sg @@ fun () ->
-            Lwt.catch
-              (fun () ->
-                 let* max, cl = Grouptable.find sg in
-                 match cl with
-                 | first :: _ when first = sess_id -> Lwt.return_unit
-                 | _ when List.mem sess_id cl ->
-                     Grouptable.replace_if_exists sg
-                       (max, sess_id :: List.remove_first_if_any sess_id cl)
-                 | _ ->
-                     (* The session has left the group: closed by the limit
-                        of the group while its data are being removed by
-                        another request. It does not come back. *)
-                     Lwt.return_unit)
-              (function Not_found -> Lwt.return_unit | e -> Lwt.fail e))
+        | cl when not (List.mem sess_id cl) ->
+            (* The session has left the group (see below): nothing to
+               write. *)
+            Lwt.return_unit
+        | _ -> (
+            Grouptable.modify_opt sg @@ function
+            | Some (max, cl) when List.mem sess_id cl ->
+                Some (max, sess_id :: List.remove_first_if_any sess_id cl)
+            | entry ->
+                (* The session has left the group: closed by the limit of
+                   the group while its data are being removed by another
+                   request. It does not come back, and the entry stays as
+                   it is. *)
+                entry))
 
   let move sitedata ?set_max max sess_id grp1 grp2 =
     if set_max <> None || grp1 <> grp2

@@ -44,10 +44,10 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ocsigenserver (and (>= 8.0) (< 9.0)))
   (reactiveData (>= 0.2.1))
   base-bytes
-  (ocsipersist (and (>= 3.1) (< 4.0)))
+  (ocsipersist (and (>= 3.2) (< 4.0)))
   (xml-light (>= "2.5"))
   (alcotest :with-test)
-  (ocsipersist-sqlite (and :with-test (>= 3.1) (< 4.0)))
+  (ocsipersist-sqlite (and :with-test (>= 3.2) (< 4.0)))
   (cohttp-lwt-unix :with-test)
   (conduit-lwt-unix :with-test)))
 
