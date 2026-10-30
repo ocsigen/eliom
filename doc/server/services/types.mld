@@ -45,10 +45,10 @@ more information on handler implementation and registration.
 
 {%wodoc:div%} Warning: in this manual, we use the
 term {e service} both to denote a value of type [Eliom.Service.t]
---that only contains some location information about a service--, or a
+(that only contains some location information about a service), or a
 fully {e registered} service, that is also composed of a service
-handler. In case of ambiguities, we will use [service] --in green
-monotype-- to designate a value of type [Eliom.Service.t].
+handler. In case of ambiguities, we will use [service] (in code font) to
+designate a value of type [Eliom.Service.t].
 {%wodoc:end%}
 
 The standard way to create a service is a call of the form
@@ -118,7 +118,7 @@ represent the set of expected arguments with their types. They are
 built using combinators from the
 {!Eliom.Parameter}
 module. See chapter {{!//server/services/page-parameters}Service
-parameters} for a detailled description of this module.
+parameters} for a detailed description of this module.
 
 Type information associated to each argument allows Eliom to
 automatically convert the actual parameters into the corresponding
@@ -206,6 +206,7 @@ Form.post_form
        Form.input ~input_type:`Hidden ~name:id_name ~value:id Form.int;
        Form.button_no_value ~button_type:`Submit [txt "submit"]
      ])
+  ()
 ]}
 
 {3 Changing URL when calling a pathless service}
@@ -251,7 +252,7 @@ service. Just provide the maximum number of uses with the optional
 {1 Non-standard services}
 
 Some kinds of services do not fit in our canonical way of defining
-services, {!Eliom.Service.create} .
+services, {!Eliom.Service.create}.
 
 {2:attached_services Attached services}
 
@@ -264,7 +265,7 @@ Attached services are created using the functions
 Anonymous GET attached services are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in
 multiple steps). They handle correctly the classical Web interactions
-("back" button, bookmark, tab,~ ...): you create a new attached
+("back" button, bookmark, tab, ...): you create a new attached
 service each time you want to record a precise point in the
 interaction with the user, to be able to come back there later.
 
@@ -338,12 +339,13 @@ Eliom. The predefined service
 can be used to make links to static files. It takes as parameter the
 path of the file.
 
-For example, the following code will create this link:
-download image.
+For example, the following code creates a link to the file
+[ocsigen10.png] of the static directory:
 
 {@ocaml[
 let open Eliom.Content.Html.F in
-a (static_dir ()) [txt "download image"] ["ocsigen10.png"]
+a ~service:(Eliom.Service.static_dir ()) [txt "download image"]
+  ["ocsigen10.png"]
 ]}
 
 It is also possible to send static files using Eliom, with
@@ -364,10 +366,10 @@ For example:
 let s =
   Eliom.Service.create
     ~path:(Eliom.Service.Path ["serv"])
-    ~meth:(Eliom.Service.Get Eliom.Parameter.int)
+    ~meth:(Eliom.Service.Get (Eliom.Parameter.int "n"))
     ()
 
-let preappl = Eliom.Service.preapply s 3
+let preappl = Eliom.Service.preapply ~service:s 3
 ]}
 
 It is not possible to register a handler on a preapplied service, but
@@ -396,14 +398,14 @@ and [Eliom.Service.reload_action_https_hidden].
 
 Use [Eliom.Service.reload_action_hidden] for example
 after a POST request, if you want to do a redirection towards the same
-page without POST parameters (and thus prevent from reposting data if
+page without POST parameters (and thus avoid reposting data if
 the user reloads the page).
 
 {1:identification Service identification}
 
 Eliom has a sophisticated {e service identification mechanism} to
-choose the service handler to be executed --given an incoming
-request-- with respect to many criteria:
+choose the service handler to be executed (given an incoming
+request) with respect to many criteria:
 
 - the path of the requested URL,
 - the names of the (GET or POST) parameters,
@@ -438,7 +440,7 @@ order):
 
 - scope {e "client-side process"},
 - scope {e "session"},
-- scope {e "group of session"},
+- scope {e "group of sessions"},
 - and finally scope {e "site"}.
 
 
@@ -473,8 +475,8 @@ order):
 - Do not register the same service in the same scope twice, and do
   not replace a service by a directory (or vice versa). If this
   happens during the initialization phase, the server won't start.  If
-  this happens after server startup, it will be ignored (with a
-  warning in the logs).
+  this happens after server startup, the new registration replaces the
+  previous one.
 - GET attached services (without POST parameters) can be registered
   only with a regular service without GET/POST parameters as fallback.
   But it may be {{!//server/services/page-types.preapplied}{e preapplied}}.
