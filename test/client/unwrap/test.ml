@@ -42,3 +42,9 @@ let () =
     let n, s, (_ : unit) = unwrap Encoded.not_registered in
     Printf.sprintf "%d %s" n s);
   print "not a value" (fun () -> unwrap "not a marshalled value")
+
+let () =
+  print "big-endian float array" (fun () ->
+    let (a : float array), b = unwrap Encoded.big_endian in
+    Printf.sprintf "%d floats, last %h, shared: %b" (Array.length a) a.(255)
+      (a == b))
