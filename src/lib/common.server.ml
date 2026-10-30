@@ -367,8 +367,6 @@ type 'a configured = {cf_value : 'a; cf_from_config : bool}
 let set_configured ~override c v =
   if override || not c.cf_from_config then {c with cf_value = v} else c
 
-let configured_of_pair (cf_value, cf_from_config) = {cf_value; cf_from_config}
-
 let check_limit name n =
   if n < 1 then invalid_arg (name ^ ": the maximum must be positive")
 

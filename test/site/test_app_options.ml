@@ -47,13 +47,12 @@ let run ~app =
   Eliom.App.run ~app ~xhr_links:false ~data_timeout:(`Session, None, Some 10.)
     ~service_timeout:(`Session, None, Some 20.)
     ~persistent_timeout:(`Session, None, Some 30.)
-    ~max_service_sessions_per_group:(3, false)
-    ~max_volatile_data_sessions_per_group:(4, false)
+    ~max_service_sessions_per_group:3 ~max_volatile_data_sessions_per_group:4
     ~max_persistent_data_sessions_per_group:5
-    ~max_service_tab_sessions_per_group:(6, false)
-    ~max_volatile_data_tab_sessions_per_group:(7, false)
+    ~max_service_tab_sessions_per_group:6
+    ~max_volatile_data_tab_sessions_per_group:7
     ~max_persistent_data_tab_sessions_per_group:8
-    ~max_anonymous_services_per_session:(9, false) ~secure_cookies:true
+    ~max_anonymous_services_per_session:9 ~secure_cookies:true
     ~ignored_get_params:("utm", Re.Posix.compile_pat "utm_.*")
     ()
 
@@ -91,11 +90,9 @@ let test_other_site () =
     "ignored GET parameters" [] s.ignored_get_params
 
 let test_configuration_file () =
-  (* A value given with [true], as by the configuration file, is only
+  (* A value given to App.run, as one of the configuration file, is only
      changed by the program when asked to. *)
-  let run ~app =
-    Eliom.App.run ~app ~max_service_sessions_per_group:(3, true) ()
-  in
+  let run ~app = Eliom.App.run ~app ~max_service_sessions_per_group:3 () in
   let kept, overridden =
     Site.init ~run ~app:"options, configuration file" (fun () ->
       State.set_default_max_service_sessions_per_group 5;
