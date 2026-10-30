@@ -1,0 +1,42 @@
+; Values sent by the server, read back by the client in JavaScript.
+
+(library
+ (name eliom_test_values)
+ (wrapped false)
+ (modules values))
+
+(executable
+ (name gen)
+ (modules gen)
+ (libraries eliom.server ocsipersist-sqlite eliom_test_values))
+
+(rule
+ (target encoded.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run ./gen.exe))))
+
+(executable
+ (name test)
+ (modes js)
+ (modules encoded test)
+ (libraries eliom.client eliom_test_values))
+
+(rule
+ (enabled_if %{bin-available:node})
+ (action
+  (with-stdout-to
+   test.js.output
+   (run
+    node
+    %{dep:../run.js}
+    %{dep:../stub.js}
+    %{dep:../page/page.js}
+    %{dep:test.bc.js}))))
+
+(rule
+ (alias runtest)
+ (enabled_if %{bin-available:node})
+ (action
+  (diff test.js.expected test.js.output)))
