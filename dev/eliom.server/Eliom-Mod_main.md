@@ -7,13 +7,13 @@ val default_max_persistent_data_sessions_per_group : int ref
 val default_max_service_sessions_per_group : int ref
 ```
 ```ocaml
-val default_max_service_sessions_per_subnet : int ref
+val default_max_service_sessions_without_group : int ref
 ```
 ```ocaml
 val default_max_volatile_data_sessions_per_group : int ref
 ```
 ```ocaml
-val default_max_volatile_data_sessions_per_subnet : int ref
+val default_max_volatile_data_sessions_without_group : int ref
 ```
 ```ocaml
 val default_max_persistent_data_tab_sessions_per_group : int ref
@@ -59,7 +59,7 @@ val default_omitpersistentstorage :
   Common.omitpersistentstorage_rule list option ref
 ```
 ```ocaml
-val default_max_anonymous_services_per_subnet : int ref
+val default_max_anonymous_services_per_site : int ref
 ```
 ```ocaml
 val default_max_anonymous_services_per_session : int ref
@@ -80,6 +80,15 @@ val create_sitedata :
 ```ocaml
 val parse_global_config : Xml_light_types.xml list -> unit
 ```
+```ocaml
+val parse_site_options : 
+  Common.sitedata ->
+  Xml_light_types.xml list ->
+  Xml_light_types.xml list
+```
+`parse_site_options sitedata options` applies to `sitedata` the options of Eliom in `options`, the content of an `<eliom>` element of a site, and returns the other ones, left to the Eliom modules.
+
+raises [`Ocsigen.Extensions.Error_in_config_file`](./../../ocsigenserver/ocsigenserver/Ocsigen-Extensions.md#exception-Error_in_config_file) for an option of Eliom with a wrong value, or renamed or removed in Eliom 13.
 ```ocaml
 val exception_during_eliommodule_loading : bool ref
 ```

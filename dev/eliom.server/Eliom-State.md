@@ -137,13 +137,12 @@ val set_service_session_group :
 ```
 sets the group to which belong the service session.
 
-If the optional `?set_max` parameter is present, also sets the maximum number of sessions in the group. Default: follow current configuration for the group or default configuration if the group does not exist.
+If the optional `?set_max` parameter is present (a positive number), also sets the maximum number of sessions in the group. Default: follow current configuration for the group or default configuration if the group does not exist.
 
 If `~secure` is true, it will affect the secure session (secure cookies), otherwise (default), the unsecure one (behavior change in Eliom 4\).
 
 ```ocaml
 val unset_service_session_group : 
-  ?set_max:int ->
   ?scope:Common.session_scope ->
   ?secure:bool ->
   unit ->
@@ -179,11 +178,10 @@ val set_volatile_data_session_group :
 ```
 sets the group to which belong the volatile data session.
 
-If the optional `?set_max` parameter is present, also sets the maximum number of sessions in the group. Default: follow current configuration for the group or default configuration if the group does not exist.
+If the optional `?set_max` parameter is present (a positive number), also sets the maximum number of sessions in the group. Default: follow current configuration for the group or default configuration if the group does not exist.
 
 ```ocaml
 val unset_volatile_data_session_group : 
-  ?set_max:int ->
   ?scope:Common.session_scope ->
   ?secure:bool ->
   unit ->
@@ -219,7 +217,7 @@ val set_persistent_data_session_group :
 ```
 sets the group to which belong the persistent session.
 
-If the optional `?set_max` parameter is present, also sets the maximum number of sessions in the group. When `~set_max:None` is present, the number of session is unlimited. Default: follow current configuration for the group or default configuration if the group does not exist.
+If the optional `?set_max` parameter is present (a positive number), also sets the maximum number of sessions in the group. When `~set_max:None` is present, the number of session is unlimited. Default: follow current configuration for the group or default configuration if the group does not exist.
 
 ```ocaml
 val unset_persistent_data_session_group : 
@@ -241,15 +239,14 @@ returns the group to which belong the persistent session. If the session does no
 
 #### Maximum group size
 
-The following functions of this section set the maximum number of sessions in a session group, for the different kinds of session. This won't modify existing groups. That value will be used only as default value if you do not specify the optional parameter `?set_max` of function [`State.set_volatile_data_session_group`](./#val-set_volatile_data_session_group).
+The functions of this section set the default maximum number of sessions in a session group, for the different kinds of session. When a group is full, opening a session in it closes the session of the group that has been used least recently. The value is not used for a group whose size has been set with the optional parameter `?set_max` of [`set_volatile_data_session_group`](./#val-set_volatile_data_session_group) (and of the other functions that put a session in a group) or with [`set_max_volatile_states_in_parent`](./#val-set_max_volatile_states_in_parent). Otherwise, a volatile group keeps the value it was created with, while a persistent group follows the current value. The limit of the sessions without a group applies at once.
 
-If there is no group, the number of sessions is limitated by sub network (which can be a problem for example if the server is behind a reverse proxy). It is highly recommended to use session groups\!
+This limit bounds the memory that one user can take by opening sessions, and a user who floods the server with sessions only closes their own: put every session of a user in a group, usually named after the user. Sessions without a group are counted together, for the whole site, with a much larger limit: a flood of such sessions closes the sessions without a group used least recently, those of the other anonymous users included. The number of persistent sessions without a group is not limited. Each browser session may also hold tab sessions, with their own limit: the memory they take must be counted too.
 
-- Default number of sessions in a group: 5
-- Default number of sessions in a sub network: 1000000
-- Default IPV4 sub network: /16
-- Default IPV6 sub network: /56
-These default can be changed from configuration file and/or using these functions.
+- Default number of sessions in a group: 50
+- Default number of tab sessions in a browser session: 100
+- Default number of sessions without a group in a site: 1000000
+These defaults can be changed from the configuration file and/or using these functions. A maximum number must be positive: the functions raise `Invalid_argument` otherwise, and the configuration file is rejected.
 
 If `~override_configfile` is `true` (default (`false`), then the function will set the value even if it has been modified in the configuration file. It means that by default, these functions have no effect if there is a value in the configuration file. This gives the ability to override the values chosen by the module in the configuration file. Use `~override_configfile:true` for example if your Eliom module wants to change the values afterwards (for example in the site configuration Web interface).
 
@@ -286,28 +283,29 @@ val set_default_max_volatile_sessions_per_group :
 Sets the maximum number of volatile sessions (data and service) in a session group (see above).
 
 ```ocaml
-val set_default_max_service_sessions_per_subnet : 
+val set_default_max_service_sessions_without_group : 
   ?override_configfile:bool ->
   int ->
   unit
 ```
-Sets the maximum number of service sessions in a subnet (see above).
+Sets the maximum number of service sessions without a group in the site (see above). It applies at once: beyond it, the sessions used least recently are closed.
+
+raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the number is not positive.
+```ocaml
+val set_default_max_volatile_data_sessions_without_group : 
+  ?override_configfile:bool ->
+  int ->
+  unit
+```
+Like [`set_default_max_service_sessions_without_group`](./#val-set_default_max_service_sessions_without_group), for volatile data sessions.
 
 ```ocaml
-val set_default_max_volatile_data_sessions_per_subnet : 
+val set_default_max_volatile_sessions_without_group : 
   ?override_configfile:bool ->
   int ->
   unit
 ```
-Sets the maximum number of volatile data sessions in a subnet (see above).
-
-```ocaml
-val set_default_max_volatile_sessions_per_subnet : 
-  ?override_configfile:bool ->
-  int ->
-  unit
-```
-Sets the maximum number of volatile sessions (data and service) in a subnet (see above).
+Like [`set_default_max_service_sessions_without_group`](./#val-set_default_max_service_sessions_without_group), for both service and volatile data sessions.
 
 ```ocaml
 val set_default_max_service_tab_sessions_per_group : 
@@ -342,46 +340,45 @@ val set_default_max_volatile_tab_sessions_per_group :
 Sets the maximum number of volatile tab sessions (data and service) in a session group (see above).
 
 ```ocaml
-val set_ipv4_subnet_mask : ?override_configfile:bool -> int -> unit
+val set_default_max_anonymous_services_per_site : 
+  ?override_configfile:bool ->
+  int ->
+  unit
 ```
-Sets the mask for subnet (IPV4).
+Sets the maximum number of anonymous coservices of the global table of the site created during requests (500000 by default). It applies at once: beyond it, the coservices used least recently are removed. The anonymous coservices created during the initialisation of the site are not counted.
 
+raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the number is not positive.
 ```ocaml
-val set_ipv6_subnet_mask : ?override_configfile:bool -> int -> unit
-```
-Sets the mask for subnet (IPV6).
-
-```ocaml
-val set_max_service_states_for_group_or_subnet : 
+val set_max_service_states_in_parent : 
   scope:Common.user_scope ->
   ?secure:bool ->
   int ->
   unit
 ```
-`set_max_service_states_for_group_or_subnet ~scope n` sets to `n` the maximum number of service states of the level of `scope` in the state that contains the current one:
+`set_max_service_states_in_parent ~scope n` sets to `n` the maximum number of service states of the level of `scope` in the state that contains the current one:
 
 - with a client process scope, the number of tab sessions in the current browser session;
-- with a session scope, the number of browser sessions in the current session group (or for the client sub network, if there is no group);
-- with a session group scope, the number of session groups of the site. This limit is shared by service and data states: a group with both counts twice.
-If there are more, the oldest ones are closed.
+- with a session scope, the number of browser sessions in the current session group; if the session is not in a group, nothing is changed and a warning is logged (the limit of the sessions without a group of the site is set by [`set_default_max_service_sessions_without_group`](./#val-set_default_max_service_sessions_without_group));
+- with a session group scope, the number of session groups of the site, whether the current session is in a group or not. This limit is shared by service and data states: a group with both counts twice.
+If there are more, the ones used least recently are closed.
 
 ```ocaml
-val set_max_volatile_data_states_for_group_or_subnet : 
+val set_max_volatile_data_states_in_parent : 
   scope:Common.user_scope ->
   ?secure:bool ->
   int ->
   unit
 ```
-Like [`set_max_service_states_for_group_or_subnet`](./#val-set_max_service_states_for_group_or_subnet), for volatile data states.
+Like [`set_max_service_states_in_parent`](./#val-set_max_service_states_in_parent), for volatile data states.
 
 ```ocaml
-val set_max_volatile_states_for_group_or_subnet : 
+val set_max_volatile_states_in_parent : 
   scope:Common.user_scope ->
   ?secure:bool ->
   int ->
   unit
 ```
-Like [`set_max_service_states_for_group_or_subnet`](./#val-set_max_service_states_for_group_or_subnet), for both service and volatile data states.
+Like [`set_max_service_states_in_parent`](./#val-set_max_service_states_in_parent), for both service and volatile data states.
 
 ### Expiration of cookies and timeouts
 

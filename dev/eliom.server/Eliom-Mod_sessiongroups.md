@@ -11,7 +11,6 @@ val make_full_named_group_name_ :
 val make_full_group_name : 
   cookie_level:Common.cookie_level ->
   sitedata:Common.sitedata ->
-  Ocsigen.Request.t ->
   string option ->
   Common.scope Common.sessgrp
 ```

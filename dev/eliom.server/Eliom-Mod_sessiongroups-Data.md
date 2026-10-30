@@ -6,7 +6,6 @@ type group_of_group_data =
 ```
 ```ocaml
 val add : 
-  ?set_max:int ->
   Common.sitedata ->
   string ->
   [< Common.cookie_level ] Common.sessgrp ->
@@ -34,7 +33,6 @@ Groups of browser sessions belong to a group of groups. As these groups are not 
 
 ```ocaml
 val move : 
-  ?set_max:int ->
   Common.sitedata ->
   string Ocsigen_base.Cache.Dlist.node ->
   [< Common.cookie_level ] Common.sessgrp ->
@@ -44,6 +42,11 @@ val move :
 val up : string Ocsigen_base.Cache.Dlist.node -> unit
 ```
 ```ocaml
+val up_group : [< Common.cookie_level ] Common.sessgrp -> unit
+```
+`up_group g` makes `g` the group of the site used most recently, if it is one: when the site has too many groups, the ones used least recently are closed.
+
+```ocaml
 val nb_of_groups : unit -> int
 ```
 ```ocaml
@@ -52,3 +55,7 @@ val group_size : [< Common.cookie_level ] Common.sessgrp -> int
 ```ocaml
 val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit
 ```
+```ocaml
+val set_group_max : [< Common.cookie_level ] Common.sessgrp -> int -> unit
+```
+`set_group_max g n` sets the maximum size of the group `g`, if it exists: beyond it, the sessions used least recently are closed.

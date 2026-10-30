@@ -11,8 +11,16 @@ module Expiry_dates : sig ... end
 val add : string -> cookie -> unit Lwt.t
 ```
 ```ocaml
-val replace_if_exists : string -> cookie -> unit Lwt.t
+val update : 
+  string ->
+  expiry:date option ->
+  timeout:Common.timeout ->
+  ?session_group:Common.perssessgrp option ->
+  unit ->
+  unit Lwt.t
 ```
+`update cookie ~expiry ~timeout ?session_group ()` changes the expiration date and the timeout of `cookie`, if it still exists, and its session group if `?session_group` is given: the group may have been changed meanwhile by another request of the session.
+
 ```ocaml
 val garbage_collect : 
   section:Logs.src ->

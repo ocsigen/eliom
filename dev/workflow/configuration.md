@@ -214,25 +214,25 @@ To fight denial of service, Eliom limits the number of sessions and the number o
 
 #### Limiting sessions
 
-First of all, there is a limitation of the number of sessions in a session group. A typical use is when a user opens several sessions from several computers. All the sessions belong to the same group (the group name is usually the user name). The limit is usually small (5 sessions per group by default). This limit is implemented for all kinds of sessions (service session, volatile and persistent data sessions). For persistent sessions, the implementation is not very efficient for very large limits.
+First of all, there is a limitation of the number of sessions in a session group. A typical use is when a user opens several sessions from several computers. All the sessions belong to the same group (the group name is usually the user name). The limit is 50 sessions per group by default, for all kinds of sessions (service sessions, volatile and persistent data sessions); the tab sessions of a browser session are limited in the same way, 100 by default. For persistent sessions, the implementation is not very efficient for very large limits.
 
 It is highly recommended to use session groups when possible.
 
-If you can't use session groups, the number of sessions is limited by sub network for volatile sessions (service sessions and data sessions). The limitation is larger (default 1 million). The limit must be large enough. For instance, if the server is behind a reverse proxy, all incoming requests will come from the same IP address. Limiting by sub network instead of by IP address prevents attacks even when the attacker has a whole sub network available. The default mask for sub networks is `/16` for IPv4 and `/56` for IPv6.
+If you can't use session groups, the volatile sessions (service sessions and data sessions) that are not in a group are counted together, for the whole site. This limit is larger: 1 million by default. When it is reached, the session without a group used least recently is closed, be it the session of an attacker or of a regular user.
 
-Some figures: if 1 session takes 1000 bytes (data \+ tables etc), 1 million sessions take 1 GB. If somebody opens 1000 sessions per second, then it will take 1000 s (16 minutes) to reach 1000000\. It means that regular users will have their sessions closed after 16 minutes of inactivity if they share their sub network with someone doing an attack (or if the server is behind a proxy).
+Some figures: if 1 session takes 1000 bytes (data \+ tables etc), 1 million sessions take 1 GB. If somebody opens 1000 sessions per second, it takes 1000 s (16 minutes) to reach the limit; while the attack lasts, the regular users without a group have their sessions closed after 1000 s of inactivity. The sessions in a group are not affected. To stop such an attack, limit the rate of requests by client address in front of the server (reverse proxy). Each browser session may also hold up to 100 tab sessions by default, which take memory too.
 
-For persistent sessions, there is no limitation per sub network for now. 1 billion sessions take 1 TB. If somebody opens 1000 sessions per second, then it will take 1 million s (16000 minutes \= 266 h \= 11 days) to reach 1TB.
+For persistent sessions, there is no limitation without a group. 1 billion sessions take 1 TB. If somebody opens 1000 sessions per second, then it will take 1 million s (16000 minutes \= 266 h \= 11 days) to reach 1TB.
 
 #### Limiting services
 
-The number of anonymous coservices is limited by session or by sub network if the service is registered in the global table. Default values: 1000 for one session, and 500000 for one subnet.
+The number of anonymous coservices is limited by session, and for the whole site if the service is registered in the global table during a request. Default values: 1000 for one session, and 500000 for the site. The anonymous coservices registered in the global table during the initialisation of the site are not limited.
 
 Note that there is no limitation of named coservices or regular services. It is not a good practice to allow the creation of too many services of these kinds dynamically.
 
 #### How to set limits
 
-The limits and the subnet mask can be set programmatically by each module (for example to adapt the values to the size of session data) or in the configuration file (for instance, to adapt the values to the size of memory or network configuration) (see module [`Eliom.State`](./../eliom.server/Eliom-State.md)). By default, functions like `Eliom.State.set_default_max_volatile_sessions_per_group` will not override a value set in the configuration file (unless you use `~override_configfile:true`). Thus, a Web site can set its own defaults and the user can still override them from the configuration file.
+The limits can be set programmatically by each module (for example to adapt the values to the size of session data) or in the configuration file (for instance, to adapt the values to the size of memory) (see module [`Eliom.State`](./../eliom.server/Eliom-State.md)). By default, functions like `Eliom.State.set_default_max_volatile_sessions_per_group` will not override a value set in the configuration file (unless you use `~override_configfile:true`). Thus, a Web site can set its own defaults and the user can still override them from the configuration file.
 
 The configuration file options can be set either inside the tag `<extension findlib-package="eliom.server"/>` (global configuration), or inside the `<eliom/>` tag (configuration for each site). But the limits always are for one site (that is: a global limit value of 10 means 10 for each Eliom site).
 
@@ -242,13 +242,16 @@ The syntax is:
 - `<maxservicesessionspergroup value="10"/>`
 - `<maxdatasessionspergroup value="10"/>`
 - `<maxpersistentsessionspergroup value="10"/>`
-- `<maxvolatilesessionspersubnet value="500000"/>`
-- `<maxservicesessionspersubnet value="500000"/>`
-- `<maxdatasessionspersubnet value="500000"/>`
+- `<maxvolatiletabsessionspergroup value="10"/>`
+- `<maxservicetabsessionspergroup value="10"/>`
+- `<maxdatatabsessionspergroup value="10"/>`
+- `<maxpersistenttabsessionspergroup value="10"/>`
+- `<maxvolatilesessionswithoutgroup value="50000"/>`
+- `<maxservicesessionswithoutgroup value="50000"/>`
+- `<maxdatasessionswithoutgroup value="50000"/>`
+- `<maxvolatilegroupspersite value="500000"/>`
 - `<maxanonymouscoservicespersession value="1000"/>`
-- `<maxanonymouscoservicespersubnet value="500000"/>`
-- `<ipv4subnetmask value="255.255.128.0"/>`
-- `<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>`
+- `<maxanonymouscoservicespersite value="500000"/>`
 
 ### Application script attributes
 

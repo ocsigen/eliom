@@ -95,8 +95,8 @@ let redir1 =
   Eliom.Registration.Redirection.create
     ~options:`TemporaryRedirect
     ~path:(Eliom.Service.Path ["redir"])
-    ~meth:(Eliom.Service.Get Eliom.Parameter.uni)
-    (fun () () -> Lwt.return someservice)
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () -> Lwt.return (Eliom.Registration.Redirection someservice))
 ```
 If you want to give parameters to such services, use [`Eliom.Service.preapply`](./../../eliom.server/Eliom-Service.md#val-preapply) (see also in [section about pre-applied services](./types.md#preapplied)). Example:
 
@@ -107,9 +107,10 @@ let redir = Eliom.Registration.Redirection.create
    ~meth:(Eliom.Service.Get Eliom.Parameter.(int "o"))
    (fun o () ->
       Lwt.return
-        (Eliom.Service.preapply service_with_params (o,(22,"ee"))))
+        (Eliom.Registration.Redirection
+           (Eliom.Service.preapply ~service:service_with_params (o, (22, "ee")))))
 ```
-The `options` parameter may be either ``Temporary` or ``Permanent`.
+The `options` parameter sets the status code: ``Found` (302, the default), ``SeeOther` (303), ``TemporaryRedirect` (307) or ``MovedPermanently` (301), for instance.
 
 Note that the cost of a redirection is one more request and one more response.
 

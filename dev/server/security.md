@@ -89,4 +89,4 @@ This typically happens if authentication is badly implemented, or altogether mis
 
 ### Denial of service
 
-- Use session groups to prevent a user from creating an unlimited number of sessions or dynamic services. (And do not attribute tokens to anonymous users). Even if you do not use session groups, Eliom limits the number of in memory sessions by sub network. *Warning: no limitation of the number of persistent sessions*.
+- Put the sessions of each user in a session group, so that a user cannot create an unlimited number of sessions or dynamic services: each group has its own limit, and a user who floods the server with sessions only closes their own. Sessions without a group are limited together, for the whole site, with a much larger limit, and the number of persistent sessions without a group is not limited. So do not create sessions, nor dynamic services, for anonymous users unless needed, and limit the rate of requests by client address in front of the server (reverse proxy). See [Session groups](./state.md#session_groups).

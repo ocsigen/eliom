@@ -83,6 +83,8 @@ val set_max_anonymous_services_per_session : int -> unit
 ```ocaml
 val set_max_volatile_groups_per_site : int -> unit
 ```
+The functions `set_max_*` set the default limits of the sites created afterwards, as the global options of the configuration file: they do not change a site that already exists (the functions of [`State`](./Eliom-State.md) do). They raise `Invalid_argument` if the number is not positive.
+
 ```ocaml
 val set_secure_cookies : bool -> unit
 ```

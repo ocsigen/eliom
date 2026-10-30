@@ -23,14 +23,11 @@ The above style makes the service available under the same identifier (here `s`)
 
 ```ocaml
 let%shared () =
-  Eliom.Registration.Html.register s
+  Eliom.Registration.Html.register ~service:s
     (fun () () ->
        Lwt.return
-         (Eliom.Tools.F.html
-            ~title:"hybrid"
-            Html.F.(body [
-              h1 [txt "Salut !"];
-            ])))
+         (Eliom.Tools.F.html ~title:"hybrid"
+            Eliom.Content.Html.F.(body [h1 [txt "Salut !"]])))
 ```
 The types of the handlers are compatible between the two sides. For instance, [`Eliom.Registration.Html`](./../eliom.server/Eliom-Registration-Html.md) expects a function that produces a `Html_types.html Eliom.Content.Html.D.elt Lwt.t`, for [`Eliom.Registration.Action`](./../eliom.server/Eliom-Registration-Action.md) we must return `unit Lwt.t`, and so on. The behavior of all services is compatible to the extent possible, e.g., actions perform a reload after performing their side effect.
 

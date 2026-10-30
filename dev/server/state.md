@@ -196,11 +196,14 @@ A session could be only attached to one group at a time, but it is possible to c
 
 It's possible to fetch the current session group name of a session, if any, or to detach a session from a group. See the module [`Eliom.State`](./../eliom.server/Eliom-State.md) for more information.
 
-#### Limit the number of session within a group
+#### Limit the number of sessions within a group
 
-The number of sessions in a group is limited. If all sessions are in a group you will prevent malicious users from opening too many sessions. If you do not use session groups, the number of sessions is limited by IP address, which can be a problem for example if the server is behind a reverse proxy or if many user are using the same NAT. That's why we always recommend to set the session group (usually it's the user name or id).
+The number of sessions in a group is limited: when a group is full, opening a session in it closes the session of the group that has been used least recently. This bounds the memory that one user can take by opening sessions, and a user who floods the server with sessions only closes their own, as each group has its own limit. Sessions that are not in a group are counted together, for the whole site, with a much larger limit; a flood of such sessions by one user closes the sessions without a group of the other users. That is why we recommend to always put the sessions of a user in a group, usually named after the user. The number of persistent sessions without a group is not limited.
 
- Explain how to change the maximum number of sessions in a group.
+By default, a group may hold 50 sessions of each kind (service sessions, volatile data sessions and persistent data sessions), and a browser session may hold 100 tab sessions. To change these limits:
+
+- for one group, give the optional parameter `?set_max` when attaching a session to it, with the functions above, or call [`Eliom.State.set_max_volatile_states_in_parent`](./../eliom.server/Eliom-State.md#val-set_max_volatile_states_in_parent) from a session of the group;
+- for the other groups, call [`Eliom.State.set_default_max_volatile_sessions_per_group`](./../eliom.server/Eliom-State.md#val-set_default_max_volatile_sessions_per_group) and the other functions of the same section when the site is initialised, or set the limits in the configuration file: a volatile group keeps the limit it was created with, a persistent group follows the current one (see [Limiting the number of sessions or coservices](./../workflow/configuration.md#limits)).
 
 #### Close all session of a group
 
