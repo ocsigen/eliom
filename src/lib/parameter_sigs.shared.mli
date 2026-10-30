@@ -195,7 +195,8 @@ module type S = sig
   val any : ((string * string) list, [`WithoutSuffix], unit) params_type
   (** Use this if you want to take any parameters.  The service will
       answer to all the request, and get all parameters as an
-      association list of strings. *)
+      association list of strings. It cannot be used in a suffix
+      (see {!all_suffix}). *)
 
   val set :
      (string -> ('a, [`WithoutSuffix], [`One of 'b] param_name) params_type)
@@ -237,7 +238,13 @@ module type S = sig
       The value of a parameter of the suffix is a decoded segment of the
       path, which may contain slashes (written [%2F] in URLs) and [../]:
       only the [..] segments of the path are removed. Check it before using
-      it as a file name. *)
+      it as a file name.
+
+      A suffix cannot contain {!any}, {!unit}, a file, raw POST data or
+      non-localised parameters, and a list or a set must be its last
+      parameter: [suffix] raises [Invalid_argument] otherwise, so that the
+      error shows when the service is created. The same holds for the first
+      argument of {!suffix_prod}. *)
 
   val all_suffix :
      string

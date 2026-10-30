@@ -248,6 +248,23 @@ let test_decode_suffix_slashes () =
     "whole suffix as a string" "a/b"
     (decode ~suffix:["a/.."; "b"] (suffix (all_suffix_string "p")) [])
 
+let test_invalid_suffix () =
+  (* A service taking these parameters in its suffix would fail at each
+     request: they are rejected when the suffix is built. *)
+  let rejected name msg f =
+    Alcotest.check_raises name
+      (Invalid_argument ("Eliom.Parameter.suffix: " ^ msg))
+      (fun () -> ignore (f ()))
+  in
+  rejected "any" "it cannot take any parameter (use all_suffix)" (fun () ->
+    suffix_prod any any);
+  rejected "unit" "it cannot contain unit" (fun () -> suffix (int "i" ** unit));
+  rejected "list not last" "a list must be its last parameter" (fun () ->
+    suffix (list "l" (int "i") ** int "j"));
+  rejected "optional file" "it cannot contain a file" (fun () ->
+    suffix (opt (file "f")));
+  ignore (suffix (int "i" ** list "l" (int "j")) : _ params_type)
+
 let test_decode_whole_suffix_parameter () =
   (* In the version of a service without suffix, the whole suffix is a
      parameter, without ".." segments as well. *)
@@ -314,6 +331,7 @@ let suite =
     ; Alcotest.test_case "decode suffix" `Quick test_decode_suffix
     ; Alcotest.test_case "decode suffix with slashes" `Quick
         test_decode_suffix_slashes
+    ; Alcotest.test_case "invalid suffix" `Quick test_invalid_suffix
     ; Alcotest.test_case "decode whole suffix parameter" `Quick
         test_decode_whole_suffix_parameter
     ; Alcotest.test_case "names" `Quick test_names
