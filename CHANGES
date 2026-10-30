@@ -469,6 +469,12 @@
    tab sessions, and leaves its session group, as the collection of
    expired sessions does. Only its data were removed: it stayed in the
    list of its group, where it counted in the limit of the group.
+** The end of a request no longer writes back the session group of its
+   persistent session when the request did not change it: it could undo
+   the change made meanwhile by another request of the session
+   (State.set_persistent_data_session_group or
+   unset_persistent_data_session_group), and the session then belonged to
+   a group without being in its list.
 ** The maximum number of persistent tab sessions in a browser session is
    now the one set for tab sessions (<maxpersistenttabsessionspergroup>,
    State.set_default_max_persistent_data_tab_sessions_per_group, 100 by

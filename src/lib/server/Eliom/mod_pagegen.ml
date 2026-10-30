@@ -132,28 +132,27 @@ let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
                         && newc.Common.pc_set_value = None ->
                      Lwt.return ()
                  (* nothing to do *)
-                 | Some {Common.ps_expiry = oldexp; _}
+                 | Some {Common.ps_expiry = oldexp; ps_group = oldgrp; _}
                    when newc.Common.pc_set_value = None ->
-                     Lwt.catch
-                       (fun () ->
-                          let cookieid =
-                            Common.(Hashed_cookies.to_string newc.pc_hvalue)
-                          in
-                          let* () =
-                            Mod_cookies.Persistent_cookies.replace_if_exists
-                              cookieid
-                              { Mod_cookies.full_state_name = name
-                              ; expiry = newexp
-                              ; timeout = !(newc.Common.pc_timeout)
-                              ; session_group = !(newc.Common.pc_session_group)
-                              }
-                          in
-                          Mod_cookies.Persistent_cookies.Expiry_dates
-                          .remove_cookie oldexp cookieid)
-                       (function
-                         | Not_found -> Lwt.return ()
-                         (* someone else closed the session *)
-                         | e -> Lwt.fail e)
+                     let cookieid =
+                       Common.(Hashed_cookies.to_string newc.pc_hvalue)
+                     in
+                     let newgrp = !(newc.Common.pc_session_group) in
+                     (* The group is written only if this request changed
+                        it: another request of the session may have changed
+                        it meanwhile. *)
+                     let* () =
+                       Mod_cookies.Persistent_cookies.update cookieid
+                         ~expiry:newexp ~timeout:!(newc.Common.pc_timeout)
+                         ?session_group:
+                           (if newgrp = oldgrp then None else Some newgrp)
+                         ()
+                     in
+                     if oldexp = newexp
+                     then Lwt.return_unit
+                     else
+                       Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie
+                         oldexp cookieid
                  | _ ->
                      Mod_cookies.Persistent_cookies.add
                        Common.(Hashed_cookies.to_string newc.pc_hvalue)

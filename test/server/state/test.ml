@@ -283,6 +283,28 @@ let groups server =
         Alcotest.(check int) "persistent sessions alive" 3 n;
         let+ n = alive "/get" in
         Alcotest.(check int) "data sessions alive" 3 n)
+    ; case "group changed by another request" (fun browser ->
+        (* The end of a request writes back the persistent session group
+           only if the request changed it: here a slow request of the
+           session ends after another one has taken the session out of its
+           group. *)
+        let admin = browser () and a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = join a "changed-g" in
+        (* A short timeout, and a pause: the expiration date, computed from
+           the beginning of the slow request, moves enough to be written at
+           its end. *)
+        let* _ = text a "/persistent/timeout?t=30" in
+        let* () = Lwt_unix.sleep 1. in
+        let slow = text a "/persistent/slow?t=1" in
+        let* () = Lwt_unix.sleep 0.3 in
+        let* _ = text a "/group/persistent/leave" in
+        let* v = slow in
+        (* The slow request has read the group before it was left *)
+        Alcotest.(check string) "group read by the slow request" "changed-g" v;
+        let* () = check "group" "none" a "/group/persistent/name" in
+        check "sessions of the group" "0" admin
+          "/group/persistent_sessions?name=changed-g")
     ; case "group coservice without a group" (fun browser ->
         (* Without a session group, the session is its own group: a service
            of the group scope is not visible to the other sessions without a

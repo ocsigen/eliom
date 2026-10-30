@@ -183,6 +183,39 @@ let () =
        in
        text (string_of_int n))
 
+(* The persistent session group of the browser *)
+
+let () =
+  string
+    (get ["group"; "persistent"; "name"] P.unit)
+    (fun () () ->
+       let+ g =
+         State.get_persistent_data_session_group ~scope:session_scope ()
+       in
+       Option.value g ~default:"none", "text/plain")
+
+let () =
+  string
+    (get ["group"; "persistent"; "leave"] P.unit)
+    (fun () () ->
+       let* () =
+         State.unset_persistent_data_session_group ~scope:session_scope ()
+       in
+       text "left")
+
+(* A slow request of the persistent session of the browser *)
+
+let () =
+  string
+    (get ["persistent"; "slow"] P.(float "t"))
+    (fun t () ->
+       (* The group read at the beginning of the request *)
+       let* g =
+         State.get_persistent_data_session_group ~scope:session_scope ()
+       in
+       let* () = Lwt_unix.sleep t in
+       text (Option.value g ~default:"none"))
+
 (* The timeout of the persistent session of the browser, in seconds *)
 
 let () =
