@@ -1,0 +1,39 @@
+; The application of the browser tests. e2e.eliom gives its server side (here)
+; and its client side (client/), as the rules of the templates do.
+
+(rule
+ (target e2e.ml)
+ (deps e2e.eliom)
+ (action
+  (with-stdout-to
+   %{target}
+   (chdir
+    .
+    (run %{bin:ppx_eliom_server} --as-pp --impl e2e.eliom)))))
+
+(library
+ (name e2e)
+ (wrapped false)
+ (modules e2e)
+ (library_flags -linkall)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
+ (libraries eliom.server))
+
+(executable
+ (name server)
+ (modules server)
+ (libraries
+  unix
+  eliom.server
+  ocsipersist-sqlite
+  ocsipersist-sqlite.settings
+  ocsigenserver.ext.staticmod
+  e2e))
+
+; The client program, as the application expects it: e2e.js
+
+(subdir
+ static
+ (rule
+  (copy ../client/e2e.bc.js e2e.js)))

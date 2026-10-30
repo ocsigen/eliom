@@ -1,0 +1,23 @@
+(rule
+ (target e2e.ml)
+ (deps ../e2e.eliom %{cmo:../e2e})
+ (action
+  (with-stdout-to
+   %{target}
+   (chdir
+    ..
+    (run
+     %{bin:ppx_eliom_client}
+     --as-pp
+     -server-cmo
+     %{cmo:../e2e}
+     --impl
+     e2e.eliom)))))
+
+(executable
+ (name e2e)
+ (modes js)
+ (modules e2e)
+ (preprocess
+  (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
+ (libraries eliom.client))
