@@ -31,7 +31,7 @@
 
     To stop receiving inputs from a channel, use Lwt.cancel on a
     thread waiting for data. For instance, if you iterate with
-    [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
+    [ let t = Lwt_stream.iter f ~%channel ] calling [Lwt.cancel t]
     will close the channel. *)
 
 exception Channel_full

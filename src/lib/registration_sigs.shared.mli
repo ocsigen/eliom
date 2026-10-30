@@ -112,7 +112,7 @@ module type S = sig
       two parameters, the GET and POST parameters of the current HTTP
       request, and should return the corresponding page.
 
-      The optional parameter [~scope] is {!Common.global_scope}
+      The optional parameter [~scope] is {!val:Common.site_scope}
       by default. See the Eliom manual for detailed description {{!//server/services/page-types.service_scope}of
       different scopes}. On the server, registering with a session,
       session group or client process scope is possible only during a
@@ -127,7 +127,7 @@ module type S = sig
       Eliom. Use this with care.
 
       The optional parameter [~secure_session] has no effect for scope
-      {!Common.global_scope}. With other scopes, the parameter
+      {!val:Common.site_scope}. With other scopes, the parameter
       is used to force the session service table in which the
       [handler] will be registered. By default, the service is
       registered in the non-secure session if the current request's
