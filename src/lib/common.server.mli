@@ -486,8 +486,6 @@ val set_configured : override:bool -> 'a configured -> 'a -> 'a configured
 (** [set_configured ~override c v] is [c] set to [v], unless [c] was set by
     the configuration file and [override] is false. *)
 
-val configured_of_pair : 'a * bool -> 'a configured
-
 val check_limit : string -> int -> unit
 (** [check_limit name n] checks that [n], a maximum number of sessions,
     groups or services, is positive.

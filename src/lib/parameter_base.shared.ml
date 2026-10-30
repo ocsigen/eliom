@@ -160,7 +160,31 @@ let suffix_const (v : string) = TConst v
 let all_suffix (n : string) = TESuffix n
 let all_suffix_string (n : string) = TESuffixs n
 
+(* The parameters that a suffix cannot contain: a service taking them would
+   fail at each request. *)
+let rec check_suffix : type a an. (a, an) params_type_ -> unit = function
+  | TProd (TList _, _) -> invalid_suffix "a list must be its last parameter"
+  | TProd (TSet _, _) -> invalid_suffix "a set must be its last parameter"
+  | TProd (t1, t2) -> check_suffix t1; check_suffix t2
+  | TSum (t1, t2) -> check_suffix t1; check_suffix t2
+  | TOption (t, _) -> check_suffix t
+  | TList (_, t) -> check_suffix t
+  | TSet t -> check_suffix t
+  | TTypeFilter (t, _) -> check_suffix t
+  | TSuffix (_, t) -> check_suffix t
+  | TAny -> invalid_suffix "it cannot take any parameter (use all_suffix)"
+  | TUnit -> invalid_suffix "it cannot contain unit"
+  | TNLParams _ -> invalid_suffix "it cannot contain non-localised parameters"
+  | TFile _ -> invalid_suffix "it cannot contain a file"
+  | TRaw_post_data -> invalid_suffix "it cannot contain raw POST data"
+  | TAtom _ | TCoord _ | TUserType _ | TESuffix _ | TESuffixs _ | TESuffixu _
+  | TConst _ | TJson _ ->
+      ()
+
+and invalid_suffix msg = invalid_arg ("Eliom.Parameter.suffix: " ^ msg)
+
 let suffix ?(redirect_if_not_suffix = true) s =
+  check_suffix s;
   TSuffix (redirect_if_not_suffix, s)
 
 let suffix_prod
@@ -169,6 +193,7 @@ let suffix_prod
       (t : ('a, [`WithoutSuffix], 'an) params_type) :
   ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
   =
+  check_suffix s;
   TProd (TSuffix (redirect_if_not_suffix, s), t)
 
 let ocaml (n : string) typ = TJson (n, Some typ)
