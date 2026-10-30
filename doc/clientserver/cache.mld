@@ -11,10 +11,10 @@ implements a cache of data that can be used both for
 keeping data on client side or keeping values in memory during a
 request.
 
-Have look at the documentation of this module for more information.
+Have a look at the documentation of this module for more information.
 
-Also have a look to {!/ocsigenserver.baselib/Ocsigen_base.Cache} (from Ocsigen Server)
-for a local (client or server) cache that keeps the most recently used values.
+Also have a look at {!/ocsigenserver.baselib/Ocsigen_base.Cache} (from Ocsigen Server)
+for a server-side cache that keeps the most recently used values.
 
 {1 Off-line applications}
 
