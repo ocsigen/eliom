@@ -167,7 +167,11 @@ let suffixes server =
         check_response "one level up" ~status:200 ~body:"../hello" r)
     ; case "request information" (fun b ->
         let+ r = Browser.get b "/info/a%2Fb" in
-        check_response "paths" ~status:200 ~body:"info|a/b info|a/b" r) ] )
+        check_response "paths" ~status:200 ~body:"info|a/b info|a/b" r)
+    ; case "client connection" (fun b ->
+        (* The test server listens on a Unix socket. *)
+        let+ r = Browser.get b "/client" in
+        check_response "Unix socket" ~status:200 ~body:"unix" r) ] )
 
 let outputs server =
   let case = case server in
