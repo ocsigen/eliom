@@ -1,0 +1,2 @@
+val _eliom_fragment_'3efCI1 : 'eliom_inferred_type__weak1 Eliom.Client_value.t option ref
+val unsafe : unit -> 'eliom_inferred_type__weak1 Eliom.Client_value.t
