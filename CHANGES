@@ -187,6 +187,11 @@
   content, not only browser content: My_app.send ~code:404 sends a page of
   the application for unknown URLs, which the client-side program displays
   without leaving the application.
+* BREAKING: the maximum numbers of sessions and of anonymous services given
+  to App.run are all integers. Five of them were pairs, whose boolean said
+  whether the program could change the value without
+  ~override_configfile:true. They are now all kept, as those of a
+  configuration file.
 * Session groups
 ** The sessions that are not in a session group are now counted together
    for the whole site, 1000000 by default, instead of 1000000 per sub

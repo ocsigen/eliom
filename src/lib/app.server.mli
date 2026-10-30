@@ -23,13 +23,13 @@ val run :
        [< Common.cookie_level]
        * Common_base.scope_hierarchy option
        * float option
-  -> ?max_service_sessions_per_group:int * bool
-  -> ?max_volatile_data_sessions_per_group:int * bool
+  -> ?max_service_sessions_per_group:int
+  -> ?max_volatile_data_sessions_per_group:int
   -> ?max_persistent_data_sessions_per_group:int
-  -> ?max_service_tab_sessions_per_group:int * bool
-  -> ?max_volatile_data_tab_sessions_per_group:int * bool
+  -> ?max_service_tab_sessions_per_group:int
+  -> ?max_volatile_data_tab_sessions_per_group:int
   -> ?max_persistent_data_tab_sessions_per_group:int
-  -> ?max_anonymous_services_per_session:int * bool
+  -> ?max_anonymous_services_per_session:int
   -> ?secure_cookies:bool
   -> ?application_script:bool * bool
   -> ?enable_wasm:bool
@@ -48,7 +48,9 @@ val run :
     Default value of [?app] is [default_app_name].
     Other optional values correspond to Eliom configuration for this site;
     the maximum numbers of sessions and services must be positive ([run]
-    raises [Invalid_argument] otherwise).
+    raises [Invalid_argument] otherwise). As the values of a configuration
+    file, these maximum numbers are kept when the program calls a
+    [State.set_default_max_*] function without [~override_configfile:true].
 
     As for a site of a configuration file, the services with a path created
     during the initialisation of the application must be registered by then:
