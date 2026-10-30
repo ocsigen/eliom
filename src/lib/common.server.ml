@@ -1392,6 +1392,19 @@ module Ocsipersist = struct
       let modify_opt key f =
         Omit_persistent_storage.not_if_omitting_storage (fun () ->
           modify_opt key f)
+
+      (* When the storage is omitted, [f] is applied to the value read, and
+         nothing is written. *)
+      let modify key f =
+        if Omit_persistent_storage.check_if_omitting_storage ()
+        then
+          let+ v =
+            Lwt.catch
+              (fun () -> Lwt.map Option.some (find key))
+              (function Not_found -> Lwt.return_none | e -> Lwt.fail e)
+          in
+          snd (f v)
+        else modify key f
     end
   end
 end
