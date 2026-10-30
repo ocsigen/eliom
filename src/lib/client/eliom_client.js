@@ -46,7 +46,7 @@ var caml_unwrap_value_from_string = function (){
     var magic = reader.read32u ();
     if (magic != 0x8495A6BE)
       caml_failwith("unwrap_value: bad object "
-                    + window.btoa(reader.s.slice(0,1024)));
+                    + btoa(reader.s.slice(0,1024)));
     var block_len = reader.read32u ();
     var num_objects = reader.read32u ();
     var size_32 = reader.read32u ();
@@ -173,6 +173,7 @@ var caml_unwrap_value_from_string = function (){
           case cst.CODE_DOUBLE_ARRAY32_BIG:
             var len = reader.read32u();
             var v = [0];
+            intern_obj_table[obj_counter++] = v;
             for (var i = 1;i <= len;i++) {
               var t = [];
               for (var j = 0;j < 8;j++) t[j] = reader.read8u();
