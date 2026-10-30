@@ -141,7 +141,7 @@ let restart server =
     [socket_name; command_pipe];
   server.pid <- launch server.exe server.dir
 
-let start instructions =
+let start ?mime_assoc ?charset_assoc instructions =
   let dir = Sys.argv.(1) in
   Sys.chdir dir;
   if not (Sys.file_exists "log") then Sys.mkdir "log" 0o700;
@@ -153,4 +153,4 @@ let start instructions =
   Ocsigen.Server.start
     ~ports:[`Unix socket_name, 0]
     ~command_pipe ~logdir:"log" ~debugmode:true
-    [Ocsigen.Server.host instructions]
+    [Ocsigen.Server.host ?mime_assoc ?charset_assoc instructions]

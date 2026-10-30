@@ -22,10 +22,16 @@ val restart : t -> unit
 val socket : t -> string
 (** [socket s] is the Unix-domain socket on which [s] listens. *)
 
-val start : Ocsigen.Server.instruction list -> unit
+val start :
+   ?mime_assoc:Ocsigen_http.Charset_mime.mime_assoc
+  -> ?charset_assoc:Ocsigen_http.Charset_mime.charset_assoc
+  -> Ocsigen.Server.instruction list
+  -> unit
 (** [start instructions] starts Ocsigen Server in the directory given as
     argument of the program, listening on the socket and the command pipe
     that {!with_server} expects, with a single host running [instructions].
+    The host has the content types [mime_assoc] and the charsets
+    [charset_assoc], as {!Ocsigen.Server.host}.
     The persistent data go to the SQLite database [ocsidb] of that directory:
     the server program links [ocsipersist-sqlite]. It does not return. To be
     called by the server program. *)

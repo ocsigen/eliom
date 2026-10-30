@@ -362,7 +362,15 @@ module String_redirection :
     contents. The value returned by service handlers is the name of
     the file to send. See the Eliom manual for more information on {{!//server/services/page-handlers.eliomfiles}how to
     send files with Eliom}.  The option is the optional
-    "Cache-policy: max-age" header value to be sent. *)
+    "Cache-Control: max-age" header value to be sent.
+
+    The file is sent as Staticmod sends static files. Its content type is
+    the one that the configuration gives to its name ([<contenttype>],
+    [<mimefile>] and [<charset>]), unless [?content_type] or [?charset] is
+    given. The response has an [ETag] and a [Last-Modified] header, and
+    conditional requests ([If-None-Match], [If-Modified-Since]) and range
+    requests ([Range], [If-Range]) are supported: they are answered with
+    [304 Not Modified] and [206 Partial Content]. *)
 module File : sig
   val check_file : string -> bool
   (** The function [check_file file] is true if [File.send file] would
