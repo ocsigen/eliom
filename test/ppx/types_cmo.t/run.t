@@ -43,5 +43,9 @@ injections and client values:
                                "Error: Inferred type of injected ident not found. You need to regenerate other.cmo."])
 
   $ ppx_eliom_client -server-cmo other.cmo --impl fragment.eliom
-  Fatal error: exception Failure("find_fragment: unexpected type: [%ocaml.error\n                                  \"Error: Inferred type of client value not found. You need to regenerate other.cmo.\"]")
-  [2]
+  let __eliom__compilation_unit_id__ebrbrV = "ebrbrV"
+  ;;Eliom.Client_core.Syntax_helpers.register_client_closure "ebrbrV1"
+      (fun () :
+         [%ocaml.error
+           "Error: Inferred type of client value not found. You need to regenerate other.cmo."]->
+         1)
