@@ -25,6 +25,6 @@ injections and client values:
   >   grep -Eo 'Error: [^"]*'
   Error: Inferred type of injected ident not found. You need to regenerate other.cmo.
 
-  $ ppx_eliom_client -server-cmo other.cmo --impl fragment.eliom
-  Fatal error: exception Failure("find_fragment: unexpected type: [%ocaml.error\n                                  \"Error: Inferred type of client value not found. You need to regenerate other.cmo.\"]")
-  [2]
+  $ ppx_eliom_client -server-cmo other.cmo --impl fragment.eliom |
+  >   grep -Eo 'Error: [^"]*'
+  Error: Inferred type of client value not found. You need to regenerate other.cmo.
