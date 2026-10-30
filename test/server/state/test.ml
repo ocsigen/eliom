@@ -315,6 +315,17 @@ let groups server =
         let* _ = Lwt.both (join a "twice-g") (join a "twice-g") in
         check "persistent sessions of the group" "1" admin
           "/group/persistent_sessions?name=twice-g")
+    ; case "simultaneous logins of a session, limit of one" (fun browser ->
+        (* As "simultaneous logins of a session", in a group of one session:
+           a second place of the session in the list would go over the
+           limit, and close the session. *)
+        let a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ =
+          Lwt.both (join a ~max:1 "twice-one") (join a ~max:1 "twice-one")
+        in
+        let* () = check "persistent data" "a" a "/persistent/get" in
+        check "group" "twice-one" a "/group/persistent/name")
     ; case "group changed by another request" (fun browser ->
         (* The end of a request writes back the persistent session group
            only if the request changed it: here a slow request of the
