@@ -529,6 +529,32 @@ service. The caching duration, in seconds, is set using the
 When the application script defer attribute is set (see just above),
 global data are also loaded in a deferred way.
 
+{2 Other options}
+
+These options can appear inside tag
+[<extension findlib-package="eliom.server"/>] (default for all sites), or
+inside a [<eliom/>] tag (for one site):
+
+- [<securecookies value="true"/>]: session states are secure by default,
+  that is, their cookies are sent only through HTTPS (see
+  {{!//server/page-state.secure_state}Secure session}).
+- [<htmlcontenttype value="application/xhtml+xml"/>]: the content type
+  of the HTML pages sent by Eliom. By default, Eliom chooses it from the
+  [Accept] header of the request.
+- [<ignoredgetparams regexp="utm_.*"/>] and
+  [<ignoredpostparams regexp="..."/>]: the parameters whose whole name
+  matches the regular expression (Perl syntax) are ignored when Eliom looks
+  for the service to answer. The service handler can read them with
+  {!Eliom.Request_info.get_ignored_get_params} and
+  {!Eliom.Request_info.get_ignored_post_params}.
+- [<omitpersistentstorage><header User-Agent=".*bot.*"/></omitpersistentstorage>]:
+  the requests whose headers match all the rules do not write Eliom's
+  persistent data (persistent references and sessions), for example
+  requests from search engine robots.
+
+The same options can be given to {!Eliom.App.run} for a statically
+linked executable.
+
 {1 Per site configuration options}
 
 {2 Disabling XHR-links}
