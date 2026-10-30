@@ -391,30 +391,30 @@ module Serv = Make (struct
 But as I do not see any correct use of volatile group data for now.
 And there is a risk of memory leak if we keep them.
 Besides, volatile sessions are (hopefully) going to disappear soon.
-         - For tab sessions, yes if there are no session services
-         in the browser service table.
-         (means that we do not use the browser session).
+         - For tab sessions, we close the browser session if it has no
+         service of its own (we do not use it) and is not in a group,
+         as for data sessions: in a group, it may keep the services of
+         the group.
       *)
-      (*VVV We close even if browser session is in a group.
-  It is not coherent with data sessions. *)
-      (*VVV See also in Mod_gc and
-  State.close_service_session_if_empty.
-  Should we use this function here?
-      *)
+      (*VVV See also Mod_gc. *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
       | { Common.sg_level = `Client_process
         ; sg_group = Common.Group_name sess_id
         ; _ } -> (
         try
-          let { Common.Service_cookie.session_table = tables
+          let { Common.Service_cookie.session_group
+              ; session_table = tables
               ; session_group_node
               ; _ }
             =
             Common.SessionCookies.find sitedata.Common.session_services sess_id
           in
-          if Common.service_tables_are_empty tables
-          then remove1 session_group_node
+          match !session_group with
+          | {Common.sg_level = `Session; sg_group = Common.No_group; _}
+            when Common.service_tables_are_empty tables ->
+              remove1 session_group_node
+          | _ -> ()
         with Not_found -> ())
       | {Common.sg_level = `Session; _} -> (
         match find_node_in_group_of_groups sess_grp with

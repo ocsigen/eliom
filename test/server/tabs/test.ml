@@ -89,7 +89,18 @@ let closing server =
         let* _ = text b "/group/join?name=tabs-g" in
         let* _ = text b "/tab/set?v=b" in
         let* _ = text a "/discard?scope=group" in
-        check "tab of another session of the group" "" b "/tab/get") ] )
+        check "tab of another session of the group" "" b "/tab/get")
+    ; case "close the last tab of a session in a group" (fun browser ->
+        (* The service session of the browser has no service of its own,
+           but it is in a group: it is kept, and so are the services of the
+           group. The coservice of the tab gives the tab a service session,
+           so that there is a last tab service session to close. *)
+        let t = tab (browser ()) in
+        let* _ = text t "/group/join?name=last-tab-g" in
+        let* _ = text t "/tab/coservice" in
+        let* url = text t "/group/coservice" in
+        let* _ = text t "/discard?scope=tab" in
+        check "group coservice" "coservice of the group" t url) ] )
 
 let limits server =
   let case = case server in

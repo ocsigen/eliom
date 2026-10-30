@@ -72,6 +72,19 @@ let () =
          text "coservice of the tab");
        text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
 
+(* A coservice registered for the group of the request *)
+
+let () =
+  string
+    (get ["group"; "coservice"] P.unit)
+    (fun () () ->
+       let service =
+         Service.create_attached_get ~fallback ~get_params:P.unit ()
+       in
+       Registration.String.register ~scope:group_scope ~service (fun () () ->
+         text "coservice of the group");
+       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+
 (* The maximum number of tabs of the browser session of the request *)
 
 let () =
