@@ -196,7 +196,7 @@ A session could be only attached to one group at a time, but it is possible to c
 
 It's possible to fetch the current session group name of a session, if any, or to detach a session from a group. See the module [`Eliom.State`](./../eliom.server/Eliom-State.md) for more information.
 
-Services registered with scope [`Eliom.Common.default_group_scope`](./../eliom.server/Eliom-Common.md#val-default_group_scope) are found only by the requests whose service session is in the group: attach the service session with [`Eliom.State.set_service_session_group`](./../eliom.server/Eliom-State.md#val-set_service_session_group), attaching the data sessions is not enough. Like volatile group data, these services are discarded when the last service session of the group is closed, for example when a user who has only one session disconnects.
+Services registered with scope [`Eliom.Common.default_group_scope`](./../eliom.server/Eliom-Common.md#val-default_group_scope) are found only by the requests whose service session is in the group: attach the service session with [`Eliom.State.set_service_session_group`](./../eliom.server/Eliom-State.md#val-set_service_session_group), attaching the data sessions is not enough. Like volatile group data, these services are discarded when the last service session of the group is closed, for example when a user who has only one session disconnects. A service session without a group is its own group: the services it registers with the group scope go to its own table.
 
 #### Limit the number of sessions within a group
 
