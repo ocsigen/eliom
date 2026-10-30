@@ -1,4 +1,5 @@
-; Values sent by the server, read back by the client in JavaScript.
+; Values sent by the server, read back by the client in JavaScript and in
+; WebAssembly.
 
 (library
  (name eliom_test_values)
@@ -19,7 +20,7 @@
 
 (executable
  (name test)
- (modes js)
+ (modes js wasm)
  (modules encoded test)
  (libraries eliom.client eliom_test_values))
 
@@ -43,3 +44,24 @@
  (enabled_if %{bin-available:node})
  (action
   (diff test.js.expected test.js.output)))
+
+(rule
+ (enabled_if %{bin-available:node})
+ (action
+  (with-stdout-to
+   test.wasm.output
+   (run
+    node
+    --require
+    ./%{dep:../wasm_node.js}
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
+    %{dep:test.bc.wasm.js}))))
+
+(rule
+ (alias runtest)
+ (enabled_if %{bin-available:node})
+ (action
+  (diff test.wasm.expected test.wasm.output)))
