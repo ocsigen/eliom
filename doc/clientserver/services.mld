@@ -47,14 +47,11 @@ can be registered on both sides with the same
 
 {@ocaml[
 let%shared () =
-  Eliom.Registration.Html.register s
+  Eliom.Registration.Html.register ~service:s
     (fun () () ->
        Lwt.return
-         (Eliom.Tools.F.html
-            ~title:"hybrid"
-            Html.F.(body [
-              h1 [txt "Salut !"];
-            ])))
+         (Eliom.Tools.F.html ~title:"hybrid"
+            Eliom.Content.Html.F.(body [h1 [txt "Salut !"]])))
 ]}
 
 The types of the handlers are compatible between the two sides. For
