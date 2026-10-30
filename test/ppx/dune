@@ -1,3 +1,6 @@
 (cram
  (package eliom)
- (deps %{bin:ppx_eliom_server}))
+ (deps
+  %{bin:ppx_eliom_server}
+  %{bin:ppx_eliom_types}
+  %{bin:ppx_eliom_client}))
