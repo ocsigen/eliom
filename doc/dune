@@ -1,27 +1,14 @@
-; Eliom manual pages (odoc .mld), compiled in place with the API by
-; `dune build @doc` and installed with the package, so they appear on ocaml.org
-; and resolve {{!page-X}} / {!Module} references against the API.
+; Eliom manual pages (odoc .mld), installed with the package under
+; odoc-pages/, where odoc_driver (ocaml.org, wodoc) builds them with the API.
+; The manual is a tree: each subdirectory is a group of the navigation (its
+; index.mld gives the group title and the order of its pages), installed
+; with the same path.
 
 (documentation
- (package eliom))
-
-; The manual is a tree: each subdirectory is a group of the navigation (its
-; index.mld gives the group title and the order of its pages). The
-; (documentation) stanza only installs the top-level pages, so install the
-; subdirectories under odoc-pages/ here, where odoc_driver (ocaml.org, wodoc)
-; builds them as a subtree. A new subdirectory must be added to this list:
-; otherwise its pages are not installed, and are missing on ocaml.org.
-
-(install
- (section doc)
  (package eliom)
  (files
   (glob_files_rec
-   (server/*.mld with_prefix odoc-pages/server))
-  (glob_files_rec
-   (clientserver/*.mld with_prefix odoc-pages/clientserver))
-  (glob_files_rec
-   (workflow/*.mld with_prefix odoc-pages/workflow))))
+   (*.mld with_prefix .))))
 
 ; The per-package odoc configuration must sit at the root of the installed
 ; doc directory, next to odoc-pages/, for odoc_driver to find it.

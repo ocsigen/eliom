@@ -15,7 +15,7 @@ package — i.e. the documented version is whatever the build switch has install
 
 | What | Where | Format |
 |---|---|---|
-| Manual | the `.mld` files of `doc/`, installed by `(documentation)` (top level) and by `(install)` (one entry per subdirectory, see [`doc/dune`](dune)), built with the API by odoc_driver | odoc pages |
+| Manual | the `.mld` files of `doc/` and its subdirectories, installed with their path by `(documentation)` (see [`doc/dune`](dune)), built with the API by odoc_driver | odoc pages |
 | Manual tree | the subdirectories of `doc/` and their `index.mld` (`@children_order`, `@toc_status`): the same tree on ocaml.org and in the left column (wodoc `(page-tree)`) | odoc pages |
 | Server / client API | `doc/server.indexdoc` / `doc/client.indexdoc` (curated module index) | odoc index |
 | API (`.mli`) | the installed `eliom` package | odoc comments |
