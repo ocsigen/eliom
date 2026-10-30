@@ -1,0 +1,30 @@
+; The client in the page of the test application: its data, its cookies, and
+; URLs computed by the client and by the server.
+
+(copy_files# ../page/urls.ml)
+
+(executable
+ (name test)
+ (modes js)
+ (modules urls test)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries eliom.client))
+
+(rule
+ (enabled_if %{bin-available:node})
+ (action
+  (with-stdout-to
+   test.js.output
+   (run
+    node
+    %{dep:../run.js}
+    %{dep:../stub.js}
+    %{dep:../page/page.js}
+    %{dep:test.bc.js}))))
+
+(rule
+ (alias runtest)
+ (enabled_if %{bin-available:node})
+ (action
+  (diff test.js.expected test.js.output)))

@@ -512,6 +512,16 @@
    now the one set for tab sessions (<maxpersistenttabsessionspergroup>,
    State.set_default_max_persistent_data_tab_sessions_per_group, 100 by
    default). The maximum number of sessions in a group applied instead.
+** The client reports data that are not a marshalled value with a Failure
+   outside a window too (Node.js, web workers): the message used
+   window.btoa, which raised a ReferenceError there.
+** The client reads the long float arrays sent by a big-endian server
+   correctly: the shared values read after them were wrong.
+** URLs built by the client encode the slashes of the values of suffix
+   parameters, as the server does. The server read them as separators of
+   the suffix.
+** The fragments of URLs and of the actions of forms encode spaces as %20,
+   not +, which is not a space in a fragment.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
