@@ -315,6 +315,36 @@ let groups server =
         let* url = text a "/group/coservice" in
         let* () = check "own" "group coservice of a" a url in
         check "other session without a group" "fallback" b url)
+    ; case "group coservices" (fun browser ->
+        (* The services of the group scope are found for the sessions of
+           the group, and only for them *)
+        let a = browser () and b = browser () and c = browser () in
+        let d = browser () in
+        let* _ = text a "/set?v=a" in
+        let* _ = join a "coservices-g" in
+        let* _ = text b "/set?v=b" in
+        let* _ = join b "coservices-g" in
+        let* _ = text c "/set?v=c" in
+        let* _ = join c "coservices-h" in
+        let* _ = text d "/set?v=d" in
+        let* url = text a "/group/coservice" in
+        let* na = text a "/group/nacoservice" in
+        (* A link to a non-attached coservice is on the current page: on
+           /fallback, the sessions that do not find it get the fallback *)
+        let na =
+          let i = String.index na '?' in
+          "/fallback" ^ String.sub na i (String.length na - i)
+        in
+        let* () = check "owner" "group coservice of a" a url in
+        let* () = check "other member" "group coservice of a" b url in
+        let* () = check "other group" "fallback" c url in
+        let* () = check "no group" "fallback" d url in
+        let* () = check "non-attached, owner" "group nacoservice of a" a na in
+        let* () =
+          check "non-attached, other member" "group nacoservice of a" b na
+        in
+        let* () = check "non-attached, other group" "fallback" c na in
+        check "non-attached, no group" "fallback" d na)
     ; case "expired session" (fun browser ->
         (* A persistent session that has expired leaves its group when it is
            used again, and does not count in the group any more. *)

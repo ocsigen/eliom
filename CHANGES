@@ -215,6 +215,9 @@
    group. The optional parameter ?set_max of
    State.unset_service_session_group and unset_volatile_data_session_group
    is removed: it set the limit of the sessions without a group.
+** The services registered with the session-group scope are now found.
+   Eliom looked for services in the tables of the sessions and in the
+   global table only, never in the table of a group.
 ** When a site has too many session groups (<maxvolatilegroupspersite>,
    State.set_max_*_states_in_parent with a session-group scope), the group
    used least recently is closed: a request of a session of a group moves

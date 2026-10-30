@@ -216,6 +216,20 @@ let () =
        let* () = Lwt_unix.sleep t in
        text (Option.value g ~default:"none"))
 
+(* A non-attached coservice registered for the session group of the browser *)
+
+let () =
+  string
+    (get ["group"; "nacoservice"] P.unit)
+    (fun () () ->
+       let service =
+         Service.create ~path:Service.No_path ~meth:(Service.Get P.unit) ()
+       in
+       let owner = V.get session_value in
+       Registration.String.register ~scope:group_scope ~service (fun () () ->
+         text ("group nacoservice of " ^ owner));
+       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+
 (* The timeout of the persistent session of the browser, in seconds *)
 
 let () =

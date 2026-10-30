@@ -96,6 +96,29 @@ let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
   ; !(ci_secure.ci_service), "secure session table"
   ; !(ci_unsecure.ci_service), "session table" ]
 
+(* The service tables of the session groups of the browser sessions of the
+   request, secure ones first, with the state names of the groups. A browser
+   session without a group is its own group: its services of the group scope
+   are in its own table. *)
+let group_tables {Common.all_cookie_info = {Common.ci_unsecure; ci_secure}; _} =
+  List.concat_map
+    (fun ci ->
+       Common.Full_state_name_table.fold
+         (fun fullsessname (_, r) acc ->
+            match !r, fullsessname.Common.user_scope with
+            | Common.SC c, `Session h -> (
+              match
+                Mod_sessiongroups.Serv.find_node_in_group_of_groups
+                  !(c.Common.sc_session_group)
+              with
+              | Some (t, _) ->
+                  (!t, {fullsessname with Common.user_scope = `Session_group h})
+                  :: acc
+              | None -> acc)
+            | _ -> acc)
+         !(ci.Common.ci_service) [])
+    [ci_secure; ci_unsecure]
+
 let drop_most_params ri si =
   Ocsigen.Request.update ri ~post_data:None ~meth:`GET
     ~get_params_flat:si.Common.si_other_get_params
@@ -104,23 +127,36 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
   : Ocsigen.Response.t Lwt.t
   =
   let tables = session_tables info in
+  let next p f =
+    Lwt.catch
+      (fun () -> p)
+      (function
+        | Common.Eliom_404 | Common.Eliom_Wrong_parameter -> f ()
+        | e -> Lwt.fail e)
+  in
   Lwt.catch
     (fun () ->
+       let in_sessions =
+         List.fold_left
+           (fun beg (table, table_name) ->
+              next beg (fun () ->
+                Logs.info ~src:section (fun fmt ->
+                  fmt "Looking for %s in the %s:"
+                    (Url.string_of_url_path ~encode:true
+                       (Common.sub_path ri.request_info))
+                    table_name);
+                find_aux now sitedata info Common.Eliom_404 table))
+           (Lwt.fail Common.Eliom_404)
+           tables
+       in
+       (* then in the tables of the session groups *)
        List.fold_left
-         (fun beg (table, table_name) ->
-            Lwt.catch
-              (fun () -> beg)
-              (function
-                | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
-                    Logs.info ~src:section (fun fmt ->
-                      fmt "Looking for %s in the %s:"
-                        (Url.string_of_url_path ~encode:true
-                           (Common.sub_path ri.request_info))
-                        table_name);
-                    find_aux now sitedata info Common.Eliom_404 table
-                | e -> Lwt.fail e))
-         (Lwt.fail Common.Eliom_404)
-         tables)
+         (fun beg (table, group) ->
+            next beg (fun () ->
+              Logs.info ~src:section (fun fmt ->
+                fmt "Looking in the table of a session group:");
+              find_service now table (Some group) sitedata info))
+         in_sessions (group_tables info))
     (function
       | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
           Lwt.catch (* then in the global table *)
@@ -317,7 +353,20 @@ let make_naservice
                 fmt "Looking for a non attached service in the %s:" table_name);
               try Lwt.return (find_aux table) with Not_found -> f l)
         in
-        f tables
+        try f tables
+        with Not_found ->
+          (* then in the tables of the session groups *)
+          let key = Common.na_key_serv_of_req si.Common.si_nonatt_info in
+          let rec g = function
+            | [] -> raise Not_found
+            | (table, group) :: l -> (
+                Logs.info ~src:section (fun fmt ->
+                  fmt
+                    "Looking for a non attached service in the table of a session group:");
+                try Lwt.return (find_naservice now table key, table, Some group)
+                with Not_found -> g l)
+          in
+          g (group_tables info)
       with Not_found ->
         Logs.info ~src:section (fun fmt ->
           fmt "Looking for a non attached service in the global table");
