@@ -726,17 +726,16 @@ let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
   set_default_max_service_tab_sessions_per_group ?override_configfile n;
   set_default_max_volatile_data_tab_sessions_per_group ?override_configfile n
 
-let set_ipv4_subnet_mask ?(override_configfile = false) n =
-  let sitedata = Request_info.find_sitedata "set_ipv4_subnet_mask" in
-  sitedata.Common.ipv4mask <-
-    Common.set_configured ~override:override_configfile sitedata.Common.ipv4mask
-      (Some n)
-
-let set_ipv6_subnet_mask ?(override_configfile = false) n =
-  let sitedata = Request_info.find_sitedata "set_ipv6_subnet_mask" in
-  sitedata.Common.ipv6mask <-
-    Common.set_configured ~override:override_configfile sitedata.Common.ipv6mask
-      (Some n)
+let set_default_max_anonymous_services_per_site ?(override_configfile = false) n
+  =
+  let sitedata =
+    limit_sitedata "set_default_max_anonymous_services_per_site" n
+  in
+  sitedata.Common.max_anonymous_services_per_site <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_anonymous_services_per_site n;
+  Common.set_max_anonymous_services sitedata.Common.anonymous_services
+    sitedata.Common.max_anonymous_services_per_site.Common.cf_value
 
 (* The parent of the session groups is the group of groups of the site *)
 let set_max_groups_of_site name m =

@@ -199,14 +199,25 @@
    <maxvolatilesessionswithoutgroup> (and <maxservicesessionswithoutgroup>,
    <maxdatasessionswithoutgroup>). The old names are removed, as are the
    sub networks of the sessions; an old option is a configuration error,
-   also in the configuration of a site. <ipv4subnetmask> and
-   <ipv6subnetmask> now only concern the anonymous coservices of the global
-   table. Common.session_group has No_group instead of Subnet. The group
-   of the sessions without a group is not one of the groups of the site:
-   when the site has too many groups, it is not closed with all its
-   sessions at once. A service registered with the session-group scope for
-   a session without a group is registered for the session, as the data of
-   the group scope are.
+   also in the configuration of a site. Common.session_group has No_group
+   instead of Subnet. The group of the sessions without a group is not one
+   of the groups of the site: when the site has too many groups, it is not
+   closed with all its sessions at once. A service registered with the
+   session-group scope for a session without a group is registered for the
+   session, as the data of the group scope are.
+** The anonymous coservices registered in the global table during
+   requests are now limited for the whole site, 500000 by default, instead
+   of 500000 per sub network of the client, for the same reasons as the
+   sessions without a group. The anonymous coservices registered during
+   the initialisation of the site are no longer counted: they shared the
+   list of the clients connected through a Unix socket or from ::1 (all
+   the clients of a reverse proxy connected that way), and requests could
+   remove them. The option <maxanonymouscoservicespersubnet> becomes
+   <maxanonymouscoservicespersite>, and the new
+   State.set_default_max_anonymous_services_per_site sets this limit. The options
+   <ipv4subnetmask> and <ipv6subnetmask>, and
+   State.set_ipv4_subnet_mask and set_ipv6_subnet_mask, are removed: an
+   old option is a configuration error. Eliom no longer depends on ipaddr.
 ** State.set_max_*_states_for_group_or_subnet are renamed
    set_max_*_states_in_parent. With a session scope, for a session that is
    not in a group, they no longer change the limit of all the sessions

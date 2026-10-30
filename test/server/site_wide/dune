@@ -1,8 +1,19 @@
 ; Settings of the states that apply to a whole site: each server has its own.
 
 (executables
- (names timeouts_server no_group_server gc_server groups_server)
- (modules services timeouts_server no_group_server gc_server groups_server)
+ (names
+  timeouts_server
+  no_group_server
+  gc_server
+  groups_server
+  anonymous_server)
+ (modules
+  services
+  timeouts_server
+  no_group_server
+  gc_server
+  groups_server
+  anonymous_server)
  (preprocess
   (pps js_of_ocaml-ppx_deriving_json))
  (libraries eliom.server ocsipersist-sqlite eliom_test_server))
@@ -15,5 +26,6 @@
   timeouts_server.exe
   no_group_server.exe
   gc_server.exe
-  groups_server.exe)
+  groups_server.exe
+  anonymous_server.exe)
  (libraries eliom_test_server lwt.unix alcotest))

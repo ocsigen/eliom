@@ -24,7 +24,7 @@ val default_ignored_post_params : (string * Re.re) list ref
 val default_omitpersistentstorage :
   Common.omitpersistentstorage_rule list option ref
 
-val default_max_anonymous_services_per_subnet : int ref
+val default_max_anonymous_services_per_site : int ref
 val default_max_anonymous_services_per_session : int ref
 val default_max_volatile_groups_per_site : int ref
 
@@ -66,8 +66,8 @@ val parse_global_config : Xml_light_types.xml list -> unit
 
 val check_renamed : Xml_light_types.xml -> unit
 (** [check_renamed e] raises [Ocsigen.Extensions.Error_in_config_file] if [e]
-    is an option renamed in Eliom 13, in the global configuration as in the
-    configuration of a site. *)
+    is an option renamed or removed in Eliom 13, in the global configuration
+    as in the configuration of a site. *)
 
 val exception_during_eliommodule_loading : bool ref
 val end_init : unit -> unit

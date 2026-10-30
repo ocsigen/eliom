@@ -451,7 +451,10 @@ type page_table_key = {key_state : att_key_serv * att_key_serv; key_meth : meth}
 module NAserv_Table : Map.S with type key = na_key_serv
 module Serv_Table : Map.S with type key = page_table_key
 
-type dlist_ip_table
+type anonymous_services
+(** The anonymous coservices of the global table of a site created during
+    requests, limited for the whole site. *)
+
 type anon_params_type = int
 type node_ref = string
 type node_info = {ni_id : node_ref; mutable ni_sent : bool}
@@ -636,12 +639,10 @@ and sitedata =
   ; mutable max_persistent_data_sessions_per_group : int option configured
   ; mutable max_persistent_data_tab_sessions_per_group : int option configured
   ; mutable max_anonymous_services_per_session : int configured
-  ; mutable max_anonymous_services_per_subnet : int configured
+  ; mutable max_anonymous_services_per_site : int configured
   ; mutable secure_cookies : bool
   ; (* Use secure cookies (default is false). *)
-    dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option configured
-  ; mutable ipv6mask : int option configured
+    anonymous_services : anonymous_services
   ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
@@ -680,7 +681,21 @@ val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> 'a dircontent
 val empty_naservice_table : unit -> naservice_table
 val service_tables_are_empty : tables -> bool
-val empty_tables : int -> bool -> tables
+
+val empty_tables : int -> tables
+(** [empty_tables max] are the empty service tables of a session, with at
+    most [max] anonymous coservices. *)
+
+val global_tables : int -> tables * anonymous_services
+(** [global_tables max] are the empty global service tables of a site, and
+    the list of the anonymous coservices created in them during requests,
+    at most [max]. The anonymous coservices created during the
+    initialisation of the site are not limited. *)
+
+val set_max_anonymous_services : anonymous_services -> int -> unit
+(** [set_max_anonymous_services l max] sets the maximum size of [l]: beyond
+    it, the coservices used least recently are removed. *)
+
 val new_service_session_tables : sitedata -> tables
 
 val split_prefix_param :
@@ -801,20 +816,6 @@ val remove_naservice_table :
    naservice_table
   -> NAserv_Table.key
   -> naservice_table
-
-val get_mask4 : sitedata -> int
-val get_mask6 : sitedata -> int
-val ipv4mask : int ref
-val ipv6mask : int ref
-val create_dlist_ip_table : int -> dlist_ip_table
-
-val find_dlist_ip_table :
-   mask4:int
-  -> mask6:int
-  -> dlist_ip_table
-  -> Ipaddr.t
-  -> (page_table ref * page_table_key, na_key_serv) Either.t
-       Ocsigen_base.Cache.Dlist.t
 
 val get_cookie_info : server_params -> [< cookie_level] -> tables cookie_info
 

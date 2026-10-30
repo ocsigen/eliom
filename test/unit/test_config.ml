@@ -65,7 +65,7 @@ let limits =
     ; ( "persistent tab sessions per group"
       , default_max_persistent_data_tab_sessions_per_group )
     ; "coservices per session", default_max_anonymous_services_per_session
-    ; "coservices per subnet", default_max_anonymous_services_per_subnet
+    ; "coservices per site", default_max_anonymous_services_per_site
     ; "groups per site", default_max_volatile_groups_per_site ]
 
 (* The options setting limits, each with the limits it sets *)
@@ -85,7 +85,7 @@ let limit_options =
   ; "maxdatatabsessionspergroup", ["data tab sessions per group"]
   ; "maxpersistenttabsessionspergroup", ["persistent tab sessions per group"]
   ; "maxanonymouscoservicespersession", ["coservices per session"]
-  ; "maxanonymouscoservicespersubnet", ["coservices per subnet"]
+  ; "maxanonymouscoservicespersite", ["coservices per site"]
   ; "maxvolatilegroupspersite", ["groups per site"] ]
 
 let test_limits () =
@@ -124,34 +124,43 @@ let test_limits () =
        "Config.set_max_service_sessions_per_group: the maximum must be positive")
     (fun () -> Eliom.Config.set_max_service_sessions_per_group 0)
 
-(* The options renamed in Eliom 13 are errors, with their new name. In the
+(* The options renamed or removed in Eliom 13 are errors, which tell what
+   replaces them. In the
    configuration of a site, unknown options are left to the Eliom modules:
    [check_renamed] rejects them before. *)
 let test_renamed () =
+  let renamed what tag new_tag =
+    ( tag
+    , Printf.sprintf "Eliom: <%s> is now <%s>, which limits %s" tag new_tag what
+    )
+  and removed tag =
+    ( tag
+    , Printf.sprintf
+        "Eliom: <%s> is removed: the anonymous coservices of the global table are now limited for the whole site (<maxanonymouscoservicespersite>)"
+        tag )
+  in
+  let sessions = renamed "the sessions without a group of the whole site" in
   List.iter
-    (fun (tag, new_tag) ->
-       let expected =
-         Printf.sprintf
-           "Eliom: <%s> is now <%s>, which limits the sessions without a group of the whole site"
-           tag new_tag
-       in
+    (fun (tag, expected) ->
        let option = Printf.sprintf {|<%s value="10"/>|} tag in
        check_error tag expected option;
        match Main.check_renamed (Xml.parse_string option) with
        | () -> Alcotest.failf "%s: accepted in a site" tag
        | exception Ocsigen.Extensions.Error_in_config_file e ->
            Alcotest.(check string) (tag ^ ", in a site") expected e)
-    [ "maxvolatilesessionspersubnet", "maxvolatilesessionswithoutgroup"
-    ; "maxservicesessionspersubnet", "maxservicesessionswithoutgroup"
-    ; "maxdatasessionspersubnet", "maxdatasessionswithoutgroup" ]
+    [ sessions "maxvolatilesessionspersubnet" "maxvolatilesessionswithoutgroup"
+    ; sessions "maxservicesessionspersubnet" "maxservicesessionswithoutgroup"
+    ; sessions "maxdatasessionspersubnet" "maxdatasessionswithoutgroup"
+    ; renamed "the anonymous coservices of the global table of the whole site"
+        "maxanonymouscoservicespersubnet" "maxanonymouscoservicespersite"
+    ; removed "ipv4subnetmask"
+    ; removed "ipv6subnetmask" ]
 
-let test_cookies_and_subnets () =
-  parse {|<securecookies value="true"/><ipv4subnetmask value="16"/>|};
+let test_cookies () =
+  parse {|<securecookies value="true"/>|};
   Alcotest.(check bool) "secure cookies" true !Main.default_secure_cookies;
-  Alcotest.(check int) "IPv4 mask" 16 !Eliom.Common.ipv4mask;
-  parse {|<securecookies value="false"/><ipv6subnetmask value="48"/>|};
+  parse {|<securecookies value="false"/>|};
   Alcotest.(check bool) "insecure cookies" false !Main.default_secure_cookies;
-  Alcotest.(check int) "IPv6 mask" 48 !Eliom.Common.ipv6mask;
   check_error "not a boolean"
     "Eliom: Wrong attribute value for securecookies tag"
     {|<securecookies value="yes"/>|}
@@ -234,7 +243,7 @@ let suite =
     ; Alcotest.test_case "Comet timeout" `Quick test_comet_timeout
     ; Alcotest.test_case "limits" `Quick test_limits
     ; Alcotest.test_case "renamed options" `Quick test_renamed
-    ; Alcotest.test_case "cookies and subnets" `Quick test_cookies_and_subnets
+    ; Alcotest.test_case "secure cookies" `Quick test_cookies
     ; Alcotest.test_case "client program" `Quick test_client_program
     ; Alcotest.test_case "ignored parameters" `Quick test_ignored_params
     ; Alcotest.test_case "omit persistent storage" `Quick

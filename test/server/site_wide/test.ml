@@ -273,6 +273,23 @@ let limit_of_groups kind server =
                session. *)
             check "least recently used" "" b "/get") ] )
 
+(* The anonymous coservices of the global table created during requests are
+   limited for the whole site; those created during the initialisation of the
+   site are not counted, and stay. *)
+let anonymous_coservices server =
+  let case = case server in
+  ( "anonymous coservices"
+  , [ case "limit of the site" (fun browser ->
+        let a = browser () and b = browser () and c = browser () in
+        let* initial = text a "/initial" in
+        let* u1 = text a "/coservice?v=1" in
+        let* u2 = text b "/coservice?v=2" in
+        let* u3 = text c "/coservice?v=3" in
+        let* () = check "initialisation" "initial" a initial in
+        let* () = check "second" "coservice 2" a u2 in
+        let* () = check "newest" "coservice 3" b u3 in
+        check "oldest" "fallback" c u1) ] )
+
 let run name exe suites =
   Server_harness.with_server exe (fun server ->
     Alcotest.run ~and_exit:false name (suites server))
@@ -287,4 +304,6 @@ let () =
   run "eliom-server-groups-of-services" "./groups_server.exe" (fun server ->
     [limit_of_groups `Service server]);
   run "eliom-server-groups-of-data" "./groups_server.exe" (fun server ->
-    [limit_of_groups `Data server])
+    [limit_of_groups `Data server]);
+  run "eliom-server-anonymous-coservices" "./anonymous_server.exe"
+    (fun server -> [anonymous_coservices server])

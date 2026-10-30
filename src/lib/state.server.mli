@@ -414,13 +414,17 @@ val set_default_max_volatile_tab_sessions_per_group :
     in a session group (see above).
 *)
 
-val set_ipv4_subnet_mask : ?override_configfile:bool -> int -> unit
-(** Sets the length of the network prefix (IPv4) that groups the clients
-    for the limit of anonymous coservices of the global table. Default:
-    16. *)
+val set_default_max_anonymous_services_per_site :
+   ?override_configfile:bool
+  -> int
+  -> unit
+(** Sets the maximum number of anonymous coservices of the global table of
+    the site created during requests (500000 by default). It applies at
+    once: beyond it, the coservices used least recently are removed. The
+    anonymous coservices created during the initialisation of the site are
+    not counted.
 
-val set_ipv6_subnet_mask : ?override_configfile:bool -> int -> unit
-(** Same for IPv6. Default: 56. *)
+    @raise Invalid_argument if the number is not positive. *)
 
 val set_max_service_states_in_parent :
    scope:Common.user_scope

@@ -78,29 +78,43 @@ let default_omitpersistentstorage = ref None
    For persistent sessions, there is a limitation per session group,
    efficient only for small values, and no limitation without a group. *)
 
-(* The options renamed in Eliom 13, when the sessions without a group
-   stopped being counted by sub network *)
-let renamed_options =
-  [ "maxvolatilesessionspersubnet", "maxvolatilesessionswithoutgroup"
-  ; "maxservicesessionspersubnet", "maxservicesessionswithoutgroup"
-  ; "maxdatasessionspersubnet", "maxdatasessionswithoutgroup" ]
+(* The options removed in Eliom 13, when the sessions without a group and
+   the anonymous coservices of the global table stopped being counted by
+   sub network of the client: the message tells what replaces them *)
+let removed_options =
+  let sessions = "limits the sessions without a group of the whole site"
+  and coservices =
+    "limits the anonymous coservices of the global table of the whole site"
+  in
+  let renamed tag new_tag what =
+    tag, Printf.sprintf "Eliom: <%s> is now <%s>, which %s" tag new_tag what
+  and masks tag =
+    ( tag
+    , Printf.sprintf
+        "Eliom: <%s> is removed: the anonymous coservices of the global table are now limited for the whole site (<maxanonymouscoservicespersite>)"
+        tag )
+  in
+  [ renamed "maxvolatilesessionspersubnet" "maxvolatilesessionswithoutgroup"
+      sessions
+  ; renamed "maxservicesessionspersubnet" "maxservicesessionswithoutgroup"
+      sessions
+  ; renamed "maxdatasessionspersubnet" "maxdatasessionswithoutgroup" sessions
+  ; renamed "maxanonymouscoservicespersubnet" "maxanonymouscoservicespersite"
+      coservices
+  ; masks "ipv4subnetmask"
+  ; masks "ipv6subnetmask" ]
 
-(* [check_renamed e] fails if [e] is a renamed option. In the configuration
-   of a site, unknown options are left to the Eliom modules: a renamed
+(* [check_renamed e] fails if [e] is a removed option. In the configuration
+   of a site, unknown options are left to the Eliom modules: a removed
    option must be rejected before. *)
 let check_renamed = function
   | Xml.Element (tag, _, _) -> (
-    match List.assoc_opt tag renamed_options with
-    | Some new_tag ->
-        raise
-          (Error_in_config_file
-             (Printf.sprintf
-                "Eliom: <%s> is now <%s>, which limits the sessions without a group of the whole site"
-                tag new_tag))
+    match List.assoc_opt tag removed_options with
+    | Some message -> raise (Error_in_config_file message)
     | None -> ())
   | Xml.PCData _ -> ()
 
-let default_max_anonymous_services_per_subnet = ref 500000
+let default_max_anonymous_services_per_site = ref 500000
 let default_max_anonymous_services_per_session = ref 1000
 let default_max_volatile_groups_per_site = ref 1000000
 (*VVV value ??? *)
@@ -116,7 +130,8 @@ module S = Hashtbl.Make (struct
   end)
 
 let create_sitedata_aux site_dir config_info =
-  let dlist_table = Common.create_dlist_ip_table 100
+  let global_services, anonymous_services =
+    Common.global_tables !default_max_anonymous_services_per_site
   and group_of_groups =
     Ocsigen_base.Cache.Dlist.create !default_max_volatile_groups_per_site
   in
@@ -132,8 +147,7 @@ let create_sitedata_aux site_dir config_info =
         Option.map (Lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
     ; default_links_xhr = Common.tenable_value ~name:"default_links_xhr" true
-    ; global_services =
-        Common.empty_tables !default_max_anonymous_services_per_subnet false
+    ; global_services
     ; registered_scope_hierarchies = Common.Hier_set.empty
     ; session_services = Mod_cookies.new_service_cookie_table ()
     ; session_data = Mod_cookies.new_data_cookie_table ()
@@ -171,13 +185,11 @@ let create_sitedata_aux site_dir config_info =
     ; max_anonymous_services_per_session =
         { Common.cf_value = !default_max_anonymous_services_per_session
         ; cf_from_config = false }
-    ; max_anonymous_services_per_subnet =
-        { Common.cf_value = !default_max_anonymous_services_per_subnet
+    ; max_anonymous_services_per_site =
+        { Common.cf_value = !default_max_anonymous_services_per_site
         ; cf_from_config = false }
     ; secure_cookies = !default_secure_cookies
-    ; dlist_ip_table = dlist_table
-    ; ipv4mask = {Common.cf_value = None; cf_from_config = false}
-    ; ipv6mask = {Common.cf_value = None; cf_from_config = false}
+    ; anonymous_services
     ; application_script = !default_application_script
     ; enable_wasm = !default_enable_wasm
     ; cache_global_data = !default_cache_global_data
@@ -275,11 +287,9 @@ type option_setters =
   ; set_max_data_tab_sessions_per_group : int -> unit
   ; set_max_persistent_tab_sessions_per_group : int -> unit
   ; set_max_services_per_session : int -> unit
-  ; set_max_services_per_subnet : int -> unit
+  ; set_max_services_per_site : int -> unit
   ; set_max_volatile_groups_per_site : int -> unit
   ; set_secure_cookies : bool -> unit
-  ; set_ipv4mask : int -> unit
-  ; set_ipv6mask : int -> unit
   ; set_application_script : Common.application_script -> unit
   ; set_enable_wasm : bool -> unit
   ; set_global_data_caching : (Lib.Url.path * int) option -> unit
@@ -304,11 +314,9 @@ let parse_eliom_option
       ; set_max_data_tab_sessions_per_group
       ; set_max_persistent_tab_sessions_per_group
       ; set_max_services_per_session
-      ; set_max_services_per_subnet
+      ; set_max_services_per_site
       ; set_max_volatile_groups_per_site
       ; set_secure_cookies
-      ; set_ipv4mask
-      ; set_ipv6mask
       ; set_application_script
       ; set_enable_wasm
       ; set_global_data_caching
@@ -476,9 +484,9 @@ let parse_eliom_option
   | Xml.Element (("maxanonymouscoservicespersession" as tag), [("value", v)], [])
     ->
       with_limit tag v set_max_services_per_session
-  | Xml.Element (("maxanonymouscoservicespersubnet" as tag), [("value", v)], [])
+  | Xml.Element (("maxanonymouscoservicespersite" as tag), [("value", v)], [])
     ->
-      with_limit tag v set_max_services_per_subnet
+      with_limit tag v set_max_services_per_site
   | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
       with_limit tag v set_max_volatile_groups_per_site
   | Xml.Element ("securecookies", [("value", v)], []) -> (
@@ -491,10 +499,6 @@ let parse_eliom_option
       raise
         (Error_in_config_file
            "Eliom: Wrong attribute value for securecookies tag"))
-  | Xml.Element (("ipv4subnetmask" as tag), [("value", v)], []) ->
-      with_int tag v set_ipv4mask
-  | Xml.Element (("ipv6subnetmask" as tag), [("value", v)], []) ->
-      with_int tag v set_ipv6mask
   | Xml.Element ("applicationscript", attrs, []) ->
       set_application_script (parse_application_script_attrs attrs)
   | Xml.Element ("wasm", [("enabled", v)], []) -> (
@@ -617,13 +621,11 @@ let rec parse_global_config = function
             (fun v -> default_max_persistent_data_tab_sessions_per_group := v)
         ; set_max_services_per_session =
             (fun v -> default_max_anonymous_services_per_session := v)
-        ; set_max_services_per_subnet =
-            (fun v -> default_max_anonymous_services_per_subnet := v)
+        ; set_max_services_per_site =
+            (fun v -> default_max_anonymous_services_per_site := v)
         ; set_max_volatile_groups_per_site =
             (fun v -> default_max_volatile_groups_per_site := v)
         ; set_secure_cookies = (fun v -> default_secure_cookies := v)
-        ; set_ipv4mask = (fun v -> Common.ipv4mask := v)
-        ; set_ipv6mask = (fun v -> Common.ipv6mask := v)
         ; set_application_script = (fun v -> default_application_script := v)
         ; set_enable_wasm = (fun v -> default_enable_wasm := v)
         ; set_global_data_caching = (fun v -> default_cache_global_data := v)
@@ -900,7 +902,6 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let oldipv6mask = Common.get_mask6 sitedata in
         let content =
           parse_eliom_options
             { set_volatile_timeout =
@@ -955,24 +956,12 @@ let parse_config _ hostpattern conf_info site_dir =
                 (fun v ->
                   sitedata.Common.max_anonymous_services_per_session <-
                     {Common.cf_value = v; cf_from_config = true})
-            ; set_max_services_per_subnet =
+            ; set_max_services_per_site =
                 (fun v ->
-                  sitedata.Common.max_anonymous_services_per_subnet <-
+                  sitedata.Common.max_anonymous_services_per_site <-
                     {Common.cf_value = v; cf_from_config = true};
-                  (* The global table has already been created, with old max
-                   and old ipv6mask.
-                   I update it, otherwise the setting has no effect
-                   for this table: *)
-                  try
-                    let dlist =
-                      Common.find_dlist_ip_table
-                        ~mask4:(Common.get_mask4 sitedata)
-                        ~mask6:oldipv6mask sitedata.Common.dlist_ip_table
-                        Ipaddr.(V6 V6.localhost)
-                    in
-                    ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist v)
-                  with Not_found -> ()
-                  (* should not occur *))
+                  Common.set_max_anonymous_services
+                    sitedata.Common.anonymous_services v)
             ; set_max_volatile_groups_per_site =
                 (fun v ->
                   ignore
@@ -980,14 +969,6 @@ let parse_config _ hostpattern conf_info site_dir =
                        sitedata.Common.group_of_groups v))
             ; set_secure_cookies =
                 (fun v -> sitedata.Common.secure_cookies <- v)
-            ; set_ipv4mask =
-                (fun v ->
-                  sitedata.Common.ipv4mask <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_ipv6mask =
-                (fun v ->
-                  sitedata.Common.ipv6mask <-
-                    {Common.cf_value = Some v; cf_from_config = true})
             ; set_application_script =
                 (fun v -> sitedata.Common.application_script <- v)
             ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)

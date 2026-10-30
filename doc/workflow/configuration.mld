@@ -425,9 +425,11 @@ to reach 1TB.
 
 {3 Limiting services}
 
-The number of anonymous coservices is limited by session
-or by sub network if the service is registered in the global table.
-Default values: 1000 for one session, and 500000 for one subnet.
+The number of anonymous coservices is limited by session, and for the
+whole site if the service is registered in the global table during a
+request. Default values: 1000 for one session, and 500000 for the site.
+The anonymous coservices registered in the global table during the
+initialisation of the site are not limited.
 
 Note that there is no limitation of named coservices or regular services.
 It is not a good practice to allow the creation of too many services
@@ -436,11 +438,10 @@ of these kinds dynamically.
 
 {3 How to set limits}
 
-The limits and the subnet mask can be set programmatically by each module
+The limits can be set programmatically by each module
 (for example to adapt the values to the size of session data) or in the
 configuration file
-(for instance, to adapt the values to the size of memory or network
-configuration)
+(for instance, to adapt the values to the size of memory)
 (see module  {!Eliom.State}).
 By default, functions like
 [Eliom.State.set_default_max_volatile_sessions_per_group]
@@ -469,10 +470,7 @@ The syntax is:
 - [<maxdatasessionswithoutgroup value="50000"/>]
 - [<maxvolatilegroupspersite value="500000"/>]
 - [<maxanonymouscoservicespersession value="1000"/>]
-- [<maxanonymouscoservicespersubnet value="500000"/>]
-- [<ipv4subnetmask value="16"/>] (the length of the network prefix that
-  groups the clients for the limit of anonymous coservices; 16 by default)
-- [<ipv6subnetmask value="56"/>] (56 by default)
+- [<maxanonymouscoservicespersite value="500000"/>]
 
 {2 Application script attributes}
 

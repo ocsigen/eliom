@@ -339,37 +339,6 @@ module Data_cookie = struct
 end
 
 (*****************************************************************************)
-let ipv4mask = ref 16
-let ipv6mask = ref 56
-
-let network_of_ip k mask4 mask6 =
-  match k with
-  | Ipaddr.V4 ip -> Ipaddr.(V4 V4.Prefix.(network (make mask4 ip)))
-  | Ipaddr.V6 ip -> Ipaddr.(V6 V6.Prefix.(network (make mask6 ip)))
-
-module Net_addr_Hashtbl : sig
-  type key = Ipaddr.t
-  type 'a t
-
-  val create : int -> 'a t
-  val add : mask4:int -> mask6:int -> 'a t -> key -> 'a -> unit
-  val remove : mask4:int -> mask6:int -> 'a t -> key -> unit
-  val find : mask4:int -> mask6:int -> 'a t -> key -> 'a
-end =
-(* keys are IP address modulo "network equivalence" *)
-struct
-  include Hashtbl.Make (struct
-      type t = Ipaddr.t
-
-      let equal a b = Ipaddr.compare a b = 0
-      let hash = Hashtbl.hash
-    end)
-
-  let add ~mask4 ~mask6 t k v = add t (network_of_ip k mask4 mask6) v
-  let remove ~mask4 ~mask6 t k = remove t (network_of_ip k mask4 mask6)
-  let find ~mask4 ~mask6 t k = find t (network_of_ip k mask4 mask6)
-end
-
 module Serv_Table = Map.Make (struct
     type t = page_table_key
 
@@ -551,11 +520,9 @@ and sitedata =
   ; mutable max_persistent_data_sessions_per_group : int option configured
   ; mutable max_persistent_data_tab_sessions_per_group : int option configured
   ; mutable max_anonymous_services_per_session : int configured
-  ; mutable max_anonymous_services_per_subnet : int configured
+  ; mutable max_anonymous_services_per_site : int configured
   ; mutable secure_cookies : bool
-  ; dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option configured
-  ; mutable ipv6mask : int option configured
+  ; anonymous_services : anonymous_services
   ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
@@ -565,10 +532,11 @@ and sitedata =
   ; mutable ignored_post_params : (string * Re.re) list
   ; mutable omitpersistentstorage : omitpersistentstorage_rule list option }
 
-and dlist_ip_table =
+(* The anonymous coservices of the global table of a site created during
+   requests, limited for the whole site *)
+and anonymous_services =
   (page_table ref * page_table_key, na_key_serv) Either.t
     Ocsigen_base.Cache.Dlist.t
-    Net_addr_Hashtbl.t
 
 let check_initialised field =
   match field with
@@ -579,23 +547,8 @@ let get_site_dir sitedata = check_initialised sitedata.site_dir
 let get_site_dir_string sitedata = check_initialised sitedata.site_dir_string
 let get_config_info sitedata = check_initialised sitedata.config_info
 
-let get_mask4 sitedata =
-  Option.value sitedata.ipv4mask.cf_value ~default:!ipv4mask
-
-let get_mask6 sitedata =
-  Option.value sitedata.ipv6mask.cf_value ~default:!ipv6mask
-
-let create_dlist_ip_table = Net_addr_Hashtbl.create
-
-let find_dlist_ip_table :
-   mask4:int
-  -> mask6:int
-  -> dlist_ip_table
-  -> Ipaddr.t
-  -> (page_table ref * page_table_key, na_key_serv) Either.t
-       Ocsigen_base.Cache.Dlist.t
-  =
-  Net_addr_Hashtbl.find
+let set_max_anonymous_services dlist max =
+  ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist max)
 (*****************************************************************************)
 
 (*****************************************************************************)
@@ -905,83 +858,51 @@ let dlist_finaliser na_table_ref node =
   | Either.Right na_key_serv ->
       na_table_ref := remove_naservice_table !na_table_ref na_key_serv
 
-let dlist_finaliser_ip sitedata ip na_table_ref node =
-  dlist_finaliser na_table_ref node;
-  match Ocsigen_base.Cache.Dlist.list_of node with
-  | Some cl -> (
-      if Ocsigen_base.Cache.Dlist.size cl = 1
-      then
-        try
-          Net_addr_Hashtbl.remove ~mask4:(get_mask4 sitedata)
-            ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip
-        with Not_found -> ())
-  | None -> ()
-
 let add_dlist_ dlist v =
   ignore (Ocsigen_base.Cache.Dlist.add v dlist);
   match Ocsigen_base.Cache.Dlist.newest dlist with
   | Some a -> a
   | None -> assert false
 
-let default_ip_table_key = Ipaddr.(V6 V6.localhost)
+(* [anonymous_services max t2] is a list of at most [max] anonymous
+   coservices of a table whose non-attached coservices are [t2]: beyond
+   [max], the one used least recently is removed from the table. *)
+let anonymous_services max t2 =
+  let dlist = Ocsigen_base.Cache.Dlist.create max in
+  Ocsigen_base.Cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
+  dlist
 
-let empty_tables max forsession =
-  let t1 = [] in
-  let t2 = ref (empty_naservice_table ()) in
-  { table_services = t1
+let tables t2 service_dlist_add =
+  { table_services = []
   ; table_naservices = t2
   ; table_contains_services_with_timeout = false
   ; table_contains_naservices_with_timeout = false
   ; csrf_get_or_na_registration_functions = Int.Table.empty
   ; csrf_post_registration_functions = Int.Table.empty
-  ; service_dlist_add =
-      (if forsession
-       then (
-         let dlist = Ocsigen_base.Cache.Dlist.create max in
-         Ocsigen_base.Cache.Dlist.set_finaliser_before (dlist_finaliser t2)
-           dlist;
-         fun ?sp:_ v -> add_dlist_ dlist v)
-       else
-         fun ?sp v ->
-           let ip, max, sitedata =
-             match sp with
-             | None -> (
-                 ( default_ip_table_key
-                 , max
-                 , match global_register_allowed () with
-                   | None ->
-                       failwith "global tables created outside initialisation"
-                   | Some get -> get () ))
-             | Some sp ->
-                 let ip =
-                   match
-                     Ocsigen.Request.client_conn
-                       sp.sp_request.Ocsigen.Extensions.request_info
-                   with
-                   | `Inet (ip, _) -> ip
-                   | _ -> default_ip_table_key
-                 in
-                 ( ip
-                 , sp.sp_sitedata.max_anonymous_services_per_subnet.cf_value
-                 , sp.sp_sitedata )
-           in
-           let dlist =
-             try
-               Net_addr_Hashtbl.find ~mask4:(get_mask4 sitedata)
-                 ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip
-             with Not_found ->
-               let dlist = Ocsigen_base.Cache.Dlist.create max in
-               Net_addr_Hashtbl.add ~mask4:(get_mask4 sitedata)
-                 ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip dlist;
-               Ocsigen_base.Cache.Dlist.set_finaliser_before
-                 (dlist_finaliser_ip sitedata ip t2)
-                 dlist;
-               dlist
-           in
-           add_dlist_ dlist v) }
+  ; service_dlist_add }
+
+let empty_tables max =
+  let t2 = ref (empty_naservice_table ()) in
+  let dlist = anonymous_services max t2 in
+  tables t2 (fun ?sp:_ v -> add_dlist_ dlist v)
+
+let global_tables max =
+  let t2 = ref (empty_naservice_table ()) in
+  (* The anonymous coservices created during the initialisation of the site
+     are not limited: no request can remove them. *)
+  let initialisation = anonymous_services max_int t2 in
+  let requests = anonymous_services max t2 in
+  ( tables t2 (fun ?sp v ->
+      match sp with
+      | Some _ -> add_dlist_ requests v
+      | None -> (
+        match global_register_allowed () with
+        | None -> failwith "global tables created outside initialisation"
+        | Some _ -> add_dlist_ initialisation v))
+  , requests )
 
 let new_service_session_tables sitedata =
-  empty_tables sitedata.max_anonymous_services_per_session.cf_value true
+  empty_tables sitedata.max_anonymous_services_per_session.cf_value
 
 (*****************************************************************************)
 
