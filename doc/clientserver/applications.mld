@@ -65,7 +65,7 @@ with all its data, and run automatically when the page is loaded.
 
 Module {!Eliom.Client} provides
 useful functions for client side programming with Eliom: e.g.
-{!Eliom.Client.change_page}
+{{:../eliom.client/Eliom/Client/index.html#val-change_page}[Eliom.Client.change_page]}
 permits switching to another page.
 
 Module {!Eliom.Comet} allows the
@@ -128,7 +128,7 @@ This application will be closed when:
   application interaction (reload the page with [F5],
   manual typing of URL, ...),
 - the application calls the
-  {!Eliom.Client.exit_to} function.
+  {{:../eliom.client/Eliom/Client/index.html#val-exit_to}[Eliom.Client.exit_to]} function.
 
 It is possible to prevent the application from starting when visiting
 an application page by setting the [do_not_launch] to [true]
@@ -161,13 +161,13 @@ This will force reloading the application when the link is clicked.
 
 Two functions are available client-side for changing the current page
 without interaction from the user. The function
-{!Eliom.Client.change_page} goes to the service
+{{:../eliom.client/Eliom/Client/index.html#val-change_page}[Eliom.Client.change_page]} goes to the service
 taken as parameter. If the service is in another application or not in
 an application, the current application will be stopped.
-The function {!Eliom.Client.window_open}
+The function {{:../eliom.client/Eliom/Client/index.html#val-window_open}[Eliom.Client.window_open]}
 opens an
 Eliom service in a new browser window (cf. JavaScript's [window.open]).
-{!Eliom.Client.exit_to}
+{{:../eliom.client/Eliom/Client/index.html#val-exit_to}[Eliom.Client.exit_to]}
 changes the current page and always leaves the application.
 
 {2 Leaving application and going back}

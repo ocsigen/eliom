@@ -49,7 +49,7 @@ Exceptions raised in the server-side function cannot be handled
 directly on the client; it is impossible to marshal them in OCaml to
 send them to the client. Instead, if an exception is raised in the
 server function, the function application fails (in Lwt) on the client
-with the exception {!exception:Eliom.Client_value.Exception_on_server}
+with the exception {{:../eliom.client/Eliom/Client_value/index.html#exception-Exception_on_server}[Eliom.Client_value.Exception_on_server]}
 whose argument describes the original
 exception (according to [Printexc.to_string]).
 
@@ -119,7 +119,7 @@ basic use.
 These services are registered using
 {!Eliom.Registration.Ocaml}
 and can be called using
-{!Eliom.Client.call_ocaml_service}.
+{{:../eliom.client/Eliom/Client/index.html#val-call_ocaml_service}[Eliom.Client.call_ocaml_service]}.
 
 Such services cannot be visited by the browser as Web pages. You
 usually want POST pathless services for this use case. This
@@ -277,7 +277,7 @@ There are 3 kinds of channels, depending on how you want to send data.
   For streams created with {!Lwt_stream.create},
   this is as soon as they are pushed. If the client misses too many
   messages (more than the size of the buffer) it will receive an exception
-  {!Eliom.Comet.Channel_full}
+  {{:../eliom.client/Eliom/Comet/index.html#exception-Channel_full}[Eliom.Comet.Channel_full]}
   when reading data from the stream.
 
 - Channels created with
@@ -285,7 +285,7 @@ There are 3 kinds of channels, depending on how you want to send data.
   and can lose messages, but the client will always receive the last value:
   For instance, if many messages are sent in a short time,
   the client may receive only the last one. Those channels never raise
-  {!Eliom.Comet.Channel_full}.
+  {{:../eliom.client/Eliom/Comet/index.html#exception-Channel_full}[Eliom.Comet.Channel_full]}.
 
 - Channels created with {!Eliom.Comet.Channel.create_unlimited}
   consume data on the stream only when there is a request from the client.
@@ -325,7 +325,7 @@ HTTP connection waiting for a response. A Comet request waits at most
 [<comettimeout>] of the configuration file). After that, the client can
 either do a new request or stay idle for some time: this is the activity
 behavior. This can be configured on client-side, using the functions from
-{!Eliom.Comet.Configuration}
+{{:../eliom.client/Eliom/Comet/Configuration/index.html}[Eliom.Comet.Configuration]}
 
 For instance, if you receive data which doesn't need frequent
 updates, you can set the time between different requests to a high value,
@@ -384,7 +384,7 @@ Since the server will also receive data on the bus, a JSON codec of the
 type ([[%json: t]], with [[@@deriving json]]) is needed to create a bus.
 
 Like comet channels, the behaviour of buses can be tuned using the module
-{!Eliom.Comet.Configuration}.
+{{:../eliom.client/Eliom/Comet/Configuration/index.html}[Eliom.Comet.Configuration]}.
 There are additional configuration options available for buses to tune
 the client-side buffering.
 

@@ -186,7 +186,7 @@ created with the function {!val:Eliom.Content.Html.Id.new_elt_id}.
 See also section {{!section:global}Global elements of an
 application}.
 
-The module {!Eliom.Content.Html.Manip}
+The module {{:../eliom.client/Eliom/Content/Html/Manip/index.html}[Eliom.Content.Html.Manip]}
 allows using the classical DOM manipulation functions
 (e.g. appendChild, addEventlistener, ...) directly on HTML elements
 (or on element identifiers, with [Manip.Named]).
@@ -541,13 +541,13 @@ On the client side, custom data can be read from and written to JavaScript DOM
 elements of type {!type:Js_of_ocaml.Dom_html.element}.
 
 Custom data can be read from a DOM-element with the function
-{!Eliom.Content.Html.Custom_data.get_dom}.
+{{:../eliom.client/Eliom/Content/Html/Custom_data/index.html#val-get_dom}[Eliom.Content.Html.Custom_data.get_dom]}.
 If no respective custom data attribute can be found in the element
 - the [default] value from creating the custom data is returned, if any, or
 - an exception [Not_found] is raised, otherwise.
 
 The custom data of a DOM-element can be set with the function
-{!Eliom.Content.Html.Custom_data.set_dom}.
+{{:../eliom.client/Eliom/Content/Html/Custom_data/index.html#val-set_dom}[Eliom.Content.Html.Custom_data.set_dom]}.
 
 {@ocaml[
   [%client
@@ -561,7 +561,7 @@ The custom data of a DOM-element can be set with the function
 
 {3 Default value}
 If a custom data is created with the optional argument [default], calls to
-{!val:Eliom.Content.Html.Custom_data.get_dom}
+{{:../eliom.client/Eliom/Content/Html/Custom_data/index.html#val-get_dom}[Eliom.Content.Html.Custom_data.get_dom]}
 return that instead of throwing an
 exception [Not_found].
 
