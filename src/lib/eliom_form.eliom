@@ -569,14 +569,17 @@ module Make (Html : Html) = struct
 
   let make_info ~https kind service hdlr =
     let f () =
+      let info tmpl =
+        Some
+          ( (kind : [`Form_get | `Form_post] :> [`Form_get | `Form_post | `A])
+          , Eliom_uri.make_cookies_info (https, service)
+          , tmpl
+          , Lib.to_poly hdlr )
+      in
       match Service.xhr_with_cookies service with
-      | None -> None
-      | Some tmpl ->
-          Some
-            ( (kind : [`Form_get | `Form_post] :> [`Form_get | `Form_post | `A])
-            , Eliom_uri.make_cookies_info (https, service)
-            , tmpl
-            , Lib.to_poly hdlr )
+      | Service.No_xhr -> None
+      | Service.Xhr -> info None
+      | Service.Xhr_template tmpl -> info (Some tmpl)
     in
     Eliom_lazy.from_fun f
 

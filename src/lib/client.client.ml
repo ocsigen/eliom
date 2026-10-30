@@ -685,8 +685,10 @@ let change_url
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url");
   (current_reload_function :=
      match Service.xhr_with_cookies service with
-     | None when Client_core.changes_protocol https -> None
-     | Some (Some _ as t) when t = Request_info.get_request_template () -> None
+     | Service.No_xhr when Client_core.changes_protocol https -> None
+     | Service.Xhr_template t when Some t = Request_info.get_request_template ()
+       ->
+         None
      | _ -> (
        match Service.reload_fun service with
        | Some rf -> Some (fun () () -> rf params ())
@@ -1022,12 +1024,12 @@ and change_page :
   Logs.debug ~src:section_page (fun fmt -> fmt "Change page");
   let xhr = Service.xhr_with_cookies service in
   if
-    xhr = None
+    xhr = Service.No_xhr
     || Client_core.changes_protocol https
     || (window_name <> None && window_name <> Some "_self")
   then
     let () =
-      Logs.debug ~src:section_page (fun fmt -> fmt "change page: xhr is None")
+      Logs.debug ~src:section_page (fun fmt -> fmt "change page: no XHR")
     in
     Lwt.return
       (Client_call.exit_to ?window_name ?window_features ?absolute
@@ -1036,9 +1038,10 @@ and change_page :
   else
     with_progress_cursor
       (match xhr with
-      | Some (Some tmpl as t) when t = Request_info.get_request_template () ->
+      | Service.Xhr_template tmpl
+        when Some tmpl = Request_info.get_request_template () ->
           Logs.debug ~src:section_page (fun fmt ->
-            fmt "change page: xhr is Some of get request template");
+            fmt "change page: xhr with the template of the current request");
           let nl_params =
             Parameter.add_nl_parameter nl_params Request.nl_template tmpl
           in

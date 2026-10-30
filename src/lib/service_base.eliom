@@ -102,6 +102,11 @@ type send_appl_content =
 (* the string is the name of the application to which the service
      belongs and the option is the name of template *)
 
+(** How a client-side program requests a service: [No_xhr], a regular HTTP
+    request, which leaves the application; [Xhr], an XHR expecting
+    application content; [Xhr_template t], the same with the template [t]. *)
+type xhr = No_xhr | Xhr | Xhr_template of string
+
 type service_kind =
   [`Service | `AttachedCoservice | `NonattachedCoservice | `External]
 

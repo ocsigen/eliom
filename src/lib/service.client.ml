@@ -21,13 +21,14 @@ include Service_base
 
 let xhr_with_cookies s =
   if is_external s
-  then None
+  then No_xhr
   else
     match s.send_appl_content with
-    | XAlways -> Some None
-    | XNever -> None
-    | XSame_appl (appl, _) when appl <> Process.get_application_name () -> None
-    | XSame_appl (_, tmpl) -> Some tmpl
+    | XNever -> No_xhr
+    | XSame_appl (appl, _) when appl <> Process.get_application_name () ->
+        No_xhr
+    | XAlways | XSame_appl (_, None) -> Xhr
+    | XSame_appl (_, Some tmpl) -> Xhr_template tmpl
 
 let client_fun service =
   match service.client_fun with Some f -> !f | None -> None
