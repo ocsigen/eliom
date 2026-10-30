@@ -7,7 +7,7 @@ project is to use [eliom-distillery].
 
 [eliom-distillery] is self-documenting (refer to
 [eliom-distillery -help] and the generated [README]), but here
-is a bit information on how to work with it.
+is a bit of information on how to work with it.
 
 
 
@@ -44,36 +44,34 @@ This creates a project named [<name>] from the ["app"]
 template in the directory [<dir>] or [<name>] by default.
 The project name should be a valid name for an OCaml compilation unit.
 
-{2:compilation Compilation & Running:}
+{2:compilation Compilation & Running}
 
 Read the README file provided with the template.
 
 {3 WebAssembly compilation}
 
-To enable WebAssembly compilation for your application, set [ENABLE_WASM=yes]
-in the [Makefile.options] file. This will compile both JavaScript and WASM
-versions of your client code:
-
-{@shell[
-ENABLE_WASM := yes
-]}
-
-When enabled, use [make js] to build both versions, and the server will
-automatically detect browser capabilities and serve the appropriate version.
+The template [app] builds both a JavaScript and a WebAssembly version of
+your client program. When WebAssembly is enabled (option [<wasm
+enabled="true"/>] of the configuration file, or [~enable_wasm:true] for
+{!Eliom.App.run}), the server detects the capabilities of the browser and
+sends the appropriate version (see
+{{!//workflow/page-configuration.wasm}WebAssembly}).
 
 {2 Using other templates}
 
 If you want to start from a more complete or more specific template,
 you can get other templates from the internet, such as
-Ocsigen Start. You can either install these templates into eliom's
-own directory (this is what their installer generally does), or, if
-doing so is not practical, you can use the [ELIOM_DISTILLERY_PATH]
-environment variable to point to your templates. This environment
-variable is a colon-separated list of absolute paths (that is, [export ELIOM_DISTILLERY_PATH=/usr/lib/template1:/usr/local/lib/template2]).
+Ocsigen Start. You can either install these templates into Eliom's own directory
+([lib/eliom/templates/<name>], this is what their installer generally
+does), or, if doing so is not practical, you can use the
+[ELIOM_DISTILLERY_PATH] environment variable to point to your templates.
+This environment variable is a colon-separated list of directories
+containing templates (for example,
+[export ELIOM_DISTILLERY_PATH=/usr/local/lib/mytemplates]).
 
-A template's name is its directory basename ([template1] and
-[template2] for the preceding example). If you want to create a
-new project based on [template1], you can use
+A template's name is the name of its directory: with
+[/usr/local/lib/mytemplates/template1], if you want to create a new
+project based on [template1], you can use
 
 {@shell[
 $ eliom-distillery -name example -template template1
@@ -82,13 +80,13 @@ $ eliom-distillery -name example -template template1
 {2 Write other templates}
 
 You can also write your own templates and install them by using the
-previous described method.
+previously described method.
 
 By default, [eliom-distillery] copies all files in the template
 directory. If you want to ignore some files, you can list them in the
 special file [.eliomignore].
 
-For some templates, e.g., the one of [Ocsigen Start], some project
+For some templates, e.g., the one of Ocsigen Start, some project
 names are reserved to avoid conflicts. For a new template, you need to
 list all reserved project names in the special file
 [.eliomreserve].
