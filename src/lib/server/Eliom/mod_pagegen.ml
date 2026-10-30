@@ -154,12 +154,14 @@ let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
                        Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie
                          oldexp cookieid
                  | _ ->
-                     Mod_cookies.Persistent_cookies.add
+                     (* The request opened the session, and its cookie was
+                        inserted then. It is not inserted again: another
+                        request may have closed the session meanwhile. *)
+                     Mod_cookies.Persistent_cookies.update
                        Common.(Hashed_cookies.to_string newc.pc_hvalue)
-                       { Mod_cookies.full_state_name = name
-                       ; expiry = newexp
-                       ; timeout = !(newc.Common.pc_timeout)
-                       ; session_group = !(newc.Common.pc_session_group) })
+                       ~expiry:newexp ~timeout:!(newc.Common.pc_timeout)
+                       ~session_group:!(newc.Common.pc_session_group)
+                       ())
              (*VVV Do not forget to change persistent_cookie_table_version
           if you change the type of persistent table data,
           otherwise the server will crash!!!

@@ -523,7 +523,11 @@ module Pers = struct
                | Some None -> None, Nolimit
                | Some (Some v) -> Some v, Val v
              in
-             let cl, toclose = cut max cl in
+             (* [sess_id] may be in the list already: another request of the
+                session added it (a double click on "log in", for instance) *)
+             let cl, toclose =
+               cut max (List.filter (fun s -> s <> sess_id) cl)
+             in
              let* () =
                Grouptable.replace_if_exists sg (newmax, sess_id :: cl)
              in
