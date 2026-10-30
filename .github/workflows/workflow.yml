@@ -37,6 +37,13 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
 
+      # The client tests run under Node.js; WebAssembly GC needs Node.js 22
+      # or later.
+      - name: Set-up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       - name: Set-up Binaryen
         uses: Aandreba/setup-binaryen@v1.0.0
         with:
