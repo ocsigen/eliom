@@ -293,6 +293,22 @@ let groups server =
         let* url = text a "/group/coservice" in
         let* () = check "own" "group coservice of a" a url in
         check "other session without a group" "fallback" b url)
+    ; case "expired session" (fun browser ->
+        (* A persistent session that has expired leaves its group when it is
+           used again, and does not count in the group any more. *)
+        let admin = browser () and a = browser () and b = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = join a "expired-g" in
+        let* _ = text b "/persistent/set?v=b" in
+        let* _ = join b "expired-g" in
+        let* _ = text a "/persistent/timeout?t=1" in
+        let* () =
+          check "before" "2" admin "/group/persistent_sessions?name=expired-g"
+        in
+        let* () = Lwt_unix.sleep 2. in
+        let* () = check "expired" "" a "/persistent/get" in
+        let* () = check "other member" "b" b "/persistent/get" in
+        check "after" "1" admin "/group/persistent_sessions?name=expired-g")
     ; case "close the sessions of a group" (fun browser ->
         (* From outside the group, as Os.Session.disconnect_all does *)
         let admin = browser () and a = browser () and b = browser () in

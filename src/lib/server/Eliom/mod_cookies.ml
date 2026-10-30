@@ -273,7 +273,8 @@ let get_cookie_info
               (fun () ->
                  let hvalue = Common.Hashed_cookies.hash value in
                  let hvalue_string = Common.Hashed_cookies.to_string hvalue in
-                 let* { expiry = persexp
+                 let* { full_state_name
+                      ; expiry = persexp
                       ; timeout = perstimeout
                       ; session_group = sessgrp
                       ; _ }
@@ -281,13 +282,16 @@ let get_cookie_info
                    Persistent_cookies.Cookies.find
                      (Common.Hashed_cookies.to_string hvalue)
                  in
-                 let* () = Mod_sessiongroups.Pers.up hvalue_string sessgrp in
                  match persexp with
                  | Some t when t < now ->
-                     (* session expired by timeout *)
+                     (* session expired by timeout: closed as Mod_gc does, so
+                        that it leaves its session group *)
                      let* () =
-                       Common.Persistent_tables.remove_key_from_all_tables
-                         hvalue_string
+                       Mod_sessiongroups.Pers.close_persistent_session
+                         ~cookie_level:
+                           (Common.cookie_level_of_user_scope
+                              full_state_name.Common.user_scope)
+                         sitedata sessgrp hvalue_string
                      in
                      Lwt.return
                        ( Some
@@ -300,6 +304,9 @@ let get_cookie_info
                                                  remove the cookie *)
                        )
                  | _ ->
+                     let* () =
+                       Mod_sessiongroups.Pers.up hvalue_string sessgrp
+                     in
                      Lwt.return
                        ( Some
                            { Common.ps_value = value
