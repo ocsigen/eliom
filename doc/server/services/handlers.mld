@@ -74,7 +74,7 @@ using polymorphic variant types. You may use constructor functions from {!Eliom.
 {%wodoc:div class="paragraph"%} Runtime choice of content {%wodoc:end%}
 
 ;{!Eliom.Registration.Any}
-: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See {{:https://ocsigen.org/tuto/latest/how-to-register-a-service-that-decides-itself-what-to-send.html}here} for an example of use.
+: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See {{:https://ocsigen.org/tuto/latest/faq.html#choose}here} for an example of use.
 
 {2 Advanced output modules}
 
