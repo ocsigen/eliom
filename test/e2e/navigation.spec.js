@@ -2,19 +2,7 @@
 // new document; history and reload work.
 "use strict";
 const { test, expect } = require("@playwright/test");
-
-// Marks the document shown in [page], for [sameDocument]
-async function markDocument(page) {
-  await page.evaluate(() => {
-    window.e2eDocument = true;
-  });
-}
-
-// Whether [page] still shows the document marked by [markDocument]: a new
-// document does not have the mark
-function sameDocument(page) {
-  return page.evaluate(() => window.e2eDocument === true);
-}
+const { ready, open, markDocument, sameDocument } = require("./helpers");
 
 // Clicks the button of the main page and checks that its counter changes:
 // the client program handles the events of the page
@@ -30,7 +18,7 @@ async function checkIncrement(page) {
 test("the links of the application do not load a document", async ({
   page,
 }) => {
-  await page.goto("/");
+  await open(page, "/");
   await expect(page.locator("#onload")).toHaveText("ran at load");
   await markDocument(page);
   await page.click("#to-two");
@@ -45,7 +33,7 @@ test("the links of the application do not load a document", async ({
 });
 
 test("back and forward", async ({ page }) => {
-  await page.goto("/");
+  await open(page, "/");
   await markDocument(page);
   await page.click("#to-two");
   await expect(page.locator("#title")).toHaveText("two");
@@ -61,7 +49,7 @@ test("back and forward", async ({ page }) => {
 });
 
 test("reload loads the page again", async ({ page }) => {
-  await page.goto("/");
+  await open(page, "/");
   await page.click("#to-two");
   await expect(page.locator("#title")).toHaveText("two");
   await markDocument(page);
@@ -74,7 +62,7 @@ test("reload loads the page again", async ({ page }) => {
 // A general check: the main page opens no Comet channel, unlike os_template
 // where an answer of Comet made the page reload itself
 test("the page does not reload itself", async ({ page }) => {
-  await page.goto("/");
+  await open(page, "/");
   await expect(page.locator("#onload")).toHaveText("ran at load");
   await markDocument(page);
   await page.waitForTimeout(2000);
@@ -82,7 +70,7 @@ test("the page does not reload itself", async ({ page }) => {
 });
 
 test("a link to a page outside the application loads it", async ({ page }) => {
-  await page.goto("/");
+  await open(page, "/");
   await markDocument(page);
   await page.click("#to-server");
   await expect(page).toHaveURL(/\/server$/);
@@ -90,5 +78,7 @@ test("a link to a page outside the application loads it", async ({ page }) => {
   expect(await sameDocument(page)).toBe(false);
   await page.goBack();
   await expect(page.locator("#title")).toHaveText("main");
+  // Going back loads the main page again: wait for its client program
+  await ready(page);
   await checkIncrement(page);
 });

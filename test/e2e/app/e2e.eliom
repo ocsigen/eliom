@@ -34,6 +34,12 @@ let fill id text =
 
 let () = Eliom.Client.onload (fun () -> fill "injection" greeting)
 
+(* Tells the tests that the client program has handled the loaded page *)
+let () =
+  Eliom.Client.onload (fun () ->
+    Js_of_ocaml.Js.Unsafe.set Js_of_ocaml.Js.Unsafe.global "e2eReady"
+      Js_of_ocaml.Js._true)
+
 [%%server.start]
 
 let links () =
