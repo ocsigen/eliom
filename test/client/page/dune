@@ -1,15 +1,10 @@
 ; A page of a test application, whose data scripts page.js runs in the global
 ; scope of Node.js, as a browser does.
 
-(executable
- (name server)
- (modules server)
+(executables
+ (names server page)
+ (modules server page urls js_literal)
  (libraries eliom.server ocsipersist-sqlite eliom_test_server))
-
-(executable
- (name page)
- (modules page)
- (libraries lwt lwt.unix eliom_test_server))
 
 (rule
  (target page.js)
