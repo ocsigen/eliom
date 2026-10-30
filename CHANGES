@@ -484,11 +484,13 @@
    (several processes sharing a database can still lose an update); a
    request of the session already first in the list no longer writes it
    back, and a request of a session that has left the list (closed by the
-   limit while the request runs) no longer puts it back. Closing a group
-   removes its data before its sessions are closed, and keeps a session
-   that joins it meanwhile, and a session that could not be closed. A
-   session missing from the list of its group (possible when several
-   server processes share a database) stays out of it until it expires.
+   limit while the request runs) no longer puts it back. Simultaneous
+   logins of a session list it once: it was listed twice, and took two
+   places in the limit. Closing a group removes its data before its
+   sessions are closed, and keeps a session that joins it meanwhile, and
+   a session that could not be closed. A session missing from the list of
+   its group (possible when several server processes share a database)
+   stays out of it until it expires.
 ** A persistent session found expired at a request is now closed with its
    tab sessions, and leaves its session group, as the collection of
    expired sessions does. Only its data were removed: it stayed in the

@@ -283,6 +283,14 @@ let groups server =
         Alcotest.(check int) "persistent sessions alive" 3 n;
         let+ n = alive "/get" in
         Alcotest.(check int) "data sessions alive" 3 n)
+    ; case "simultaneous logins of a session" (fun browser ->
+        (* Two requests of a session join the group at the same time (a
+           double click, for instance): the session is listed once. *)
+        let admin = browser () and a = browser () in
+        let* _ = text a "/persistent/set?v=a" in
+        let* _ = Lwt.both (join a "twice-g") (join a "twice-g") in
+        check "persistent sessions of the group" "1" admin
+          "/group/persistent_sessions?name=twice-g")
     ; case "group changed by another request" (fun browser ->
         (* The end of a request writes back the persistent session group
            only if the request changed it: here a slow request of the
