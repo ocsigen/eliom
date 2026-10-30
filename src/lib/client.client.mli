@@ -114,7 +114,7 @@ val call_ocaml_service :
 (** Call a server side service that return an OCaml value.
 
     If the service raises an exception, the call to the
-    [call_ocaml_service] raises an exception {!Exception_on_server} whose argument describes the server-side
+    [call_ocaml_service] raises an exception {!Client_value.Exception_on_server} whose argument describes the server-side
     exception.
     (NB that we cannot send the original exception as-it, because
     OCaml permits the marshalling of exceptions ...)
