@@ -20,29 +20,35 @@
 
 open Lwt.Syntax
 
+(* [content_type_with_charset ?charset content_type] is the value of the
+   Content-Type header for [content_type], with [charset] or, for text and XML
+   types, the default charset of the site. *)
+let content_type_with_charset ?charset content_type =
+  let charset =
+    if charset <> None
+    then charset
+    else if
+      String.length content_type >= 5
+      && (String.starts_with ~prefix:"text/" content_type
+         || String.ends_with ~suffix:"/xml" content_type
+         || String.ends_with ~suffix:"=xml" content_type)
+    then
+      (* No charset when the server has no default one *)
+      match Config.get_config_default_charset () with
+      | "" -> None
+      | charset -> Some charset
+    else None
+  in
+  match charset with
+  | Some charset -> Printf.sprintf "%s; charset=%s" content_type charset
+  | None -> content_type
+
 let headers_with_content_type ?charset ?content_type headers =
   match content_type with
   | Some content_type ->
-      let charset =
-        if charset <> None
-        then charset
-        else if
-          String.length content_type >= 5
-          && (String.starts_with ~prefix:"text/" content_type
-             || String.ends_with ~suffix:"/xml" content_type
-             || String.ends_with ~suffix:"=xml" content_type)
-        then
-          (* No charset when the server has no default one *)
-          match Config.get_config_default_charset () with
-          | "" -> None
-          | charset -> Some charset
-        else None
-      in
       Cohttp.Header.replace headers
         Ocsigen_http.Header.Name.(to_string content_type)
-        (match charset with
-        | Some charset -> Printf.sprintf "%s; charset=%s" content_type charset
-        | None -> content_type)
+        (content_type_with_charset ?charset content_type)
   | None -> headers
 
 let result_of_content ?charset ?content_type ?headers ?status body =
@@ -435,15 +441,46 @@ module File_base = struct
         raise Common.Eliom_404
     with
     | Ocsigen.Local_files.RFile fname ->
-        let* res =
+        let headers =
           let headers =
-            Ocsigen_http.Header.of_option headers
-            |> add_cache_header options
-            |> headers_with_content_type ?charset ?content_type
+            Ocsigen_http.Header.of_option headers |> add_cache_header options
           in
-          Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
+          (* [respond_file] keeps a Content-Type of [headers], but an explicit
+             [?content_type] wins over it. *)
+          match content_type with
+          | Some _ ->
+              Cohttp.Header.remove headers
+                Ocsigen_http.Header.Name.(to_string content_type)
+          | None -> headers
         in
-        Lwt.return (Ocsigen.Response.of_cohttp res)
+        let content_type =
+          match content_type with
+          | Some content_type -> content_type_with_charset ?charset content_type
+          | None ->
+              (* The rules of the configuration, as for Staticmod. A charset
+                 given to [send] wins over theirs. *)
+              let {Ocsigen.Extensions.mime_assoc; charset_assoc; _} =
+                request.Ocsigen.Extensions.request_config
+              in
+              let charset_assoc =
+                match charset with
+                | Some charset ->
+                    Ocsigen_http.Charset_mime.empty_charset_assoc
+                      ~default:charset ()
+                | None -> charset_assoc
+              in
+              Ocsigen_http.Charset_mime.content_type ~mime_assoc ~charset_assoc
+                fname
+        in
+        let header name =
+          Ocsigen.Request.header request.Ocsigen.Extensions.request_info name
+        in
+        Ocsigen.Response.respond_file ~headers ~content_type
+          ?if_none_match:(header Ocsigen_http.Header.Name.if_none_match)
+          ?if_modified_since:(header Ocsigen_http.Header.Name.if_modified_since)
+          ?range:(header Ocsigen_http.Header.Name.range)
+          ?if_range:(header Ocsigen_http.Header.Name.if_range)
+          fname
     | Ocsigen.Local_files.RDir _ ->
         (* FIXME COHTTP TRANSITION: implement directories *)
         raise Ocsigen.Local_files.Failed_404

@@ -1,0 +1,13 @@
+; Services sending files: Registration.File and File_ct
+
+(executable
+ (name server)
+ (modules server)
+ (libraries eliom.server ocsipersist-sqlite cohttp eliom_test_server))
+
+(test
+ (name test)
+ (modules test)
+ (package eliom)
+ (deps server.exe)
+ (libraries eliom_test_server lwt.unix alcotest))

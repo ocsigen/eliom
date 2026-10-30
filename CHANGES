@@ -1,6 +1,7 @@
 ===== 13.0~dev =====
 * Dependencies
-** Requires OCaml >= 4.14, Ocsigen Server >= 8.0 (wrapped module names),
+** Requires OCaml >= 4.14, Ocsigen Server >= 8.1 (wrapped module names,
+   and the content types of the configuration for Registration.File),
    TyXML >= 5.0, ocsipersist >= 3.1 (JSON frontends with the Decoding_error
    exception) and js_of_ocaml >= 6.4. BREAKING: TyXML 5 changes some
    element and attribute types; see TyXML's own changelog.
@@ -187,6 +188,12 @@
   content, not only browser content: My_app.send ~code:404 sends a page of
   the application for unknown URLs, which the client-side program displays
   without leaving the application.
+* Registration.File and File_ct send files as Staticmod does: with an ETag
+  and a Last-Modified header, answering conditional requests with 304 and
+  range requests with 206. Without ?content_type, the content type and the
+  charset of a file follow the configuration (<contenttype>, <mimefile>,
+  <charset>), as for static files, instead of the built-in table of
+  magic-mime; ?charset now applies to such files too.
 * Session groups
 ** The sessions that are not in a session group are now counted together
    for the whole site, 1000000 by default, instead of 1000000 per sub

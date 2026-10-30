@@ -41,7 +41,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (js_of_ocaml-tyxml (>= 6.4.0))
   logs
   (tyxml (and (>= 5.0) (< 6.0)))
-  (ocsigenserver (and (>= 8.0) (< 9.0)))
+  (ocsigenserver (and (>= 8.1) (< 9.0)))
   (reactiveData (>= 0.2.1))
   base-bytes
   (ocsipersist (and (>= 3.1) (< 4.0)))
