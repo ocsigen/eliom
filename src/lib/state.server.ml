@@ -317,7 +317,7 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
     match scope with
     | `Session _ -> (
       match !(c.Common.dc_session_group) with
-      | {Common.sg_group = Common.Subnet _; _}
+      | {Common.sg_group = Common.No_group; _}
       (* no group *)
         when Mod_sessiongroups.Data.group_size
                { Common.sg_site_dir = Common.get_site_dir_string sitedata
@@ -355,6 +355,7 @@ let set_service_session_group
       ?secure
       session_group
   =
+  Option.iter (Common.check_limit "State.set_service_session_group") set_max;
   let c =
     Mod_sersess.find_or_create_service_cookie ~set_session_group:session_group
       ~cookie_scope:(scope :> Common.cookie_scope)
@@ -365,7 +366,6 @@ let set_service_session_group
   | Some m -> Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
 
 let unset_service_session_group
-      ?set_max
       ?(scope = Common.default_session_scope)
       ?secure
       ()
@@ -380,11 +380,10 @@ let unset_service_session_group
     in
     let n =
       Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata
-        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info None
+        None
     in
     let node =
-      Mod_sessiongroups.Serv.move ?set_max sitedata
-        c.Common.sc_session_group_node n
+      Mod_sessiongroups.Serv.move sitedata c.Common.sc_session_group_node n
     in
     c.Common.sc_session_group_node <- node;
     c.Common.sc_session_group := n;
@@ -402,7 +401,7 @@ let get_service_session_group ?(scope = Common.default_session_scope) ?secure ()
         ~secure_o:secure ()
     in
     match !(c.Common.sc_session_group) with
-    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.No_group; _} -> None
     | {Common.sg_group = Common.Group_name v; _} -> Some v
   with Not_found | Common.Eliom_Session_expired -> None
 
@@ -418,7 +417,7 @@ let get_service_session_group_size
         ~secure_o:secure ()
     in
     match !(c.Common.sc_session_group) with
-    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.No_group; _} -> None
     | {Common.sg_group = Common.Group_name _; _} ->
         Some (Mod_sessiongroups.Serv.group_size !(c.Common.sc_session_group))
   with Not_found | Common.Eliom_Session_expired -> None
@@ -429,6 +428,9 @@ let set_volatile_data_session_group
       ?secure
       session_group
   =
+  Option.iter
+    (Common.check_limit "State.set_volatile_data_session_group")
+    set_max;
   let c =
     Mod_datasess.find_or_create_data_cookie ~set_session_group:session_group
       ~cookie_scope:(scope :> Common.cookie_scope)
@@ -439,7 +441,6 @@ let set_volatile_data_session_group
   | Some m -> Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m
 
 let unset_volatile_data_session_group
-      ?set_max
       ?(scope = Common.default_session_scope)
       ?secure
       ()
@@ -454,11 +455,10 @@ let unset_volatile_data_session_group
     in
     let n =
       Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata
-        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info None
+        None
     in
     let node =
-      Mod_sessiongroups.Data.move ?set_max sitedata
-        c.Common.dc_session_group_node n
+      Mod_sessiongroups.Data.move sitedata c.Common.dc_session_group_node n
     in
     c.Common.dc_session_group_node <- node;
     c.Common.dc_session_group := n;
@@ -479,7 +479,7 @@ let get_volatile_data_session_group
         ~secure_o:secure ()
     in
     match !(c.Common.dc_session_group) with
-    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.No_group; _} -> None
     | {Common.sg_group = Common.Group_name v; _} -> Some v
   with Not_found | Common.Eliom_Session_expired -> None
 
@@ -495,7 +495,7 @@ let get_volatile_data_session_group_size
         ~secure_o:secure ()
     in
     match !(c.Common.dc_session_group) with
-    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.No_group; _} -> None
     | {Common.sg_group = Common.Group_name _; _} ->
         Some (Mod_sessiongroups.Data.group_size !(c.Common.dc_session_group))
   with Not_found | Common.Eliom_Session_expired -> None
@@ -506,6 +506,9 @@ let set_persistent_data_session_group
       ?secure
       n
   =
+  Option.iter
+    (Option.iter (Common.check_limit "State.set_persistent_data_session_group"))
+    set_max;
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let* c =
@@ -587,9 +590,15 @@ let get_persistent_data_session_group
       | exc -> Lwt.fail exc)
 
 (* max *)
+(* [limit_sitedata name n] is the current site, if [n] is a valid limit for
+   the function [name] *)
+let limit_sitedata name n =
+  Common.check_limit ("State." ^ name) n;
+  Request_info.find_sitedata name
+
 let set_default_max_service_sessions_per_group ?(override_configfile = false) n =
   let sitedata =
-    Request_info.find_sitedata "set_default_max_service_sessions_per_group"
+    limit_sitedata "set_default_max_service_sessions_per_group" n
   in
   sitedata.Common.max_service_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -600,8 +609,7 @@ let set_default_max_volatile_data_sessions_per_group
       n
   =
   let sitedata =
-    Request_info.find_sitedata
-      "set_default_max_volatile_data_sessions_per_group"
+    limit_sitedata "set_default_max_volatile_data_sessions_per_group" n
   in
   sitedata.Common.max_volatile_data_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -611,6 +619,10 @@ let set_default_max_persistent_data_sessions_per_group
       ?(override_configfile = false)
       n
   =
+  Option.iter
+    (Common.check_limit
+       "State.set_default_max_persistent_data_sessions_per_group")
+    n;
   let sitedata =
     Request_info.find_sitedata
       "set_default_max_persistent_data_sessions_per_group"
@@ -619,41 +631,65 @@ let set_default_max_persistent_data_sessions_per_group
     Common.set_configured ~override:override_configfile
       sitedata.Common.max_persistent_data_sessions_per_group n
 
-let set_default_max_service_sessions_per_subnet ?(override_configfile = false) n
-  =
-  let sitedata =
-    Request_info.find_sitedata "set_default_max_service_sessions_per_subnet"
-  in
-  sitedata.Common.max_service_sessions_per_subnet <-
-    Common.set_configured ~override:override_configfile
-      sitedata.Common.max_service_sessions_per_subnet n
+(* The sessions without a group of the site are in one group, created with
+   the first of them: a new limit applies to it at once. Before the site is
+   linked to the application, there is no session yet. *)
+let sessions_without_group name n =
+  let sitedata = limit_sitedata name n in
+  ( sitedata
+  , Option.map
+      (fun sg_site_dir ->
+         {Common.sg_site_dir; sg_level = `Session; sg_group = Common.No_group})
+      sitedata.Common.site_dir_string )
 
-let set_default_max_volatile_data_sessions_per_subnet
+let set_default_max_service_sessions_without_group
       ?(override_configfile = false)
       n
   =
-  let sitedata =
-    Request_info.find_sitedata
-      "set_default_max_volatile_data_sessions_per_subnet"
+  let sitedata, group =
+    sessions_without_group "set_default_max_service_sessions_without_group" n
   in
-  sitedata.Common.max_volatile_data_sessions_per_subnet <-
+  sitedata.Common.max_service_sessions_without_group <-
     Common.set_configured ~override:override_configfile
-      sitedata.Common.max_volatile_data_sessions_per_subnet n
+      sitedata.Common.max_service_sessions_without_group n;
+  Option.iter
+    (fun g ->
+       Mod_sessiongroups.Serv.set_group_max g
+         sitedata.Common.max_service_sessions_without_group.Common.cf_value)
+    group
+
+let set_default_max_volatile_data_sessions_without_group
+      ?(override_configfile = false)
+      n
+  =
+  let sitedata, group =
+    sessions_without_group
+      "set_default_max_volatile_data_sessions_without_group" n
+  in
+  sitedata.Common.max_volatile_data_sessions_without_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_sessions_without_group n;
+  Option.iter
+    (fun g ->
+       Mod_sessiongroups.Data.set_group_max g
+         sitedata.Common.max_volatile_data_sessions_without_group
+           .Common.cf_value)
+    group
 
 let set_default_max_volatile_sessions_per_group ?override_configfile n =
   set_default_max_service_sessions_per_group ?override_configfile n;
   set_default_max_volatile_data_sessions_per_group ?override_configfile n
 
-let set_default_max_volatile_sessions_per_subnet ?override_configfile n =
-  set_default_max_service_sessions_per_subnet ?override_configfile n;
-  set_default_max_volatile_data_sessions_per_subnet ?override_configfile n
+let set_default_max_volatile_sessions_without_group ?override_configfile n =
+  set_default_max_service_sessions_without_group ?override_configfile n;
+  set_default_max_volatile_data_sessions_without_group ?override_configfile n
 
 let set_default_max_service_tab_sessions_per_group
       ?(override_configfile = false)
       n
   =
   let sitedata =
-    Request_info.find_sitedata "set_default_max_service_tab_sessions_per_group"
+    limit_sitedata "set_default_max_service_tab_sessions_per_group" n
   in
   sitedata.Common.max_service_tab_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -664,8 +700,7 @@ let set_default_max_volatile_data_tab_sessions_per_group
       n
   =
   let sitedata =
-    Request_info.find_sitedata
-      "set_default_max_volatile_data_tab_sessions_per_group"
+    limit_sitedata "set_default_max_volatile_data_tab_sessions_per_group" n
   in
   sitedata.Common.max_volatile_data_tab_sessions_per_group <-
     Common.set_configured ~override:override_configfile
@@ -675,6 +710,10 @@ let set_default_max_persistent_data_tab_sessions_per_group
       ?(override_configfile = false)
       n
   =
+  Option.iter
+    (Common.check_limit
+       "State.set_default_max_persistent_data_tab_sessions_per_group")
+    n;
   let sitedata =
     Request_info.find_sitedata
       "set_default_max_persistent_data_tab_sessions_per_group"
@@ -687,51 +726,68 @@ let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
   set_default_max_service_tab_sessions_per_group ?override_configfile n;
   set_default_max_volatile_data_tab_sessions_per_group ?override_configfile n
 
-let set_ipv4_subnet_mask ?(override_configfile = false) n =
-  let sitedata = Request_info.find_sitedata "set_ipv4_subnet_mask" in
-  sitedata.Common.ipv4mask <-
-    Common.set_configured ~override:override_configfile sitedata.Common.ipv4mask
-      (Some n)
-
-let set_ipv6_subnet_mask ?(override_configfile = false) n =
-  let sitedata = Request_info.find_sitedata "set_ipv6_subnet_mask" in
-  sitedata.Common.ipv6mask <-
-    Common.set_configured ~override:override_configfile sitedata.Common.ipv6mask
-      (Some n)
-
-let set_max_service_states_for_group_or_subnet ~scope ?secure m =
-  let cookie_scope = Common.cookie_scope_of_user_scope scope in
-  let c =
-    Mod_sersess.find_or_create_service_cookie ~secure_o:secure ~cookie_scope ()
+let set_default_max_anonymous_services_per_site ?(override_configfile = false) n
+  =
+  let sitedata =
+    limit_sitedata "set_default_max_anonymous_services_per_site" n
   in
-  match scope with
-  | `Session_group _ -> (
-    match
-      Mod_sessiongroups.Serv.find_node_in_group_of_groups
-        !(c.Common.sc_session_group)
-    with
-    | Some (_, node) -> Mod_sessiongroups.Serv.set_max node m
-    | _ -> ())
-  | _ -> Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
+  sitedata.Common.max_anonymous_services_per_site <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_anonymous_services_per_site n;
+  Common.set_max_anonymous_services sitedata.Common.anonymous_services
+    sitedata.Common.max_anonymous_services_per_site.Common.cf_value
 
-let set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m =
-  let cookie_scope = Common.cookie_scope_of_user_scope scope in
-  let c =
-    Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o:secure ()
-  in
-  match scope with
-  | `Session_group _ -> (
-    match
-      Mod_sessiongroups.Data.find_node_in_group_of_groups
-        !(c.Common.dc_session_group)
-    with
-    | Some node -> Mod_sessiongroups.Data.set_max node m
-    | _ -> ())
-  | _ -> Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m
+(* The parent of the session groups is the group of groups of the site *)
+let set_max_groups_of_site name m =
+  let sitedata = Request_info.find_sitedata name in
+  ignore
+    (Ocsigen_base.Cache.Dlist.set_maxsize sitedata.Common.group_of_groups m)
 
-let set_max_volatile_states_for_group_or_subnet ~scope ?secure m =
-  set_max_service_states_for_group_or_subnet ~scope ?secure m;
-  set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m
+(* [set_max_in_parent name ~scope session_group set_max] calls [set_max ()],
+   which sets the maximum size of the parent of the current state of scope
+   [scope], whose session group is [session_group]. A session without a
+   group has no parent of its own: the sessions without a group of the site
+   are not limited this way. *)
+let set_max_in_parent name ~scope session_group set_max =
+  match scope, session_group with
+  | `Session _, {Common.sg_group = Common.No_group; _} ->
+      Logs.warn ~src:eliom_logs_src (fun fmt ->
+        fmt
+          "State.%s: the session is not in a session group, the limit is not changed"
+          name)
+  | _ -> set_max ()
+
+let set_max_service_states_in_parent ~scope ?secure m =
+  let name = "set_max_service_states_in_parent" in
+  Common.check_limit ("State." ^ name) m;
+  match scope with
+  | `Session_group _ -> set_max_groups_of_site name m
+  | `Session _ | `Client_process _ ->
+      let c =
+        Mod_sersess.find_or_create_service_cookie ~secure_o:secure
+          ~cookie_scope:(Common.cookie_scope_of_user_scope scope)
+          ()
+      in
+      set_max_in_parent name ~scope !(c.Common.sc_session_group) (fun () ->
+        Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m)
+
+let set_max_volatile_data_states_in_parent ~scope ?secure m =
+  let name = "set_max_volatile_data_states_in_parent" in
+  Common.check_limit ("State." ^ name) m;
+  match scope with
+  | `Session_group _ -> set_max_groups_of_site name m
+  | `Session _ | `Client_process _ ->
+      let c =
+        Mod_datasess.find_or_create_data_cookie
+          ~cookie_scope:(Common.cookie_scope_of_user_scope scope)
+          ~secure_o:secure ()
+      in
+      set_max_in_parent name ~scope !(c.Common.dc_session_group) (fun () ->
+        Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m)
+
+let set_max_volatile_states_in_parent ~scope ?secure m =
+  set_max_service_states_in_parent ~scope ?secure m;
+  set_max_volatile_data_states_in_parent ~scope ?secure m
 
 (*VVV No version for persistent sessions? Why? *)
 
@@ -772,21 +828,28 @@ let get_global_table () =
 
 (** If the session does not exist, we create it
    (new cookie, new session service table) *)
-let get_session_service_table ~sp ~scope ?secure () =
-  let cookie_scope = Common.cookie_scope_of_user_scope scope in
-  let c =
-    Mod_sersess.find_or_create_service_cookie ~cookie_scope ~secure_o:secure ~sp
-      ()
-  in
-  match scope with
-  | `Session_group _ -> (
+let session_service_table ~scope c =
+  match scope, !(c.Common.sc_session_group) with
+  | `Session_group _, {Common.sg_group = Common.Group_name _; _} -> (
     match
       Mod_sessiongroups.Serv.find_node_in_group_of_groups
         !(c.Common.sc_session_group)
     with
     | None -> raise Not_found
     | Some (t, _) -> t)
+  | `Session_group _, {Common.sg_group = Common.No_group; _} ->
+      (* No session group has been set: the session is its own group, as for
+         the data of the group scope. *)
+      c.Common.sc_table
   | _ -> c.Common.sc_table
+
+let get_session_service_table ~sp ~scope ?secure () =
+  let cookie_scope = Common.cookie_scope_of_user_scope scope in
+  let c =
+    Mod_sersess.find_or_create_service_cookie ~cookie_scope ~secure_o:secure ~sp
+      ()
+  in
+  session_service_table ~scope c
 
 (** If the session does not exist, we raise Not_found *)
 let get_session_service_table_if_exists ~sp ~scope ?secure () =
@@ -795,15 +858,7 @@ let get_session_service_table_if_exists ~sp ~scope ?secure () =
     let c =
       Mod_sersess.find_service_cookie_only ~cookie_scope ~secure_o:secure ~sp ()
     in
-    match scope with
-    | `Session_group _ -> (
-      match
-        Mod_sessiongroups.Serv.find_node_in_group_of_groups
-          !(c.Common.sc_session_group)
-      with
-      | None -> raise Not_found
-      | Some (t, _) -> t)
-    | _ -> c.Common.sc_table
+    session_service_table ~scope c
   with Common.Eliom_Session_expired -> raise Not_found
 
 (*****************************************************************************)
@@ -1471,12 +1526,7 @@ module Ext = struct
     (* A group with service and data sessions has an entry for each kind *)
     List.sort_uniq String.compare
       (Ocsigen_base.Cache.Dlist.fold
-         (fun l -> function
-            | { Common.gg_group =
-                  {Common.sg_level = `Session; sg_group = Common.Group_name s; _}
-              ; _ } ->
-                s :: l
-            | _ -> l)
+         (fun l {Common.gg_name; _} -> gg_name :: l)
          [] dl)
 
   (** Iterator on service cookies *)

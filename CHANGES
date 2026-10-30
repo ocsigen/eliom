@@ -187,6 +187,67 @@
   content, not only browser content: My_app.send ~code:404 sends a page of
   the application for unknown URLs, which the client-side program displays
   without leaving the application.
+* Session groups
+** The sessions that are not in a session group are now counted together
+   for the whole site, 1000000 by default, instead of 1000000 per sub
+   network of the client. The sub network was the one of the reverse proxy
+   for every client, or one of the many an IPv6 client has, so the limit
+   neither bounded the memory of the server nor isolated an attacker from
+   the other users. New names:
+   State.set_default_max_volatile_sessions_without_group (and the service
+   and data variants), and the option <maxvolatilesessionswithoutgroup>
+   (and <maxservicesessionswithoutgroup>, <maxdatasessionswithoutgroup>),
+   which apply at once, also when the server reads the configuration of
+   a site again. The old names are removed, as are the sub networks of the
+   sessions; an old option is a configuration error, also in the
+   configuration of a site. Common.session_group has No_group instead of
+   Subnet. The group of the sessions without a group is not one of the
+   groups of the site: when the site has too many groups, it is not closed
+   with all its sessions at once. A service registered with the
+   session-group scope for a session without a group is registered for the
+   session, as the data of the group scope are.
+** The anonymous coservices registered in the global table during
+   requests are now limited for the whole site, 500000 by default, instead
+   of 500000 per sub network of the client, for the same reasons as the
+   sessions without a group. The anonymous coservices registered during
+   the initialisation of the site are no longer counted: they shared the
+   list of the clients connected through a Unix socket or from ::1 (all
+   the clients of a reverse proxy connected that way), and requests could
+   remove them. The option <maxanonymouscoservicespersubnet> becomes
+   <maxanonymouscoservicespersite>, and the new
+   State.set_default_max_anonymous_services_per_site sets this limit. The options
+   <ipv4subnetmask> and <ipv6subnetmask>, and
+   State.set_ipv4_subnet_mask and set_ipv6_subnet_mask, are removed: an
+   old option is a configuration error. Eliom no longer depends on ipaddr.
+** State.set_max_*_states_for_group_or_subnet are renamed
+   set_max_*_states_in_parent. With a session scope, for a session that is
+   not in a group, they no longer change the limit of all the sessions
+   without a group (a warning is logged); with a session group scope, they
+   change the limit of groups of the site also for a session without a
+   group. The optional parameter ?set_max of
+   State.unset_service_session_group and unset_volatile_data_session_group
+   is removed: it set the limit of the sessions without a group.
+** The services registered with the session-group scope are now found.
+   Eliom looked for services in the tables of the sessions and in the
+   global table only, never in the table of a group.
+** When a site has too many session groups (<maxvolatilegroupspersite>,
+   State.set_max_*_states_in_parent with a session-group scope), the group
+   used least recently is closed: a request of a session of a group moves
+   the group up. The oldest group was closed, even if it was in use.
+** The maximum numbers of sessions, session groups and anonymous
+   coservices must be positive: State.set_default_max_*,
+   set_max_*_states_in_parent, the ?set_max parameters of the functions
+   setting a session group, Config.set_max_*, App.run and the options of
+   the configuration file reject 0 or less (Invalid_argument, or a
+   configuration error). A limit of 0 behaved as 1, or raised
+   Failure "Dlist.set_maxsize" on a group that was not empty. In the
+   configuration of a site, an option of Eliom with a wrong value is now
+   an error too: it was left to the Eliom modules, and ignored.
+** The default maximum number of tab sessions in a browser session is now
+   100 instead of 50. A closed tab does not tell the server, so the limit
+   must exceed the number of tabs of the site that a user keeps open at
+   the same time; beyond it, the tab session used least recently is
+   closed.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
@@ -213,11 +274,12 @@
 ** State.set_default_global_persistent_data_state_timeout now sets the
    default timeout of persistent states. It used to set the default
    timeout of service states.
-** State.set_max_service_states_for_group_or_subnet and
-   set_max_volatile_data_states_for_group_or_subnet with a session group
-   scope now change the maximum number of session groups of the site also
-   when the group has no state of the other kind. They looked the group up
-   in each other's table, and did nothing in that case.
+** State.set_max_service_states_in_parent and
+   set_max_volatile_data_states_in_parent (then named
+   set_max_*_states_for_group_or_subnet) with a session group scope now
+   change the maximum number of session groups of the site also when the
+   group has no state of the other kind. They looked the group up in
+   each other's table, and did nothing in that case.
 ** State.unset_service_session_group now keeps a browser service session
    that still has tab service sessions. It used to count the tab data
    sessions instead, and could close a browser session in use.
@@ -336,8 +398,8 @@
    they did nothing: neither the data (volatile and persistent) nor the
    services of the group and of its sessions were removed. A session that
    is not in a session group is closed alone: it is its own group, as for the
-   data of the group scope (the automatic group of such sessions, their
-   subnet, holds the sessions of other users).
+   data of the group scope (the automatic group of such sessions holds the
+   sessions of other users).
 ** A form submitted through XHR by an image button (Form.image_input)
    sends the point of the click as name.x and name.y, as a native
    submission does, so that the service receives its
@@ -414,6 +476,33 @@
    could be before the application configured Ocsipersist (the location of
    the SQLite database, for instance): the reference then failed for good,
    or used another database.
+** The list of the persistent sessions of a group is no longer overwritten
+   by simultaneous requests of the group, such as two logins of the same
+   user at the same time: a session dropped from the list escaped the
+   limit of the group and State.discard with the group scope. The
+   operations on a group are now serialised within a server process
+   (several processes sharing a database can still lose an update); a
+   request of the session already first in the list no longer writes it
+   back, and a request of a session that has left the list (closed by the
+   limit while the request runs) no longer puts it back. Closing a group
+   removes its data before its sessions are closed, and keeps a session
+   that joins it meanwhile, and a session that could not be closed. A
+   session missing from the list of its group (possible when several
+   server processes share a database) stays out of it until it expires.
+** A persistent session found expired at a request is now closed with its
+   tab sessions, and leaves its session group, as the collection of
+   expired sessions does. Only its data were removed: it stayed in the
+   list of its group, where it counted in the limit of the group.
+** The end of a request no longer writes back the session group of its
+   persistent session when the request did not change it: it could undo
+   the change made meanwhile by another request of the session
+   (State.set_persistent_data_session_group or
+   unset_persistent_data_session_group), and the session then belonged to
+   a group without being in its list.
+** The maximum number of persistent tab sessions in a browser session is
+   now the one set for tab sessions (<maxpersistenttabsessionspergroup>,
+   State.set_default_max_persistent_data_tab_sessions_per_group, 100 by
+   default). The maximum number of sessions in a group applied instead.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

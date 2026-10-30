@@ -51,27 +51,35 @@ let set_persistent_timeout ?scope_hierarchy ~cookie_level v =
   Mod_timeouts.set_default ?scope_hierarchy `Persistent cookie_level v
 
 let set_max_service_sessions_per_group v =
+  Common.check_limit "Config.set_max_service_sessions_per_group" v;
   Mod_main.default_max_service_sessions_per_group := v
 
 let set_max_volatile_data_sessions_per_group v =
+  Common.check_limit "Config.set_max_volatile_data_sessions_per_group" v;
   Mod_main.default_max_volatile_data_sessions_per_group := v
 
 let set_max_persistent_data_sessions_per_group v =
+  Common.check_limit "Config.set_max_persistent_data_sessions_per_group" v;
   Mod_main.default_max_persistent_data_sessions_per_group := v
 
 let set_max_service_tab_sessions_per_group v =
+  Common.check_limit "Config.set_max_service_tab_sessions_per_group" v;
   Mod_main.default_max_service_tab_sessions_per_group := v
 
 let set_max_volatile_data_tab_sessions_per_group v =
+  Common.check_limit "Config.set_max_volatile_data_tab_sessions_per_group" v;
   Mod_main.default_max_volatile_data_tab_sessions_per_group := v
 
 let set_max_persistent_data_tab_sessions_per_group v =
+  Common.check_limit "Config.set_max_persistent_data_tab_sessions_per_group" v;
   Mod_main.default_max_persistent_data_tab_sessions_per_group := v
 
 let set_max_anonymous_services_per_session v =
+  Common.check_limit "Config.set_max_anonymous_services_per_session" v;
   Mod_main.default_max_anonymous_services_per_session := v
 
 let set_max_volatile_groups_per_site v =
+  Common.check_limit "Config.set_max_volatile_groups_per_site" v;
   Mod_main.default_max_volatile_groups_per_site := v
 
 let set_secure_cookies v = Mod_main.default_secure_cookies := v

@@ -68,10 +68,11 @@ let close_data_state ~scope ~secure_o ?sp () =
                 Logs.err ~src:eliom_logs_src (fun fmt ->
                   fmt "No group of groups. Please report this problem.")
             | Some g -> Mod_sessiongroups.Data.remove g)
-          | {Common.sg_group = Common.Subnet _; _} ->
-              (* Without a session group, the group of the session is its
-                 subnet, which holds the sessions of other users: the session
-                 is its own group, as for the data of the group scope. *)
+          | {Common.sg_group = Common.No_group; _} ->
+              (* Without a session group, the session is counted with the
+                 sessions without a group of the site, which belong to other
+                 users: the session is its own group, as for the data of the
+                 group scope. *)
               Mod_sessiongroups.Data.remove c.Common.dc_session_group_node)
         | `Session _ | `Client_process _ ->
             (* If we want to close a (tab/browser) session, the node is found
@@ -83,8 +84,7 @@ let close_data_state ~scope ~secure_o ?sp () =
 
 let fullsessgrp ~cookie_level ~sp set_session_group =
   Mod_sessiongroups.make_full_group_name ~cookie_level
-    ~sitedata:sp.Common.sp_sitedata
-    sp.Common.sp_request.Ocsigen.Extensions.request_info set_session_group
+    ~sitedata:sp.Common.sp_sitedata set_session_group
 
 let rec find_or_create_data_cookie
           ?set_session_group

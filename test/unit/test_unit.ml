@@ -1,3 +1,10 @@
+(* The persistent data of the tests go to a database of their own, set
+   before any test opens it *)
+let () =
+  let file = Filename.temp_file "eliom_test_unit" ".sqlite" in
+  Ocsipersist_settings.set_db_file file;
+  at_exit (fun () -> Sys.remove file)
+
 let () =
   Alcotest.run "eliom-unit"
     [ Test_parameter.suite

@@ -300,9 +300,10 @@ module SessionCookies : Hashtbl.S with type key = string
 (* session groups *)
 type session_group =
   | Group_name of string
-  | Subnet of Ipaddr.t
-  (** The group of a session: a named group or, for sessions that are not in a
-    group, the subnet of the client. *)
+  | No_group
+  (** The group of a session: a named group or, for the sessions that are not
+    in a group, the automatic group of the site, which limits their number
+    together. *)
 
 type full_session_group =
   {sg_site_dir : string; sg_level : cookie_level; sg_group : session_group}
@@ -315,8 +316,8 @@ type 'a sessgrp = full_session_group
 (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
-       If there is no session group,
-       we limit the number of sessions by IP address. *)
+       Persistent sessions without a group are in no group (None),
+       and their number is not limited. *)
 type perssessgrp (* the same information, JSON-encoded *) [@@deriving json]
 
 val make_persistent_full_group_name :
@@ -326,6 +327,12 @@ val make_persistent_full_group_name :
   -> perssessgrp option
 
 val getperssessgrp : perssessgrp -> 'a sessgrp
+
+val name_of_perssessgrp : perssessgrp -> string
+(** [name_of_perssessgrp g] is the name of the persistent session group [g].
+
+    @raise Eliom_Session_expired if [g] cannot be read. *)
+
 val string_of_perssessgrp : perssessgrp -> string
 
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
@@ -444,7 +451,10 @@ type page_table_key = {key_state : att_key_serv * att_key_serv; key_meth : meth}
 module NAserv_Table : Map.S with type key = na_key_serv
 module Serv_Table : Map.S with type key = page_table_key
 
-type dlist_ip_table
+type anonymous_services
+(** The anonymous coservices of the global table of a site created during
+    requests, limited for the whole site. *)
+
 type anon_params_type = int
 type node_ref = string
 type node_info = {ni_id : node_ref; mutable ni_sent : bool}
@@ -477,6 +487,13 @@ val set_configured : override:bool -> 'a configured -> 'a -> 'a configured
     the configuration file and [override] is false. *)
 
 val configured_of_pair : 'a * bool -> 'a configured
+
+val check_limit : string -> int -> unit
+(** [check_limit name n] checks that [n], a maximum number of sessions,
+    groups or services, is positive.
+
+    @raise Invalid_argument with a message naming the function [name]
+    otherwise. *)
 
 type site_timeouts =
   { browser_default : float option configured option
@@ -578,11 +595,10 @@ and tables =
     *)
   }
 
-(* An entry of the group of groups of a site: a group of browser sessions of
-   one kind. The service sessions and the data sessions of a group are in
-   two distinct entries. *)
-and group_of_groups_entry =
-  {gg_kind : [`Service | `Data]; gg_group : [`Session_group] sessgrp}
+(* An entry of the group of groups of a site: the named group of browser
+   sessions of one kind. The service sessions and the data sessions of a
+   group are in two distinct entries. *)
+and group_of_groups_entry = {gg_kind : [`Service | `Data]; gg_name : string}
 
 and sitedata =
   { mutable site_dir : Url.path option
@@ -615,20 +631,18 @@ and sitedata =
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int configured
-  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_sessions_without_group : int configured
   ; mutable max_volatile_data_tab_sessions_per_group : int configured
   ; mutable max_service_sessions_per_group : int configured
-  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_sessions_without_group : int configured
   ; mutable max_service_tab_sessions_per_group : int configured
   ; mutable max_persistent_data_sessions_per_group : int option configured
   ; mutable max_persistent_data_tab_sessions_per_group : int option configured
   ; mutable max_anonymous_services_per_session : int configured
-  ; mutable max_anonymous_services_per_subnet : int configured
+  ; mutable max_anonymous_services_per_site : int configured
   ; mutable secure_cookies : bool
   ; (* Use secure cookies (default is false). *)
-    dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option configured
-  ; mutable ipv6mask : int option configured
+    anonymous_services : anonymous_services
   ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
@@ -667,7 +681,21 @@ val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> 'a dircontent
 val empty_naservice_table : unit -> naservice_table
 val service_tables_are_empty : tables -> bool
-val empty_tables : int -> bool -> tables
+
+val empty_tables : int -> tables
+(** [empty_tables max] are the empty service tables of a session, with at
+    most [max] anonymous coservices. *)
+
+val global_tables : int -> tables * anonymous_services
+(** [global_tables max] are the empty global service tables of a site, and
+    the list of the anonymous coservices created in them during requests,
+    at most [max]. The anonymous coservices created during the
+    initialisation of the site are not limited. *)
+
+val set_max_anonymous_services : anonymous_services -> int -> unit
+(** [set_max_anonymous_services l max] sets the maximum size of [l]: beyond
+    it, the coservices used least recently are removed. *)
+
 val new_service_session_tables : sitedata -> tables
 
 val split_prefix_param :
@@ -788,21 +816,6 @@ val remove_naservice_table :
    naservice_table
   -> NAserv_Table.key
   -> naservice_table
-
-val get_mask4 : sitedata -> int
-val get_mask6 : sitedata -> int
-val network_of_request : Ocsigen.Request.t -> mask4:int -> mask6:int -> Ipaddr.t
-val ipv4mask : int ref
-val ipv6mask : int ref
-val create_dlist_ip_table : int -> dlist_ip_table
-
-val find_dlist_ip_table :
-   mask4:int
-  -> mask6:int
-  -> dlist_ip_table
-  -> Ipaddr.t
-  -> (page_table ref * page_table_key, na_key_serv) Either.t
-       Ocsigen_base.Cache.Dlist.t
 
 val get_cookie_info : server_params -> [< cookie_level] -> tables cookie_info
 

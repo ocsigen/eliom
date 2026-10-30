@@ -27,6 +27,25 @@ let () =
 let () =
   string (get ["tab"; "get"] P.unit) (fun () () -> text (V.get tab_value))
 
+let persistent_tab_value =
+  Reference.eref ~scope:tab_scope
+    ~persistent:("test_tab_value", [%json: string])
+    ""
+
+let () =
+  string
+    (get ["tab"; "persistent"; "set"] P.(string "v"))
+    (fun v () ->
+       let* () = Reference.set persistent_tab_value v in
+       text "set")
+
+let () =
+  string
+    (get ["tab"; "persistent"; "get"] P.unit)
+    (fun () () ->
+       let* v = Reference.get persistent_tab_value in
+       text v)
+
 let () =
   string
     (get ["session"; "set"] P.(string "v"))
@@ -52,6 +71,17 @@ let () =
        Registration.String.register ~scope:tab_scope ~service (fun () () ->
          text "coservice of the tab");
        text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+
+(* The maximum number of tabs of the browser session of the request *)
+
+let () =
+  string
+    (get ["tab"; "max"] P.(int "n"))
+    (fun n () ->
+       State.set_max_volatile_states_in_parent
+         ~scope:(tab_scope :> Common.user_scope)
+         n;
+       text "set")
 
 let () =
   string

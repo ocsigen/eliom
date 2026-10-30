@@ -100,7 +100,6 @@ let fullsessgrp ~cookie_level ~sp session_group =
     session_group
 
 let rec find_or_create_persistent_cookie_
-          ?set_max_in_group
           ?set_session_group
           ~cookie_scope
           ~secure_o
@@ -117,10 +116,8 @@ let rec find_or_create_persistent_cookie_
                    browser session cookie
                    and put the tab session into it. *)
           let* r =
-            find_or_create_persistent_cookie_
-              ~set_max_in_group:
-                sitedata.Common.max_persistent_data_tab_sessions_per_group
-                  .Common.cf_value ~cookie_scope:(`Session n) ~secure_o ~sp ()
+            find_or_create_persistent_cookie_ ~cookie_scope:(`Session n)
+              ~secure_o ~sp ()
           in
           Lwt.return_some Common.(Hashed_cookies.to_string r.pc_hvalue)
       | _ -> Lwt.return set_session_group
@@ -143,11 +140,15 @@ let rec find_or_create_persistent_cookie_
           timeout = Common.TGlobal
         ; session_group = fullsessgrp }
     in
-    let* l =
-      Mod_sessiongroups.Pers.add ?set_max:set_max_in_group
-        sitedata.Common.max_persistent_data_sessions_per_group.Common.cf_value
-        hc_string fullsessgrp
+    let default_max =
+      match cookie_level with
+      | `Session ->
+          sitedata.Common.max_persistent_data_sessions_per_group.Common.cf_value
+      | `Client_process ->
+          sitedata.Common.max_persistent_data_tab_sessions_per_group
+            .Common.cf_value
     in
+    let* l = Mod_sessiongroups.Pers.add default_max hc_string fullsessgrp in
     let* () =
       Lwt_list.iter_p
         (close_persistent_state_of_cookie

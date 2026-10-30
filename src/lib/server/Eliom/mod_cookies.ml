@@ -117,13 +117,27 @@ module Persistent_cookies = struct
     in
     Cookies.add cookie content
 
-  let replace_if_exists cookie ({expiry; _} as content) =
-    let* () =
-      match expiry with
-      | Some t -> Expiry_dates.add_cookie t cookie
-      | None -> Lwt.return_unit
-    in
-    Cookies.replace_if_exists cookie content
+  (* Never inserts the cookie: [replace_if_exists] only updates an existing
+     entry, so a session closed between the reading and the writing stays
+     closed. [modify_opt] would not do: the PostgreSQL backend writes its
+     result with an insertion, without locking the entry it has read. *)
+  let update cookie ~expiry ~timeout ?session_group () =
+    Lwt.catch
+      (fun () ->
+         let* c = Cookies.find cookie in
+         let* () =
+           match expiry with
+           | Some t -> Expiry_dates.add_cookie t cookie
+           | None -> Lwt.return_unit
+         in
+         Cookies.replace_if_exists cookie
+           { c with
+             expiry
+           ; timeout
+           ; session_group = Option.value session_group ~default:c.session_group
+           })
+      (function
+        | Not_found -> Lwt.return_unit (* closed meanwhile *) | e -> Lwt.fail e)
 
   let garbage_collect ~section gc_cookie =
     let now = Unix.gettimeofday () in
@@ -166,6 +180,7 @@ let get_cookie_info
                (Common.Hashed_cookies.to_string hvalue)
            in
            Mod_sessiongroups.Serv.up session_group_node;
+           Mod_sessiongroups.Serv.up_group !session_group;
            match !expiry with
            | Some t when t < now ->
                (* session expired by timeout *)
@@ -227,6 +242,7 @@ let get_cookie_info
                   (Common.Hashed_cookies.to_string hvalue)
               in
               Mod_sessiongroups.Data.up session_group_node;
+              Mod_sessiongroups.Data.up_group !session_group;
               match !expiry with
               | Some t when t < now ->
                   (* session expired by timeout *)
@@ -271,7 +287,8 @@ let get_cookie_info
               (fun () ->
                  let hvalue = Common.Hashed_cookies.hash value in
                  let hvalue_string = Common.Hashed_cookies.to_string hvalue in
-                 let* { expiry = persexp
+                 let* { full_state_name
+                      ; expiry = persexp
                       ; timeout = perstimeout
                       ; session_group = sessgrp
                       ; _ }
@@ -279,13 +296,16 @@ let get_cookie_info
                    Persistent_cookies.Cookies.find
                      (Common.Hashed_cookies.to_string hvalue)
                  in
-                 let* () = Mod_sessiongroups.Pers.up hvalue_string sessgrp in
                  match persexp with
                  | Some t when t < now ->
-                     (* session expired by timeout *)
+                     (* session expired by timeout: closed as Mod_gc does, so
+                        that it leaves its session group *)
                      let* () =
-                       Common.Persistent_tables.remove_key_from_all_tables
-                         hvalue_string
+                       Mod_sessiongroups.Pers.close_persistent_session
+                         ~cookie_level:
+                           (Common.cookie_level_of_user_scope
+                              full_state_name.Common.user_scope)
+                         sitedata sessgrp hvalue_string
                      in
                      Lwt.return
                        ( Some
@@ -298,6 +318,9 @@ let get_cookie_info
                                                  remove the cookie *)
                        )
                  | _ ->
+                     let* () =
+                       Mod_sessiongroups.Pers.up hvalue_string sessgrp
+                     in
                      Lwt.return
                        ( Some
                            { Common.ps_value = value

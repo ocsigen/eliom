@@ -46,7 +46,9 @@ val run :
     [Ocsipersist_settings.set_db_file] for [ocsipersist-sqlite] (see the
     {{!//workflow/page-configuration.no_config_file}manual}).
     Default value of [?app] is [default_app_name].
-    Other optional values correspond to Eliom configuration for this site.
+    Other optional values correspond to Eliom configuration for this site;
+    the maximum numbers of sessions and services must be positive ([run]
+    raises [Invalid_argument] otherwise).
 
     As for a site of a configuration file, the services with a path created
     during the initialisation of the application must be registered by then:

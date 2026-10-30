@@ -27,7 +27,6 @@ val make_full_named_group_name_ :
 val make_full_group_name :
    cookie_level:Common.cookie_level
   -> sitedata:Common.sitedata
-  -> Ocsigen.Request.t
   -> string option
   -> Common.scope Common.sessgrp
 
@@ -43,8 +42,7 @@ module type MEMTAB = sig
   type group_of_group_data
 
   val add :
-     ?set_max:int
-    -> Common.sitedata
+     Common.sitedata
     -> string
     -> [< Common.cookie_level] Common.sessgrp
     -> string Ocsigen_base.Cache.Dlist.node
@@ -65,16 +63,25 @@ module type MEMTAB = sig
         we put this information here. *)
 
   val move :
-     ?set_max:int
-    -> Common.sitedata
+     Common.sitedata
     -> string Ocsigen_base.Cache.Dlist.node
     -> [< Common.cookie_level] Common.sessgrp
     -> string Ocsigen_base.Cache.Dlist.node
 
   val up : string Ocsigen_base.Cache.Dlist.node -> unit
+
+  val up_group : [< Common.cookie_level] Common.sessgrp -> unit
+  (** [up_group g] makes [g] the group of the site used most recently, if
+      it is one: when the site has too many groups, the ones used least
+      recently are closed. *)
+
   val nb_of_groups : unit -> int
   val group_size : [< Common.cookie_level] Common.sessgrp -> int
   val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit
+
+  val set_group_max : [< Common.cookie_level] Common.sessgrp -> int -> unit
+  (** [set_group_max g n] sets the maximum size of the group [g], if it
+      exists: beyond it, the sessions used least recently are closed. *)
 end
 
 module Serv :

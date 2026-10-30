@@ -1,8 +1,8 @@
 val default_max_persistent_data_sessions_per_group : int ref
 val default_max_service_sessions_per_group : int ref
-val default_max_service_sessions_per_subnet : int ref
+val default_max_service_sessions_without_group : int ref
 val default_max_volatile_data_sessions_per_group : int ref
-val default_max_volatile_data_sessions_per_subnet : int ref
+val default_max_volatile_data_sessions_without_group : int ref
 val default_max_persistent_data_tab_sessions_per_group : int ref
 val default_max_service_tab_sessions_per_group : int ref
 val default_max_volatile_data_tab_sessions_per_group : int ref
@@ -24,7 +24,7 @@ val default_ignored_post_params : (string * Re.re) list ref
 val default_omitpersistentstorage :
   Common.omitpersistentstorage_rule list option ref
 
-val default_max_anonymous_services_per_subnet : int ref
+val default_max_anonymous_services_per_site : int ref
 val default_max_anonymous_services_per_session : int ref
 val default_max_volatile_groups_per_site : int ref
 
@@ -63,6 +63,18 @@ val create_sitedata :
   -> Common.sitedata
 
 val parse_global_config : Xml_light_types.xml list -> unit
+
+val parse_site_options :
+   Common.sitedata
+  -> Xml_light_types.xml list
+  -> Xml_light_types.xml list
+(** [parse_site_options sitedata options] applies to [sitedata] the options of
+    Eliom in [options], the content of an [<eliom>] element of a site, and
+    returns the other ones, left to the Eliom modules.
+
+    @raise Ocsigen.Extensions.Error_in_config_file for an option of Eliom
+    with a wrong value, or renamed or removed in Eliom 13. *)
+
 val exception_during_eliommodule_loading : bool ref
 val end_init : unit -> unit
 val handle_init_exn : exn -> string

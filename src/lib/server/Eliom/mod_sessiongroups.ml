@@ -26,22 +26,13 @@ let make_full_named_group_name_ ~cookie_level sitedata g =
   ; sg_level = cookie_level
   ; sg_group = Common.Group_name g }
 
-let make_full_group_name ~cookie_level ~sitedata ri =
-  let site_dir_string = Common.get_site_dir_string sitedata in
-  function
+let make_full_group_name ~cookie_level ~sitedata = function
   (* The scope is the scope of group members (`Session by default). *)
   | None ->
-      { Common.sg_site_dir = site_dir_string
+      { Common.sg_site_dir = Common.get_site_dir_string sitedata
       ; sg_level = cookie_level
-      ; sg_group =
-          Common.Subnet
-            (Common.network_of_request ri
-               ~mask4:(Common.get_mask4 sitedata)
-               ~mask6:(Common.get_mask6 sitedata)) }
-  | Some g ->
-      { Common.sg_site_dir = site_dir_string
-      ; sg_level = cookie_level
-      ; sg_group = Common.Group_name g }
+      ; sg_group = Common.No_group }
+  | Some g -> make_full_named_group_name_ ~cookie_level sitedata g
 
 let make_persistent_full_group_name = Common.make_persistent_full_group_name
 let getperssessgrp = Common.getperssessgrp
@@ -50,8 +41,7 @@ module type MEMTAB = sig
   type group_of_group_data
 
   val add :
-     ?set_max:int
-    -> Common.sitedata
+     Common.sitedata
     -> string
     -> Common.cookie_level Common.sessgrp
     -> string Ocsigen_base.Cache.Dlist.node
@@ -72,16 +62,24 @@ module type MEMTAB = sig
         we put this information here. *)
 
   val move :
-     ?set_max:int
-    -> Common.sitedata
+     Common.sitedata
     -> string Ocsigen_base.Cache.Dlist.node
     -> Common.cookie_level Common.sessgrp
     -> string Ocsigen_base.Cache.Dlist.node
 
   val up : string Ocsigen_base.Cache.Dlist.node -> unit
+
+  val up_group : Common.cookie_level Common.sessgrp -> unit
+  (** [up_group g] makes [g] the group of the site used most recently, if
+      it is one. *)
+
   val nb_of_groups : unit -> int
   val group_size : Common.cookie_level Common.sessgrp -> int
   val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit
+
+  val set_group_max : Common.cookie_level Common.sessgrp -> int -> unit
+  (** [set_group_max g n] sets the maximum size of the group [g], if it
+      exists. *)
 end
 
 module GroupTable = Hashtbl.Make (struct
@@ -104,7 +102,7 @@ module Make (A : sig
     val close_session : Common.sitedata -> string -> unit
     val max_tab_per_session : Common.sitedata -> int
     val max_session_per_group : Common.sitedata -> int
-    val max_session_per_ip : Common.sitedata -> int
+    val max_sessions_without_group : Common.sitedata -> int
 
     val clean_session :
        Common.sitedata
@@ -154,29 +152,20 @@ module Make (A : sig
         (fun n -> remove (A.node_of_group_of_group_data n));
       GroupTable.remove grouptable sess_grp)
 
-  let get_cl ?set_max sitedata sess_grp =
-    try
-      let cl = find sess_grp in
-      (match set_max with
-      | None -> ()
-      | Some v -> ignore (Ocsigen_base.Cache.Dlist.set_maxsize cl v));
-      cl
+  let get_cl sitedata sess_grp =
+    try find sess_grp
     with Not_found ->
       (* We create a group *)
       let size =
-        match set_max, sess_grp with
-        | None, {Common.sg_level = `Session; sg_group = Common.Group_name _; _}
-          ->
+        match sess_grp with
+        | {Common.sg_level = `Session; sg_group = Common.Group_name _; _} ->
             A.max_session_per_group sitedata
-        | ( None
-          , { Common.sg_level = `Client_process
-            ; sg_group = Common.Group_name _
-            ; _ } ) ->
+        | {Common.sg_level = `Client_process; sg_group = Common.Group_name _; _}
+          ->
             A.max_tab_per_session sitedata
-        | None, {Common.sg_level = `Session; sg_group = Common.Subnet _; _} ->
-            A.max_session_per_ip sitedata
-        | None, _ -> assert false
-        | Some v, _ -> v
+        | {Common.sg_level = `Session; sg_group = Common.No_group; _} ->
+            A.max_sessions_without_group sitedata
+        | _ -> assert false
       in
       let cookie_level = sess_grp.Common.sg_level in
       let cl = Ocsigen_base.Cache.Dlist.create size in
@@ -206,14 +195,21 @@ module Make (A : sig
            remove_if_empty sitedata sess_grp cl)
         cl;
       let node_in_group_of_group =
-        match cookie_level with
-        | `Session ->
+        match sess_grp with
+        | {Common.sg_level = `Session; sg_group = Common.Group_name gg_name; _}
+          ->
             ignore
               (Ocsigen_base.Cache.Dlist.add
-                 {Common.gg_kind = A.kind; gg_group = sess_grp}
+                 {Common.gg_kind = A.kind; gg_name}
                  sitedata.Common.group_of_groups);
             Ocsigen_base.Cache.Dlist.newest sitedata.Common.group_of_groups
-        | _ -> None
+        | _ ->
+            (* Groups of tab sessions are not groups of the site, nor is
+               the automatic group of the sessions without a group: closing
+               it as the oldest group of the site would close all these
+               sessions at once, and the session-group scope of such a
+               session is the session itself. *)
+            None
       in
       let group_of_group_data =
         Option.map
@@ -223,8 +219,8 @@ module Make (A : sig
       GroupTable.add grouptable sess_grp (group_of_group_data, cl);
       cl
 
-  let add ?set_max sitedata sess_id sess_grp =
-    let cl = get_cl ?set_max sitedata sess_grp in
+  let add sitedata sess_id sess_grp =
+    let cl = get_cl sitedata sess_grp in
     ignore (Ocsigen_base.Cache.Dlist.add sess_id cl);
     match Ocsigen_base.Cache.Dlist.newest cl with
     | Some v -> v
@@ -232,8 +228,13 @@ module Make (A : sig
 
   let up node = Ocsigen_base.Cache.Dlist.up node
 
-  let move ?set_max sitedata node sess_grp =
-    let cl = get_cl ?set_max sitedata sess_grp in
+  let up_group sess_grp =
+    match find_node_in_group_of_groups sess_grp with
+    | Some d -> Ocsigen_base.Cache.Dlist.up (A.node_of_group_of_group_data d)
+    | None -> ()
+
+  let move sitedata node sess_grp =
+    let cl = get_cl sitedata sess_grp in
     ignore (Ocsigen_base.Cache.Dlist.move node cl);
     match Ocsigen_base.Cache.Dlist.newest cl with
     | Some v -> v
@@ -251,6 +252,11 @@ module Make (A : sig
     match Ocsigen_base.Cache.Dlist.list_of node with
     | None -> ()
     | Some cl -> ignore (Ocsigen_base.Cache.Dlist.set_maxsize cl i)
+
+  let set_group_max sess_grp i =
+    match find sess_grp with
+    | cl -> ignore (Ocsigen_base.Cache.Dlist.set_maxsize cl i)
+    | exception Not_found -> ()
 end
 
 module Data = Make (struct
@@ -291,8 +297,8 @@ module Data = Make (struct
     let max_session_per_group sitedata =
       sitedata.Common.max_volatile_data_sessions_per_group.Common.cf_value
 
-    let max_session_per_ip sitedata =
-      sitedata.Common.max_volatile_data_sessions_per_subnet.Common.cf_value
+    let max_sessions_without_group sitedata =
+      sitedata.Common.max_volatile_data_sessions_without_group.Common.cf_value
 
     let clean_session
           sitedata
@@ -328,7 +334,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
             Common.SessionCookies.find sitedata.Common.session_data sess_id
           in
           match !session_group with
-          | {Common.sg_level = `Session; sg_group = Common.Subnet _; _}
+          | {Common.sg_level = `Session; sg_group = Common.No_group; _}
           (* no group *)
             when sitedata.Common.not_bound_in_data_tables sess_id ->
               remove1 session_group_node
@@ -366,8 +372,8 @@ module Serv = Make (struct
     let max_session_per_group sitedata =
       sitedata.Common.max_service_sessions_per_group.Common.cf_value
 
-    let max_session_per_ip sitedata =
-      sitedata.Common.max_service_sessions_per_subnet.Common.cf_value
+    let max_sessions_without_group sitedata =
+      sitedata.Common.max_service_sessions_without_group.Common.cf_value
 
     let clean_session
           sitedata
@@ -440,9 +446,6 @@ let cut n l =
   match n with None -> l, [] (* no limitation *) | Some n -> aux n l
 
 module Pers = struct
-  (*VVV Verify this carefully! *)
-  (*VVV VERIFY concurrent access *)
-
   module Ocsipersist = Common.Ocsipersist.Functorial
 
   (* v2 switches from Marshal to Deriving_Json *)
@@ -460,6 +463,37 @@ module Pers = struct
 
   let () = Common.Persistent_tables.add_functorial_table (module Grouptable)
 
+  (* The sessions of a group are listed in one entry of the table, that the
+     operations below read, change and write back. The operations on a group
+     are serialised, otherwise two simultaneous requests (two logins of the
+     same user, or two requests of sessions of the group, which move them up
+     in the list) lose each other's change, and a session dropped from the
+     list escapes the limit of the group and its closing. The lock is held
+     by one server process: a database shared by several processes needs the
+     same guarantee from its backend. *)
+  let locks : (string, Lwt_mutex.t) Hashtbl.t = Hashtbl.create 64
+
+  let with_group_lock sg f =
+    let m =
+      match Hashtbl.find_opt locks sg with
+      | Some m -> m
+      | None ->
+          let m = Lwt_mutex.create () in
+          Hashtbl.add locks sg m; m
+    in
+    Lwt.finalize
+      (fun () -> Lwt_mutex.with_lock m f)
+      (fun () ->
+         (* Last user of the lock: nobody waits for it, nobody took it when
+            it was released, and the entry is still this lock. *)
+         (match Hashtbl.find_opt locks sg with
+         | Some m'
+           when m' == m && Lwt_mutex.is_empty m && not (Lwt_mutex.is_locked m)
+           ->
+             Hashtbl.remove locks sg
+         | _ -> ());
+         Lwt.return_unit)
+
   let find g =
     match g with
     | None -> Lwt.return_nil
@@ -474,6 +508,7 @@ module Pers = struct
     match sess_grp with
     | Some sg ->
         let sg = Common.string_of_perssessgrp sg in
+        with_group_lock sg @@ fun () ->
         Lwt.catch
           (fun () ->
              let* max2, cl = Grouptable.find sg in
@@ -506,60 +541,112 @@ module Pers = struct
             | e -> Lwt.fail e)
     | None -> Lwt.return_nil
 
-  let rec remove_group ~cookie_level sitedata sess_grp =
-    (* cookie_level is the scope of group members *)
-    (*VVV NEW 201007 closing all sessions in the group and removing group data *)
-    (*VVV VERIFY concurrent access *)
-    (*VVV Check this carefully!!!! Verify the order of actions. *)
+  (* [members sg] is the list of the sessions of the group [sg]: read with
+     the lock, unless a change of the list does not depend on it (the fast
+     path of [up], which only reads). [forget sg closed] removes the
+     sessions [closed] from the group, and the group when no session is
+     left. *)
+  let members sg =
     Lwt.catch
       (fun () ->
-         (* First we close all sessions in the group *)
-         let* cl = find sess_grp in
-         let* () =
-           Lwt_list.iter_p
-             (close_persistent_session
-                ~cookie_level:
-                  (match cookie_level with
-                  | `Client_process _ -> `Client_process
-                  | `Session -> `Session)
-                sitedata None)
-             cl
-           (* None because we will close the group *)
-         in
-         (* Then, we remove group data: *)
-         let* () =
-           match sess_grp with
-           | None -> Lwt.return_unit
-           | Some sg -> (
-             match Common.getperssessgrp sg with
-             | {Common.sg_group = Common.Subnet _; _} ->
-                 (* No group has been set. No group table.
-                 Data associated to default (automatic) groups
-                 is removed when closing associated sessions. *)
-                 Lwt.return_unit
-             | {Common.sg_group = Common.Group_name group_name; _} -> (
+         let+ _, cl = Grouptable.find sg in
+         cl)
+      (function Not_found -> Lwt.return_nil | e -> Lwt.fail e)
+
+  let forget sg closed =
+    with_group_lock sg @@ fun () ->
+    Lwt.catch
+      (fun () ->
+         let* max, cl = Grouptable.find sg in
+         match List.filter (fun s -> not (List.mem s closed)) cl with
+         | [] -> Grouptable.remove sg
+         | cl -> Grouptable.replace_if_exists sg (max, cl))
+      (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+
+  let rec remove_group ~cookie_level sitedata sess_grp =
+    (* cookie_level is the scope of group members *)
+    match sess_grp with
+    | None -> Lwt.return_unit
+    | Some sg ->
+        let key = Common.string_of_perssessgrp sg in
+        Lwt.catch
+          (fun () ->
+             (* First the list of the sessions, and the removal of the group
+                data, under the lock of the group: a session that joins the
+                group meanwhile waits, then finds a group without data, as a
+                new one. *)
+             let* cl =
+               with_group_lock key @@ fun () ->
+               let* cl = members key in
+               let+ () =
+                 let group_name = Common.name_of_perssessgrp sg in
                  let* () =
                    Common.Persistent_tables.remove_key_from_all_tables
                      group_name
                  in
                  (* If it is associated to a session,
-                 we remove the session from its group,
-                 and we remove cookie info: *)
+                    we remove the session from its group,
+                    and we remove cookie info: *)
                  match cookie_level with
                  | `Client_process grp ->
                      (* We are closing a browser session,
-                                           belonging to the group grp *)
+                        belonging to the group grp *)
                      (* group_name is the cookie value *)
                      remove sitedata group_name grp
-                 | _ -> Lwt.return_unit))
-         in
-         (* Then, we remove group from group table: *)
-         match sess_grp with
-         | Some sg ->
-             let sg = Common.string_of_perssessgrp sg in
-             Grouptable.remove sg
-         | None -> Lwt.return_unit)
-      (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+                 | `Session -> Lwt.return_unit
+               in
+               cl
+             in
+             (* Then the sessions are closed, without the lock: closing a
+                browser session takes the lock of its group of tab sessions,
+                then the one of its session group, while this function may
+                be closing that session group. A request of a session of the
+                group running meanwhile may write group data again: they
+                remain, as the group stays for the sessions that join it. *)
+             let close =
+               close_persistent_session
+                 ~cookie_level:
+                   (match cookie_level with
+                   | `Client_process _ -> `Client_process
+                   | `Session -> `Session)
+                 sitedata None
+               (* None because the group is closed *)
+             in
+             let* results =
+               Lwt_list.map_p
+                 (fun s ->
+                    Lwt.catch
+                      (fun () ->
+                         let+ () = close s in
+                         Ok s)
+                      (fun e -> Lwt.return (Error e)))
+                 cl
+             in
+             (* Last, the closed sessions leave the list. A session that
+                could not be closed stays listed, and a session that joined
+                the group meanwhile stays, with the group. *)
+             let* () =
+               forget key
+                 (List.filter_map
+                    (function Ok s -> Some s | Error _ -> None)
+                    results)
+             in
+             (* The first failure is raised, the other ones are logged *)
+             match
+               List.filter_map
+                 (function Error e -> Some e | Ok _ -> None)
+                 results
+             with
+             | [] -> Lwt.return_unit
+             | e :: others ->
+                 List.iter
+                   (fun e ->
+                      Logs.err ~src:eliom_logs_src (fun fmt ->
+                        fmt "Closing a persistent session of a group: %s"
+                          (Printexc.to_string e)))
+                   others;
+                 Lwt.fail e)
+          (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
   (* close a persistent session (tab or browser)
      and the associated group (if browser session) by cookie value *)
@@ -586,6 +673,7 @@ module Pers = struct
     match sess_grp with
     | Some sg0 ->
         let sg = Common.string_of_perssessgrp sg0 in
+        with_group_lock sg @@ fun () ->
         Lwt.catch
           (fun () ->
              let* max, cl = Grouptable.find sg in
@@ -604,14 +692,30 @@ module Pers = struct
   let up sess_id grp =
     match grp with
     | None -> Lwt.return_unit
-    | Some sg ->
+    | Some sg -> (
         let sg = Common.string_of_perssessgrp sg in
-        Lwt.catch
-          (fun () ->
-             let* max, cl = Grouptable.find sg in
-             let newcl = List.remove_first_if_any sess_id cl in
-             Grouptable.replace_if_exists sg (max, sess_id :: newcl))
-          (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+        let* cl = members sg in
+        match cl with
+        | first :: _ when first = sess_id ->
+            (* Already the most recent one: the usual case, which needs
+               neither the lock nor a write. *)
+            Lwt.return_unit
+        | _ ->
+            with_group_lock sg @@ fun () ->
+            Lwt.catch
+              (fun () ->
+                 let* max, cl = Grouptable.find sg in
+                 match cl with
+                 | first :: _ when first = sess_id -> Lwt.return_unit
+                 | _ when List.mem sess_id cl ->
+                     Grouptable.replace_if_exists sg
+                       (max, sess_id :: List.remove_first_if_any sess_id cl)
+                 | _ ->
+                     (* The session has left the group: closed by the limit
+                        of the group while its data are being removed by
+                        another request. It does not come back. *)
+                     Lwt.return_unit)
+              (function Not_found -> Lwt.return_unit | e -> Lwt.fail e))
 
   let move sitedata ?set_max max sess_id grp1 grp2 =
     if set_max <> None || grp1 <> grp2

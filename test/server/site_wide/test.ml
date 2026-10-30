@@ -1,6 +1,6 @@
 (* Tests of the settings of states that apply to a whole site: global and
    default timeouts, scope hierarchies, session groups, the limit of sessions
-   per subnet and the collection of expired states. *)
+   without a group and the collection of expired states. *)
 
 open Eliom_test_server
 open Lwt.Syntax
@@ -162,11 +162,11 @@ let groups server =
           "listed" [true; true]
           [List.mem "list-a" groups; List.mem "list-b" groups]) ] )
 
-let subnet server =
+let without_group server =
   let case = case server in
-  ( "subnet"
+  ( "without a group"
   , [ case "limit of sessions" (fun browser ->
-        (* The browsers of the tests all have the same address. *)
+        (* The sessions of the site that are not in a group count together. *)
         let a = browser () and b = browser () and c = browser () in
         let* _ = text a "/set?v=a" in
         let* _ = text b "/set?v=b" in
@@ -176,7 +176,38 @@ let subnet server =
         let* () = check "newest" "c" c "/get" in
         (* Last: reading a session reference without value opens a session,
            which would close another one. *)
-        check "oldest" "" a "/get") ] )
+        check "oldest" "" a "/get")
+    ; case "limit of the parent of a session" (fun browser ->
+        (* A session without a group has no parent of its own: it cannot
+           lower the limit of all the sessions without a group. *)
+        let a = browser () and b = browser () in
+        let* _ = text a "/set?v=a" in
+        let* _ = text b "/set?v=b" in
+        let* _ = text a "/max_in_parent?n=1" in
+        let* () = check "number of sessions" "2" b "/count" in
+        let* () = check "other session" "b" b "/get" in
+        check "session of the request" "a" a "/get")
+    ; case "limit not positive" (fun browser ->
+        (* The function raises Invalid_argument, and the limit does not
+           change. *)
+        let a = browser () and b = browser () in
+        let* _ = text a "/set?v=a" in
+        let* _ = text b "/set?v=b" in
+        let* () = check "rejected" "invalid" a "/max_without_group?n=0" in
+        let* () = check "number of sessions" "2" b "/count" in
+        let* () = check "newest" "b" b "/get" in
+        check "oldest" "a" a "/get")
+    ; case "new limit" (fun browser ->
+        (* A new limit applies at once: the session used least recently is
+           closed. *)
+        let a = browser () and b = browser () in
+        let* _ = text a "/set?v=a" in
+        let* _ = text b "/set?v=b" in
+        with_setting a "/max_without_group?n=1" "/max_without_group?n=2"
+          (fun () ->
+             let* () = check "number of sessions" "1" b "/count" in
+             let* () = check "newest" "b" b "/get" in
+             check "oldest, closed" "" a "/get")) ] )
 
 let collection server =
   let case = case server in
@@ -192,13 +223,13 @@ let collection server =
         check "collected" "0" a "/count") ] )
 
 (* The limit of groups of the site, set by a member of a group that has
-   states of one kind only: the oldest group is closed. *)
+   states of one kind only: the group used least recently is closed. *)
 let limit_of_groups kind server =
   let case = case server in
   ( "limit of groups"
-  , [ (match kind with
-      | `Service ->
-          case "service states" (fun browser ->
+  , match kind with
+    | `Service ->
+        [ case "service states" (fun browser ->
             let a = browser () and b = browser () and c = browser () in
             let* url_a = text a "/service/join?name=ga" in
             let* _ = text a "/service/max_groups?n=2" in
@@ -207,8 +238,20 @@ let limit_of_groups kind server =
             let* () = check "second" "coservice" b url_b in
             let* () = check "newest" "coservice" c url_c in
             check "oldest" "fallback" a url_a)
-      | `Data ->
-          case "data states" (fun browser ->
+        ; case "service states, least recently used" (fun browser ->
+            (* [a] uses its group after [b] creates its own: the group of
+               [b] is closed. *)
+            let a = browser () and b = browser () and c = browser () in
+            let* url_a = text a "/service/join?name=ga2" in
+            let* _ = text a "/service/max_groups?n=2" in
+            let* url_b = text b "/service/join?name=gb2" in
+            let* () = check "used" "coservice" a url_a in
+            let* url_c = text c "/service/join?name=gc2" in
+            let* () = check "kept" "coservice" a url_a in
+            let* () = check "newest" "coservice" c url_c in
+            check "least recently used" "fallback" b url_b) ]
+    | `Data ->
+        [ case "data states" (fun browser ->
             let a = browser () and b = browser () and c = browser () in
             let* _ = text a "/data/join?name=da&v=a" in
             let* _ = text a "/data/max_groups?n=2" in
@@ -216,7 +259,36 @@ let limit_of_groups kind server =
             let* _ = text c "/data/join?name=dc&v=c" in
             let* () = check "second" "b" b "/get" in
             let* () = check "newest" "c" c "/get" in
-            check "oldest" "" a "/get")) ] )
+            check "oldest" "" a "/get")
+        ; case "data states, least recently used" (fun browser ->
+            let a = browser () and b = browser () and c = browser () in
+            let* _ = text a "/data/join?name=da2&v=a" in
+            let* _ = text a "/data/max_groups?n=2" in
+            let* _ = text b "/data/join?name=db2&v=b" in
+            let* () = check "used" "a" a "/get" in
+            let* _ = text c "/data/join?name=dc2&v=c" in
+            let* () = check "kept" "a" a "/get" in
+            let* () = check "newest" "c" c "/get" in
+            (* Last: reading a session reference without value opens a
+               session. *)
+            check "least recently used" "" b "/get") ] )
+
+(* The anonymous coservices of the global table created during requests are
+   limited for the whole site; those created during the initialisation of the
+   site are not counted, and stay. *)
+let anonymous_coservices server =
+  let case = case server in
+  ( "anonymous coservices"
+  , [ case "limit of the site" (fun browser ->
+        let a = browser () and b = browser () and c = browser () in
+        let* initial = text a "/initial" in
+        let* u1 = text a "/coservice?v=1" in
+        let* u2 = text b "/coservice?v=2" in
+        let* u3 = text c "/coservice?v=3" in
+        let* () = check "initialisation" "initial" a initial in
+        let* () = check "second" "coservice 2" a u2 in
+        let* () = check "newest" "coservice 3" b u3 in
+        check "oldest" "fallback" c u1) ] )
 
 let run name exe suites =
   Server_harness.with_server exe (fun server ->
@@ -225,11 +297,13 @@ let run name exe suites =
 let () =
   run "eliom-server-site-wide" "./timeouts_server.exe" (fun server ->
     [timeouts server; hierarchies server; groups server]);
-  run "eliom-server-subnet" "./subnet_server.exe" (fun server ->
-    [subnet server]);
+  run "eliom-server-without-group" "./no_group_server.exe" (fun server ->
+    [without_group server]);
   run "eliom-server-collection" "./gc_server.exe" (fun server ->
     [collection server]);
   run "eliom-server-groups-of-services" "./groups_server.exe" (fun server ->
     [limit_of_groups `Service server]);
   run "eliom-server-groups-of-data" "./groups_server.exe" (fun server ->
-    [limit_of_groups `Data server])
+    [limit_of_groups `Data server]);
+  run "eliom-server-anonymous-coservices" "./anonymous_server.exe"
+    (fun server -> [anonymous_coservices server])

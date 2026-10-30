@@ -36,12 +36,12 @@ open Ocsigen.Extensions
 (****************************************************************************)
 let default_max_persistent_data_sessions_per_group = ref 50
 let default_max_service_sessions_per_group = ref 50
-let default_max_service_sessions_per_subnet = ref 1000000
+let default_max_service_sessions_without_group = ref 1000000
 let default_max_volatile_data_sessions_per_group = ref 50
-let default_max_volatile_data_sessions_per_subnet = ref 1000000
-let default_max_persistent_data_tab_sessions_per_group = ref 50
-let default_max_service_tab_sessions_per_group = ref 50
-let default_max_volatile_data_tab_sessions_per_group = ref 50
+let default_max_volatile_data_sessions_without_group = ref 1000000
+let default_max_persistent_data_tab_sessions_per_group = ref 100
+let default_max_service_tab_sessions_per_group = ref 100
+let default_max_volatile_data_tab_sessions_per_group = ref 100
 let default_secure_cookies = ref false
 let default_application_script = ref {Common.defer = false; async = false}
 let default_enable_wasm = ref false
@@ -63,30 +63,58 @@ let default_ignored_get_params = ref []
 let default_ignored_post_params = ref []
 let default_omitpersistentstorage = ref None
 
-(* Subnet defaults be large enough, because it must work behind a reverse proxy.
+(* The sessions that are not in a session group are counted together, for
+   the whole site. Until Eliom 13 they were counted by sub network of the
+   client, which was the one of the reverse proxy for every client, or one
+   of the many an IPv6 client has: the limit neither bounded the memory of
+   the server nor isolated an attacker from the other users.
 
-   If 1 session takes 1000 bytes (data + tables etc),
-   1 million sessions take 1 GB.
+   If 1 session takes 1000 bytes (data + tables etc), 1000000 sessions take
+   1 GB. If somebody opens 1000 sessions per second, it takes 1000 s to
+   reach the limit: while the attack lasts, the sessions without a group of
+   the regular users are closed after 1000 s of inactivity. The sessions in
+   a group are not affected.
 
-   If somebody opens 1000 sessions per second,
-   then it will take 1000 s (16 minutes) to reach 1000000.
+   For persistent sessions, there is a limitation per session group,
+   efficient only for small values, and no limitation without a group. *)
 
-   It means that regular users will have their sessions closed
-   after 16 minutes of inactivity if they share their sub network with
-   someone doing an attack (or if the server is behind a proxy).
+(* The options removed in Eliom 13, when the sessions without a group and
+   the anonymous coservices of the global table stopped being counted by
+   sub network of the client: the message tells what replaces them *)
+let removed_options =
+  let sessions = "limits the sessions without a group of the whole site"
+  and coservices =
+    "limits the anonymous coservices of the global table of the whole site"
+  in
+  let renamed tag new_tag what =
+    tag, Printf.sprintf "Eliom: <%s> is now <%s>, which %s" tag new_tag what
+  and masks tag =
+    ( tag
+    , Printf.sprintf
+        "Eliom: <%s> is removed: the anonymous coservices of the global table are now limited for the whole site (<maxanonymouscoservicespersite>)"
+        tag )
+  in
+  [ renamed "maxvolatilesessionspersubnet" "maxvolatilesessionswithoutgroup"
+      sessions
+  ; renamed "maxservicesessionspersubnet" "maxservicesessionswithoutgroup"
+      sessions
+  ; renamed "maxdatasessionspersubnet" "maxdatasessionswithoutgroup" sessions
+  ; renamed "maxanonymouscoservicespersubnet" "maxanonymouscoservicespersite"
+      coservices
+  ; masks "ipv4subnetmask"
+  ; masks "ipv6subnetmask" ]
 
-   In any case, it is better to use session groups when possible.
+(* [check_renamed e] fails if [e] is a removed option. In the configuration
+   of a site, unknown options are left to the Eliom modules: a removed
+   option must be rejected before. *)
+let check_renamed = function
+  | Xml.Element (tag, _, _) -> (
+    match List.assoc_opt tag removed_options with
+    | Some message -> raise (Error_in_config_file message)
+    | None -> ())
+  | Xml.PCData _ -> ()
 
-   For persistent session, there is a limitation per session group,
-   efficient only for small values.
-   But there is no limitation by subnet.
-   1 billion sessions take 1 TB.
-   If somebody opens 1000 sessions per second,
-   then it will take 1 million s (16000 minutes = 266 h = 11 days)
-   to reach 1TB.
-*)
-
-let default_max_anonymous_services_per_subnet = ref 500000
+let default_max_anonymous_services_per_site = ref 500000
 let default_max_anonymous_services_per_session = ref 1000
 let default_max_volatile_groups_per_site = ref 1000000
 (*VVV value ??? *)
@@ -102,7 +130,8 @@ module S = Hashtbl.Make (struct
   end)
 
 let create_sitedata_aux site_dir config_info =
-  let dlist_table = Common.create_dlist_ip_table 100
+  let global_services, anonymous_services =
+    Common.global_tables !default_max_anonymous_services_per_site
   and group_of_groups =
     Ocsigen_base.Cache.Dlist.create !default_max_volatile_groups_per_site
   in
@@ -118,8 +147,7 @@ let create_sitedata_aux site_dir config_info =
         Option.map (Lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
     ; default_links_xhr = Common.tenable_value ~name:"default_links_xhr" true
-    ; global_services =
-        Common.empty_tables !default_max_anonymous_services_per_subnet false
+    ; global_services
     ; registered_scope_hierarchies = Common.Hier_set.empty
     ; session_services = Mod_cookies.new_service_cookie_table ()
     ; session_data = Mod_cookies.new_data_cookie_table ()
@@ -148,22 +176,20 @@ let create_sitedata_aux site_dir config_info =
         { Common.cf_value =
             Some !default_max_persistent_data_tab_sessions_per_group
         ; cf_from_config = false }
-    ; max_service_sessions_per_subnet =
-        { Common.cf_value = !default_max_service_sessions_per_subnet
+    ; max_service_sessions_without_group =
+        { Common.cf_value = !default_max_service_sessions_without_group
         ; cf_from_config = false }
-    ; max_volatile_data_sessions_per_subnet =
-        { Common.cf_value = !default_max_volatile_data_sessions_per_subnet
+    ; max_volatile_data_sessions_without_group =
+        { Common.cf_value = !default_max_volatile_data_sessions_without_group
         ; cf_from_config = false }
     ; max_anonymous_services_per_session =
         { Common.cf_value = !default_max_anonymous_services_per_session
         ; cf_from_config = false }
-    ; max_anonymous_services_per_subnet =
-        { Common.cf_value = !default_max_anonymous_services_per_subnet
+    ; max_anonymous_services_per_site =
+        { Common.cf_value = !default_max_anonymous_services_per_site
         ; cf_from_config = false }
     ; secure_cookies = !default_secure_cookies
-    ; dlist_ip_table = dlist_table
-    ; ipv4mask = {Common.cf_value = None; cf_from_config = false}
-    ; ipv6mask = {Common.cf_value = None; cf_from_config = false}
+    ; anonymous_services
     ; application_script = !default_application_script
     ; enable_wasm = !default_enable_wasm
     ; cache_global_data = !default_cache_global_data
@@ -183,22 +209,17 @@ let create_sitedata_aux site_dir config_info =
        (* First we close all browser sessions of this kind in the group, by
           removing the group from its dlist. This does nothing when the
           group is removed because it has become empty. *)
+       let group name =
+         Mod_sessiongroups.make_full_named_group_name_ ~cookie_level:`Session
+           sitedata name
+       in
        match Ocsigen_base.Cache.Dlist.value node with
-       | {Common.gg_kind = `Service; gg_group} ->
-           Mod_sessiongroups.Serv.remove_group gg_group
-       | {Common.gg_kind = `Data; gg_group} -> (
-           Mod_sessiongroups.Data.remove_group gg_group;
+       | {Common.gg_kind = `Service; gg_name} ->
+           Mod_sessiongroups.Serv.remove_group (group gg_name)
+       | {Common.gg_kind = `Data; gg_name} ->
+           Mod_sessiongroups.Data.remove_group (group gg_name);
            (* Then we remove data from group tables: *)
-           match gg_group.Common.sg_group with
-           | Common.Group_name key ->
-               (* iterate on all session data tables: *)
-               sitedata.Common.remove_session_data key
-           | _ ->
-               (* No group has been set. No group table.
-                   Data associated to default (automatic) groups
-                   is removed when closing associated sessions.
-               *)
-               ()))
+           sitedata.Common.remove_session_data gg_name)
     group_of_groups;
   sitedata
 
@@ -258,19 +279,17 @@ type option_setters =
       -> float option
       -> unit
   ; set_max_service_sessions_per_group : int -> unit
-  ; set_max_service_sessions_per_subnet : int -> unit
+  ; set_max_service_sessions_without_group : int -> unit
   ; set_max_data_sessions_per_group : int -> unit
-  ; set_max_data_sessions_per_subnet : int -> unit
+  ; set_max_data_sessions_without_group : int -> unit
   ; set_max_persistent_sessions_per_group : int -> unit
   ; set_max_service_tab_sessions_per_group : int -> unit
   ; set_max_data_tab_sessions_per_group : int -> unit
   ; set_max_persistent_tab_sessions_per_group : int -> unit
   ; set_max_services_per_session : int -> unit
-  ; set_max_services_per_subnet : int -> unit
+  ; set_max_services_per_site : int -> unit
   ; set_max_volatile_groups_per_site : int -> unit
   ; set_secure_cookies : bool -> unit
-  ; set_ipv4mask : int -> unit
-  ; set_ipv6mask : int -> unit
   ; set_application_script : Common.application_script -> unit
   ; set_enable_wasm : bool -> unit
   ; set_global_data_caching : (Lib.Url.path * int) option -> unit
@@ -280,6 +299,10 @@ type option_setters =
   ; set_omitpersistentstorage :
       Common.omitpersistentstorage_rule list option -> unit }
 
+(* An option that is not an option of Eliom: in the configuration of a site,
+   it is left to the Eliom modules *)
+exception Unknown_option of string
+
 (* The following is common to global config and site config *)
 let parse_eliom_option
       { set_volatile_timeout
@@ -287,19 +310,17 @@ let parse_eliom_option
       ; set_service_timeout
       ; set_persistent_timeout
       ; set_max_service_sessions_per_group
-      ; set_max_service_sessions_per_subnet
+      ; set_max_service_sessions_without_group
       ; set_max_data_sessions_per_group
-      ; set_max_data_sessions_per_subnet
+      ; set_max_data_sessions_without_group
       ; set_max_persistent_sessions_per_group
       ; set_max_service_tab_sessions_per_group
       ; set_max_data_tab_sessions_per_group
       ; set_max_persistent_tab_sessions_per_group
       ; set_max_services_per_session
-      ; set_max_services_per_subnet
+      ; set_max_services_per_site
       ; set_max_volatile_groups_per_site
       ; set_secure_cookies
-      ; set_ipv4mask
-      ; set_ipv6mask
       ; set_application_script
       ; set_enable_wasm
       ; set_global_data_caching
@@ -371,6 +392,19 @@ let parse_eliom_option
         (Error_in_config_file
            (Printf.sprintf "Eliom: Wrong attribute value for %s tag" tag))
   in
+  (* [with_limit tag v f] is [with_int tag v f], for a maximum number of
+     sessions, groups or services, which must be positive. *)
+  let with_limit tag v f =
+    with_int tag v (fun i ->
+      if i < 1
+      then
+        raise
+          (Error_in_config_file
+             (Printf.sprintf
+                "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+                tag));
+      f i)
+  in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
@@ -424,45 +458,47 @@ let parse_eliom_option
       let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
       set_persistent_timeout ct snoo t
   | Xml.Element (("maxvolatilesessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v (fun i ->
+      with_limit tag v (fun i ->
         set_max_service_sessions_per_group i;
         set_max_data_sessions_per_group i)
   | Xml.Element (("maxservicesessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_service_sessions_per_group
+      with_limit tag v set_max_service_sessions_per_group
   | Xml.Element (("maxdatasessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_data_sessions_per_group
-  | Xml.Element (("maxvolatilesessionspersubnet" as tag), [("value", v)], []) ->
-      with_int tag v (fun i ->
-        set_max_service_sessions_per_subnet i;
-        set_max_data_sessions_per_subnet i)
-  | Xml.Element (("maxservicesessionspersubnet" as tag), [("value", v)], []) ->
-      with_int tag v set_max_service_sessions_per_subnet
-  | Xml.Element (("maxdatasessionspersubnet" as tag), [("value", v)], []) ->
-      with_int tag v set_max_data_sessions_per_subnet
+      with_limit tag v set_max_data_sessions_per_group
+  | Xml.Element (("maxvolatilesessionswithoutgroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v (fun i ->
+        set_max_service_sessions_without_group i;
+        set_max_data_sessions_without_group i)
+  | Xml.Element (("maxservicesessionswithoutgroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_service_sessions_without_group
+  | Xml.Element (("maxdatasessionswithoutgroup" as tag), [("value", v)], []) ->
+      with_limit tag v set_max_data_sessions_without_group
   | Xml.Element (("maxpersistentsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_persistent_sessions_per_group
+      with_limit tag v set_max_persistent_sessions_per_group
   | Xml.Element (("maxvolatiletabsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v (fun i ->
+      with_limit tag v (fun i ->
         set_max_service_tab_sessions_per_group i;
         set_max_data_tab_sessions_per_group i)
   | Xml.Element (("maxservicetabsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_service_tab_sessions_per_group
+      with_limit tag v set_max_service_tab_sessions_per_group
   | Xml.Element (("maxdatatabsessionspergroup" as tag), [("value", v)], []) ->
-      with_int tag v set_max_data_tab_sessions_per_group
+      with_limit tag v set_max_data_tab_sessions_per_group
   | Xml.Element (("maxpersistenttabsessionspergroup" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_persistent_tab_sessions_per_group
+      with_limit tag v set_max_persistent_tab_sessions_per_group
   | Xml.Element (("maxanonymouscoservicespersession" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_services_per_session
-  | Xml.Element (("maxanonymouscoservicespersubnet" as tag), [("value", v)], [])
+      with_limit tag v set_max_services_per_session
+  | Xml.Element (("maxanonymouscoservicespersite" as tag), [("value", v)], [])
     ->
-      with_int tag v set_max_services_per_subnet
+      with_limit tag v set_max_services_per_site
   | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
-      with_int tag v set_max_volatile_groups_per_site
+      with_limit tag v set_max_volatile_groups_per_site
   | Xml.Element ("securecookies", [("value", v)], []) -> (
     try
       let i =
@@ -473,10 +509,6 @@ let parse_eliom_option
       raise
         (Error_in_config_file
            "Eliom: Wrong attribute value for securecookies tag"))
-  | Xml.Element (("ipv4subnetmask" as tag), [("value", v)], []) ->
-      with_int tag v set_ipv4mask
-  | Xml.Element (("ipv6subnetmask" as tag), [("value", v)], []) ->
-      with_int tag v set_ipv6mask
   | Xml.Element ("applicationscript", attrs, []) ->
       set_application_script (parse_application_script_attrs attrs)
   | Xml.Element ("wasm", [("enabled", v)], []) -> (
@@ -510,16 +542,22 @@ let parse_eliom_option
       set_omitpersistentstorage (Some rules)
   | Xml.Element (s, _, _) ->
       raise
-        (Error_in_config_file
-           ("Unexpected content <" ^ s ^ "> inside eliom config"))
-  | _ -> raise (Error_in_config_file "Unexpected content inside eliom config")
+        (Unknown_option ("Unexpected content <" ^ s ^ "> inside eliom config"))
+  | _ -> raise (Unknown_option "Unexpected content inside eliom config")
+
+(* [parse_known_option f e] is [parse_eliom_option f e], for an option that
+   must be an option of Eliom *)
+let parse_known_option f e =
+  try parse_eliom_option f e
+  with Unknown_option message -> raise (Error_in_config_file message)
 
 let parse_eliom_options f l =
+  List.iter check_renamed l;
   let rec aux rest = function
     | [] -> rest
     | e :: l -> (
       try parse_eliom_option f e; aux rest l
-      with Error_in_config_file _ -> aux (e :: rest) l)
+      with Unknown_option _ -> aux (e :: rest) l)
   in
   List.rev (aux [] l)
 
@@ -566,7 +604,8 @@ let rec parse_global_config = function
                (Printf.sprintf "Eliom: Wrong value for <%s>" tag)));
       parse_global_config ll
   | e :: ll ->
-      parse_eliom_option
+      check_renamed e;
+      parse_known_option
         { set_volatile_timeout =
             (fun ct sh m ->
               Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
@@ -581,12 +620,12 @@ let rec parse_global_config = function
               Mod_timeouts.set_default ?scope_hierarchy:sh `Persistent ct)
         ; set_max_service_sessions_per_group =
             (fun v -> default_max_service_sessions_per_group := v)
-        ; set_max_service_sessions_per_subnet =
-            (fun v -> default_max_service_sessions_per_subnet := v)
+        ; set_max_service_sessions_without_group =
+            (fun v -> default_max_service_sessions_without_group := v)
         ; set_max_data_sessions_per_group =
             (fun v -> default_max_volatile_data_sessions_per_group := v)
-        ; set_max_data_sessions_per_subnet =
-            (fun v -> default_max_volatile_data_sessions_per_subnet := v)
+        ; set_max_data_sessions_without_group =
+            (fun v -> default_max_volatile_data_sessions_without_group := v)
         ; set_max_persistent_sessions_per_group =
             (fun v -> default_max_persistent_data_sessions_per_group := v)
         ; set_max_service_tab_sessions_per_group =
@@ -597,13 +636,11 @@ let rec parse_global_config = function
             (fun v -> default_max_persistent_data_tab_sessions_per_group := v)
         ; set_max_services_per_session =
             (fun v -> default_max_anonymous_services_per_session := v)
-        ; set_max_services_per_subnet =
-            (fun v -> default_max_anonymous_services_per_subnet := v)
+        ; set_max_services_per_site =
+            (fun v -> default_max_anonymous_services_per_site := v)
         ; set_max_volatile_groups_per_site =
             (fun v -> default_max_volatile_groups_per_site := v)
         ; set_secure_cookies = (fun v -> default_secure_cookies := v)
-        ; set_ipv4mask = (fun v -> Common.ipv4mask := v)
-        ; set_ipv6mask = (fun v -> Common.ipv6mask := v)
         ; set_application_script = (fun v -> default_application_script := v)
         ; set_enable_wasm = (fun v -> default_enable_wasm := v)
         ; set_global_data_caching = (fun v -> default_cache_global_data := v)
@@ -805,7 +842,98 @@ Make possible to customize this? *)
     ?cookie_level:(Some cookie_type) ~recompute_expdates:false
     ~override_configfile:true ~from_configfile:true sitedata v
 
+(* [parse_site_options sitedata options] applies to [sitedata] the options of
+   Eliom in [options], the content of an <eliom> element of a site, and
+   returns the other ones, left to the Eliom modules. *)
+
 (** Parsing of config file for each site: *)
+let parse_site_options sitedata content =
+  (* The group of the sessions without a group exists already when the
+     configuration of the site is read again: a new limit applies to it. *)
+  let without_group () =
+    Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata None
+  in
+  parse_eliom_options
+    { set_volatile_timeout =
+        (fun ct snoo v ->
+          set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata ct snoo v;
+          set_timeout
+            (Mod_timeouts.set_global_ ~kind:`Service)
+            sitedata ct snoo v)
+    ; set_data_timeout =
+        set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
+    ; set_service_timeout =
+        set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
+    ; set_persistent_timeout =
+        set_timeout (Mod_timeouts.set_global_ ~kind:`Persistent) sitedata
+    ; set_max_service_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_service_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_service_sessions_without_group =
+        (fun v ->
+          sitedata.Common.max_service_sessions_without_group <-
+            {Common.cf_value = v; cf_from_config = true};
+          Mod_sessiongroups.Serv.set_group_max (without_group ()) v)
+    ; set_max_data_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_volatile_data_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_data_sessions_without_group =
+        (fun v ->
+          sitedata.Common.max_volatile_data_sessions_without_group <-
+            {Common.cf_value = v; cf_from_config = true};
+          Mod_sessiongroups.Data.set_group_max (without_group ()) v)
+    ; set_max_persistent_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_persistent_data_sessions_per_group <-
+            {Common.cf_value = Some v; cf_from_config = true})
+    ; set_max_service_tab_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_service_tab_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_data_tab_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_volatile_data_tab_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_persistent_tab_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_persistent_data_tab_sessions_per_group <-
+            {Common.cf_value = Some v; cf_from_config = true})
+    ; set_max_services_per_session =
+        (fun v ->
+          sitedata.Common.max_anonymous_services_per_session <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_services_per_site =
+        (fun v ->
+          sitedata.Common.max_anonymous_services_per_site <-
+            {Common.cf_value = v; cf_from_config = true};
+          Common.set_max_anonymous_services sitedata.Common.anonymous_services v)
+    ; set_max_volatile_groups_per_site =
+        (fun v ->
+          ignore
+            (Ocsigen_base.Cache.Dlist.set_maxsize
+               sitedata.Common.group_of_groups v))
+    ; set_secure_cookies = (fun v -> sitedata.Common.secure_cookies <- v)
+    ; set_application_script =
+        (fun v -> sitedata.Common.application_script <- v)
+    ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)
+    ; set_global_data_caching =
+        (fun v -> sitedata.Common.cache_global_data <- v)
+    ; set_html_content_type =
+        (fun v -> sitedata.Common.html_content_type <- Some v)
+    ; set_ignored_get_params =
+        (fun regexp ->
+          sitedata.Common.ignored_get_params <-
+            regexp :: sitedata.Common.ignored_get_params)
+    ; set_ignored_post_params =
+        (fun regexp ->
+          sitedata.Common.ignored_post_params <-
+            regexp :: sitedata.Common.ignored_post_params)
+    ; set_omitpersistentstorage =
+        (fun v -> sitedata.Common.omitpersistentstorage <- v) }
+    content
+
 let parse_config _ hostpattern conf_info site_dir =
   (*--- if we put the following line here: *)
   let sitedata = create_sitedata hostpattern site_dir conf_info in
@@ -880,113 +1008,7 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let oldipv6mask = Common.get_mask6 sitedata in
-        let content =
-          parse_eliom_options
-            { set_volatile_timeout =
-                (fun ct snoo v ->
-                  set_timeout
-                    (Mod_timeouts.set_global_ ~kind:`Data)
-                    sitedata ct snoo v;
-                  set_timeout
-                    (Mod_timeouts.set_global_ ~kind:`Service)
-                    sitedata ct snoo v)
-            ; set_data_timeout =
-                set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
-            ; set_service_timeout =
-                set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
-            ; set_persistent_timeout =
-                set_timeout
-                  (Mod_timeouts.set_global_ ~kind:`Persistent)
-                  sitedata
-            ; set_max_service_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_service_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_service_sessions_per_subnet =
-                (fun v ->
-                  sitedata.Common.max_service_sessions_per_subnet <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_data_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_volatile_data_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_data_sessions_per_subnet =
-                (fun v ->
-                  sitedata.Common.max_volatile_data_sessions_per_subnet <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_persistent_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_persistent_data_sessions_per_group <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_max_service_tab_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_service_tab_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_data_tab_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_volatile_data_tab_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_persistent_tab_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_persistent_data_tab_sessions_per_group <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_max_services_per_session =
-                (fun v ->
-                  sitedata.Common.max_anonymous_services_per_session <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_services_per_subnet =
-                (fun v ->
-                  sitedata.Common.max_anonymous_services_per_subnet <-
-                    {Common.cf_value = v; cf_from_config = true};
-                  (* The global table has already been created, with old max
-                   and old ipv6mask.
-                   I update it, otherwise the setting has no effect
-                   for this table: *)
-                  try
-                    let dlist =
-                      Common.find_dlist_ip_table
-                        ~mask4:(Common.get_mask4 sitedata)
-                        ~mask6:oldipv6mask sitedata.Common.dlist_ip_table
-                        Ipaddr.(V6 V6.localhost)
-                    in
-                    ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist v)
-                  with Not_found -> ()
-                  (* should not occur *))
-            ; set_max_volatile_groups_per_site =
-                (fun v ->
-                  ignore
-                    (Ocsigen_base.Cache.Dlist.set_maxsize
-                       sitedata.Common.group_of_groups v))
-            ; set_secure_cookies =
-                (fun v -> sitedata.Common.secure_cookies <- v)
-            ; set_ipv4mask =
-                (fun v ->
-                  sitedata.Common.ipv4mask <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_ipv6mask =
-                (fun v ->
-                  sitedata.Common.ipv6mask <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_application_script =
-                (fun v -> sitedata.Common.application_script <- v)
-            ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)
-            ; set_global_data_caching =
-                (fun v -> sitedata.Common.cache_global_data <- v)
-            ; set_html_content_type =
-                (fun v -> sitedata.Common.html_content_type <- Some v)
-            ; set_ignored_get_params =
-                (fun regexp ->
-                  sitedata.Common.ignored_get_params <-
-                    regexp :: sitedata.Common.ignored_get_params)
-            ; set_ignored_post_params =
-                (fun regexp ->
-                  sitedata.Common.ignored_post_params <-
-                    regexp :: sitedata.Common.ignored_post_params)
-            ; set_omitpersistentstorage =
-                (fun v -> sitedata.Common.omitpersistentstorage <- v) }
-            content
-        in
+        let content = parse_site_options sitedata content in
         let default_links_xhr, atts = parse_default_links_xhr [] None atts in
         (match default_links_xhr with
         | Some default_links_xhr ->
