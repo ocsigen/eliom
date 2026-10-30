@@ -208,3 +208,111 @@ let () =
     ; ["forms"; "post"], true, `Post
     ; ["native"; "get"], false, `Get
     ; ["native"; "post"], false, `Post ]
+
+(* Client and server: server functions, a bus, React events and signals of the
+   server, and state of the client process (tab) and of the session *)
+
+let double =
+  Eliom.Client.server_function [%json: int] (fun n -> Lwt.return (2 * n))
+
+let fail =
+  Eliom.Client.server_function [%json: unit] (fun () : unit Lwt.t ->
+    failwith "on purpose")
+
+(* A server function that returns a client value *)
+let client_value =
+  Eliom.Client.server_function [%json: unit] (fun () ->
+    Lwt.return [%client ("made by a client value" : string)])
+
+let bus = Eliom.Bus.create [%json: string]
+let counter, set_counter = React.S.create 0
+let counter_down = Eliom.Eliom_react.S.Down.of_react counter
+
+let increment =
+  Eliom.Client.server_function [%json: unit] (fun () ->
+    set_counter (React.S.value counter + 1);
+    Lwt.return_unit)
+
+let up = Eliom.Eliom_react.Up.create (Eliom.Parameter.ocaml "v" [%json: string])
+let last_up = ref ""
+
+let () =
+  Lwt_react.E.keep
+    (React.E.map (fun v -> last_up := v) (Eliom.Eliom_react.Up.to_react up))
+
+let tab_count =
+  Eliom.Reference.Volatile.eref ~scope:Eliom.Common.default_process_scope 0
+
+let session_count =
+  Eliom.Reference.Volatile.eref ~scope:Eliom.Common.default_session_scope 0
+
+let count =
+  Eliom.Client.server_function [%json: unit] (fun () ->
+    let incr r = Eliom.Reference.Volatile.(set r (get r + 1)) in
+    incr tab_count;
+    incr session_count;
+    Lwt.return
+      ( Eliom.Reference.Volatile.get tab_count
+      , Eliom.Reference.Volatile.get session_count ))
+
+let client_server = get ["client-server"]
+
+let () =
+  App.register ~service:client_server (fun () () ->
+    let _ : unit Eliom.Client_value.t =
+      [%client
+        Eliom.Client.onload (fun () ->
+          Lwt.async (fun () ->
+            Lwt_stream.iter (fill "bus") (Eliom.Bus.stream ~%bus));
+          Lwt_react.S.keep
+            (React.S.map
+               (fun n -> fill "counter-down" (string_of_int n))
+               ~%counter_down))]
+    in
+    let action id label (f : (unit -> string Lwt.t) Eliom.Client_value.t) =
+      button
+        ~a:
+          [ a_id id
+          ; a_onclick
+              [%client
+                fun _ ->
+                  Lwt.async (fun () ->
+                    let open Lwt.Syntax in
+                    let* text =
+                      Lwt.catch ~%f (function
+                        | Eliom.Client_value.Exception_on_server _ ->
+                            Lwt.return "exception on the server"
+                        | e -> Lwt.return (Printexc.to_string e))
+                    in
+                    fill (~%id ^ "-result") text;
+                    Lwt.return_unit)] ]
+        [txt label]
+    in
+    let result id = span ~a:[a_id (id ^ "-result")] [] in
+    let actions =
+      [ "double", [%client fun () -> Lwt.map string_of_int (~%double 21)]
+      ; ( "fail"
+        , [%client fun () -> Lwt.map (fun () -> "no exception") (~%fail ())] )
+      ; "client-value", [%client fun () -> ~%client_value ()]
+      ; ( "increment"
+        , [%client fun () -> Lwt.map (fun () -> "sent") (~%increment ())] )
+      ; "up", [%client fun () -> Lwt.map (fun () -> "sent") (~%up "sent up")]
+      ; ( "bus-write"
+        , [%client
+            fun () ->
+              Lwt.map (fun () -> "sent") (Eliom.Bus.write ~%bus "on the bus")] )
+      ; ( "count"
+        , [%client
+            fun () ->
+              Lwt.map
+                (fun (tab, session) ->
+                   Printf.sprintf "tab %d, session %d" tab session)
+                (~%count ())] ) ]
+    in
+    page "client-server"
+      (p ~a:[a_id "last-up"] [txt !last_up]
+      :: p [txt "counter: "; span ~a:[a_id "counter-down"] []]
+      :: p [txt "bus: "; span ~a:[a_id "bus"] []]
+      :: List.map
+           (fun (id, f) -> p [action id id f; txt " "; result id])
+           actions))

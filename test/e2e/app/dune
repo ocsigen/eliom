@@ -16,6 +16,8 @@
  (wrapped false)
  (modules e2e)
  (library_flags -linkall)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
  (libraries eliom.server))
 
 (executable

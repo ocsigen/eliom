@@ -19,5 +19,5 @@
  (modes js)
  (modules e2e)
  (preprocess
-  (pps js_of_ocaml-ppx))
+  (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
  (libraries eliom.client))
