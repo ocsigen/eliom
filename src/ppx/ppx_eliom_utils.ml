@@ -333,7 +333,8 @@ module Cmo = struct
     | ic ->
         let open Cmo_format in
         let buffer =
-          really_input_string ic (String.length Config.cmo_magic_number)
+          try really_input_string ic (String.length Config.cmo_magic_number)
+          with End_of_file -> ""
         in
         if buffer <> Config.cmo_magic_number
         then
@@ -575,27 +576,34 @@ module Cmo = struct
     type_of_out_type ?loc ty
   [@@if ocaml_version < (5, 3, 0)]
 
-  let find err loc =
+  let lookup loc =
     let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
-    try typ ~loc (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
-    with Not_found ->
-      Typ.extension ~loc @@ Location.Error.to_extension
-      @@ Location.Error.make ~loc ~sub:[]
-           (Printf.sprintf
-              "Error: Inferred type of %s not found. You need to regenerate %s."
-              err (get_file ()))
+    Option.map (typ ~loc)
+      (Hashtbl.find_opt (Lazy.force events) (pos_fname, pos_cnum))
+
+  let not_found err loc =
+    Typ.extension ~loc @@ Location.Error.to_extension
+    @@ Location.Error.make ~loc ~sub:[]
+         (Printf.sprintf
+            "Error: Inferred type of %s not found. You need to regenerate %s."
+            err (get_file ()))
+
+  let find err loc =
+    match lookup loc with Some ty -> ty | None -> not_found err loc
 
   let find_escaped_ident = find "escaped ident"
   let find_injected_ident = find "injected ident"
 
   let find_fragment loc =
-    let ty = find "client value" loc in
-    match Mli.get_fragment_type ty with
-    | Some ty -> ty
-    | None ->
-        failwith
-          (Format.asprintf "find_fragment: unexpected type: %a"
-             Ppxlib.Pprintast.core_type ty)
+    match lookup loc with
+    | None -> not_found "client value" loc
+    | Some ty -> (
+      match Mli.get_fragment_type ty with
+      | Some ty -> ty
+      | None ->
+          failwith
+            (Format.asprintf "find_fragment: unexpected type: %a"
+               Ppxlib.Pprintast.core_type ty))
 end
 
 (** Context convenience module. *)

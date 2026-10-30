@@ -1,0 +1,140 @@
+let __eliom__compilation_unit_id__8yjSbE = "8yjSbE"
+type t =
+  | A 
+  | B of int 
+let () =
+  Eliom.Client_core.Syntax_helpers.open_client_section
+    __eliom__compilation_unit_id__8yjSbE
+let i =
+  (Eliom.Client_core.Syntax_helpers.get_injection ?ident:(Some "i")
+     ~pos:({
+             Lexing.pos_fname = "fixture.eliom";
+             Lexing.pos_lnum = 14;
+             Lexing.pos_bol = 346;
+             Lexing.pos_cnum = 363
+           },
+            {
+              Lexing.pos_fname = "fixture.eliom";
+              Lexing.pos_lnum = 14;
+              Lexing.pos_bol = 346;
+              Lexing.pos_cnum = 364
+            }) "8yjSbE1" : int)
+    + 1
+let () =
+  Eliom.Client_core.Syntax_helpers.open_client_section
+    __eliom__compilation_unit_id__8yjSbE
+let l =
+  List.length
+    (Eliom.Client_core.Syntax_helpers.get_injection ?ident:(Some "l")
+       ~pos:({
+               Lexing.pos_fname = "fixture.eliom";
+               Lexing.pos_lnum = 15;
+               Lexing.pos_bol = 369;
+               Lexing.pos_cnum = 398
+             },
+              {
+                Lexing.pos_fname = "fixture.eliom";
+                Lexing.pos_lnum = 15;
+                Lexing.pos_bol = 369;
+                Lexing.pos_cnum = 399
+              }) "8yjSbE2" : int list)
+let () =
+  Eliom.Client_core.Syntax_helpers.open_client_section
+    __eliom__compilation_unit_id__8yjSbE
+let p =
+  fst
+    (Eliom.Client_core.Syntax_helpers.get_injection ?ident:(Some "p")
+       ~pos:({
+               Lexing.pos_fname = "fixture.eliom";
+               Lexing.pos_lnum = 16;
+               Lexing.pos_bol = 400;
+               Lexing.pos_cnum = 421
+             },
+              {
+                Lexing.pos_fname = "fixture.eliom";
+                Lexing.pos_lnum = 16;
+                Lexing.pos_bol = 400;
+                Lexing.pos_cnum = 422
+              }) "8yjSbE3" : (int * string))
+let () =
+  Eliom.Client_core.Syntax_helpers.open_client_section
+    __eliom__compilation_unit_id__8yjSbE
+let o =
+  (Eliom.Client_core.Syntax_helpers.get_injection ?ident:(Some "o")
+     ~pos:({
+             Lexing.pos_fname = "fixture.eliom";
+             Lexing.pos_lnum = 17;
+             Lexing.pos_bol = 423;
+             Lexing.pos_cnum = 440
+           },
+            {
+              Lexing.pos_fname = "fixture.eliom";
+              Lexing.pos_lnum = 17;
+              Lexing.pos_bol = 423;
+              Lexing.pos_cnum = 441
+            }) "8yjSbE4" : float option)
+let () =
+  Eliom.Client_core.Syntax_helpers.open_client_section
+    __eliom__compilation_unit_id__8yjSbE
+let v =
+  (Eliom.Client_core.Syntax_helpers.get_injection ?ident:(Some "v")
+     ~pos:({
+             Lexing.pos_fname = "fixture.eliom";
+             Lexing.pos_lnum = 18;
+             Lexing.pos_bol = 442;
+             Lexing.pos_cnum = 459
+           },
+            {
+              Lexing.pos_fname = "fixture.eliom";
+              Lexing.pos_lnum = 18;
+              Lexing.pos_bol = 442;
+              Lexing.pos_cnum = 460
+            }) "8yjSbE5" : t)
+let () =
+  Eliom.Client_core.Syntax_helpers.open_client_section
+    __eliom__compilation_unit_id__8yjSbE
+let pv =
+  (Eliom.Client_core.Syntax_helpers.get_injection ?ident:(Some "pv")
+     ~pos:({
+             Lexing.pos_fname = "fixture.eliom";
+             Lexing.pos_lnum = 19;
+             Lexing.pos_bol = 461;
+             Lexing.pos_cnum = 479
+           },
+            {
+              Lexing.pos_fname = "fixture.eliom";
+              Lexing.pos_lnum = 19;
+              Lexing.pos_bol = 461;
+              Lexing.pos_cnum = 481
+            }) "8yjSbE6" : [ `A of int  | `B ])
+;;Eliom.Client_core.Syntax_helpers.register_client_closure "8yjSbE1"
+    (fun _eliom_escaped_ident_1 : x:int -> ?y:int -> unit -> int->
+       fun ~x ?(y= 0) () ->
+         (x + y) +
+           (Eliom.Client_core.Syntax_helpers.get_escaped_value
+              _eliom_escaped_ident_1 : int))
+;;Eliom.Client_core.Syntax_helpers.register_client_closure "8yjSbE2"
+    (fun _eliom_escaped_ident_2 : < m: int   > ->
+       object
+         method m =
+           List.length
+             (Eliom.Client_core.Syntax_helpers.get_escaped_value
+                _eliom_escaped_ident_2 : int list)
+       end)
+;;Eliom.Client_core.Syntax_helpers.register_client_closure "8yjSbE3"
+    (fun _eliom_escaped_ident_3 : t->
+       (Eliom.Client_core.Syntax_helpers.get_escaped_value
+          _eliom_escaped_ident_3 : t))
+;;Eliom.Client_core.Syntax_helpers.register_client_closure "8yjSbE4"
+    (fun () : Html_types.txt Eliom.Content.Html.elt->
+       Eliom.Content.Html.F.txt "a")
+;;Eliom.Client_core.Syntax_helpers.register_client_closure "8yjSbE5"
+    (fun _eliom_escaped_ident_4 : int->
+       (Eliom.Client_core.Syntax_helpers.get_escaped_value
+          _eliom_escaped_ident_4 : int)
+         + 1)
+let _eliom_fragment_8yjSbE5 _eliom_escaped_ident_4 : int=
+  (_eliom_escaped_ident_4 : int) + 1
+let from_shared (x : int) =
+  let _eliom_escaped_ident_4 = x in
+  _eliom_fragment_8yjSbE5 _eliom_escaped_ident_4

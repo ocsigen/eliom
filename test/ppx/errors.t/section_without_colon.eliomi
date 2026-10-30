@@ -1,0 +1,2 @@
+[%%client
+val x : int]

@@ -1,0 +1,52 @@
+; The client code, compiled from the binary AST as in the rules of the
+; templates.
+
+(rule
+ (target fixture.ml)
+ (deps ../fixture.eliom %{cmo:../fixture})
+ (action
+  (with-stdout-to
+   %{target}
+   (chdir
+    ..
+    (run
+     %{bin:ppx_eliom_client}
+     --as-pp
+     -server-cmo
+     %{cmo:../fixture}
+     --impl
+     fixture.eliom)))))
+
+(library
+ (name eliom_ppx_test_client)
+ (wrapped false)
+ (modes byte)
+ (modules fixture)
+ (libraries eliom.client))
+
+(rule
+ (alias runtest)
+ (deps %{cmo:fixture})
+ (action (progn)))
+
+; The same code as text, compared with the expected output.
+
+(rule
+ (target fixture.output)
+ (deps ../fixture.eliom %{cmo:../fixture})
+ (action
+  (with-stdout-to
+   %{target}
+   (chdir
+    ..
+    (run
+     %{bin:ppx_eliom_client}
+     -server-cmo
+     %{cmo:../fixture}
+     --impl
+     fixture.eliom)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff fixture.expected fixture.output)))
