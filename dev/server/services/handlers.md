@@ -30,7 +30,7 @@ Services can send several types of data, using a variety of predefined modules. 
 
  Runtime choice of content
 
-;[`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) : Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See [here](https://ocsigen.org/tuto/latest/how-to-register-a-service-that-decides-itself-what-to-send.html) for an example of use.
+;[`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) : Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See [here](https://ocsigen.org/tuto/latest/faq.html#choose) for an example of use.
 
 ### Advanced output modules
 
