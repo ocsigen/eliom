@@ -1,18 +1,38 @@
 #!/usr/bin/env bash
 
-set -e
+# Regenerate the distillery template app from the eliom_template_exe
+# repository.
+#
+#   script/update_templates.sh [source]
+#
+# source is a git URL or a local clone; it defaults to the
+# eliom_template_exe repository on GitHub. A local clone gives the
+# committed state of its current branch. The files tracked by git are
+# copied with the layout eliom-distillery expects: "/" becomes "!" in
+# file names, project_name becomes PROJECT_NAME in file names and
+# %%%PROJECT_NAME%%% in file contents, Project_name becomes
+# %%%MODULE_NAME%%%. The files listed in .eliomverbatim are copied
+# unchanged.
+
+set -eo pipefail
+
+source=${1:-https://github.com/ocsigen/eliom_template_exe}
+# Resolve a local path before leaving the current directory
+if [[ -d $source ]]; then source=$(cd "$source" && pwd); fi
+
+cd "$(dirname "$0")/.."
 
 # Turn "foo/project_name" into "foo!PROJECT_NAME".
 encode_fname ()
 {
   local f=${1//\//!}
-  echo ${f/project_name/PROJECT_NAME}
+  printf '%s\n' "${f//project_name/PROJECT_NAME}"
 }
 
-# Replace markers inside file names
+# Replace markers inside file contents
 subst_file ()
 {
-  sed \
+  LC_ALL=C sed \
     -e "s/project_name/%%%PROJECT_NAME%%%/g" \
     -e "s/Project_name/%%%MODULE_NAME%%%/g"
 }
@@ -20,23 +40,24 @@ subst_file ()
 # encode_dir input output
 encode_dir ()
 {
-  local src=$1 dest=$2
-  mkdir -p "$dest"
-  git -C "$src" ls-files | while read src_f; do
-    if ! [[ $src_f = rename ]]; then
-      subst_file < "$src/$src_f" > "$dest/$(encode_fname "$src_f")"
+  local src=$1 dest=$2 src_f dest_f
+  # The source is a throwaway clone: an empty list if it has none
+  touch "$src/.eliomverbatim"
+  mkdir "$dest"
+  git -C "$src" ls-files -z | while IFS= read -r -d '' src_f; do
+    dest_f=$(encode_fname "$src_f")
+    if grep -qxF -- "$dest_f" "$src/.eliomverbatim"; then
+      cp "$src/$src_f" "$dest/$dest_f"
+    else
+      subst_file < "$src/$src_f" > "$dest/$dest_f"
     fi
+    if [[ -x $src/$src_f ]]; then chmod +x "$dest/$dest_f"; fi
   done
 }
 
-update_template ()
-{
-  local name=$1 url=$2
-  local tmpdir=$(mktemp -d) template_dir=pkg/distillery/templates/$name
-  git clone "$url" "$tmpdir"
-  rm -r "$template_dir"
-  encode_dir "$tmpdir" "$template_dir"
-  rm -rf "$tmpdir"
-}
-
-update_template "app" "https://github.com/ocsigen/eliom_template_exe"
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+git clone "$source" "$tmpdir/src"
+encode_dir "$tmpdir/src" "$tmpdir/out"
+rm -r pkg/distillery/templates/app
+mv "$tmpdir/out" pkg/distillery/templates/app
