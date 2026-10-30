@@ -43,4 +43,4 @@ cycle: cycle of 2: true
 unwrapped: 1 one
 shared: 2 shared, 2 shared, shared: true, unwrapped 1 time(s)
 not registered: 3 three
-not a value: JavaScript error "ReferenceError: window is not defined"
+not a value: Failure "unwrap_value: bad object bm90IGEgbWFyc2hhbGxlZCB2YWx1ZQ=="
