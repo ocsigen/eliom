@@ -42,10 +42,11 @@ Finally, it's also possible to start a section for the rest of the file:
 
 {@ocaml[
 [%%server.start]
-let s = ..
+let s = ...
 ]}
 
-In [.eliomi] files, only the last version is available.
+In [.eliomi] files, the three forms are available, with signatures:
+[val%server x : t], [[%%server: val x : t]], and [[%%server.start]].
 
 Sections are only available at top level and cannot be nested.
 
@@ -111,7 +112,7 @@ let%server x = [%shared ...]
 It will produce values of type
 {!Eliom.Shared.Value.t}.
 
-Shared fragments can be nested and can contain client fragments.
+Shared fragments can contain client fragments.
 
 {1 Injections and escaped values}
 
@@ -168,11 +169,11 @@ created, is sent with the fragment (see [~%n] in the
 
 It is not possible to use injections on values containing a
 closure. This includes lazy values, objects, or anything containing
-functions. You can use either
+functions. You can use
 {!Eliom.Client.server_function} ([let%rpc])
-and client or shared fragments to circumvent this limitation.
+or client or shared fragments to circumvent this limitation.
 
-To extend and customize the serialization from client to server, see
+To extend and customize the serialization from server to client, see
 chapter {{!//clientserver/page-wrapping}Wrapping values}.
 
 {1:evaluation Evaluation}

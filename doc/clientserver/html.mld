@@ -36,10 +36,10 @@ one is the browser DOM tree accessible through Js_of_ocaml modules
 {!Js_of_ocaml.Dom} and {!Js_of_ocaml.Dom_html}. The TyXML representation is
 a OCaml immutable typed tree. The DOM tree is mutable structure
 manipulated using the browser API which permit the modification of the
-displayed page. In the DOM represention adding a node as a child to an
-other node removes it from its previous ancessor.
+displayed page. In the DOM representation, adding a node as a child to an
+other node removes it from its previous parent.
 
-Since those representation does not behave at all the same way, they
+Since those representations do not behave at all the same way, they
 are not used for the same thing.
 
 - It is far easier and safer to describe content using TyXML, but it
@@ -76,7 +76,7 @@ let%client d =
   let d = createDiv document in
   let t1 = document##createTextNode(Js.string "some text") in
   let t2 = document##createTextNode(Js.string "some other text") in
-  let b = createB document in
+  let b = createBr document in
   appendChild d t1;
   appendChild d b;
   appendChild d t2;
@@ -85,7 +85,7 @@ let%client d =
 ]}
 
 To ease the DOM manipulation on the client, the usual DOM manipulation
-function are also available on TyXML elements. See section the next
+function are also available on TyXML elements. See the next
 section for HTML element manipulation, by value and by reference.
 
 {2:unique HTML element manipulation, by value and by reference}
@@ -96,7 +96,7 @@ There are four modules to create typed HTML:
    {!Eliom.Content.Html.C} and
    {!Eliom.Content.Html.R}.
 The last one is for reactive elements and is addressed in
-{{!//clientserver/page-html}another section}.
+{{!section-reactive}another section}.
 
 It is possible to mix the four kinds of nodes in the same page.
 
@@ -128,7 +128,7 @@ included in the initial html document from event handlers, as the
 {%wodoc:@ class=server%}
 {@ocaml[
 let%server main_service =
-  My_app.register_service
+  My_app.create
     ~path:(Eliom.Service.Path [""])
     ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
@@ -153,18 +153,18 @@ let%server main_service =
 In this example, if the input button would have been incorrectly sent
 by value, two different input fields would have been created: one
 displayed in the document and one referenced from the event
-handler. The latter will always contains an empty value.
+handler. The latter will always contain an empty value.
 
 There are still two situations where sending elements by value is still
 required:
 
-- one want to have multiple occurences of the same elements in the
+- one wants to have multiple occurrences of the same elements in the
   document. Indeed, elements sent by reference follow the DOM
-  semantics where an element have only one instance in current
-  document. For example, the following list will contains a single
+  semantics where an element has only one instance in the current
+  document. For example, the following list will contain a single
   element:{%html:<br/>%} {%html:<br/>%} [let li = li [txt "Shared item"] in ul [li; li; li;]].
 
-- one have a large page with a lot elements. Handling elements by
+- one has a large page with a lot of elements. Handling elements by
   references add a small overhead while loading the page, around 50ms
   per 1000 elements on a not so fast computer.
 
@@ -177,8 +177,8 @@ By default, a reference on an element is only valid in the current
 HTTP request: hence, sending an element built with
 [Html.D] in
 two different pages will produce two distinct nodes. If you want to
-define a element reference that is preserved accross the different
-page of an application, you must explicitely name this element with
+define an element reference that is preserved across the different
+pages of an application, you must explicitly name this element with
 the function {!val:Eliom.Content.Html.Id.create_named_elt},
 that takes as parameters an
 element identifier and a non named element.  Element identifiers are
@@ -188,8 +188,8 @@ application}.
 
 The module {!Eliom.Content.Html.Manip}
 allows using the classical DOM manipulation functions
-(e.g. appendChild, addEventlistener, ...) directly on the identifier
-of an HTML elements.
+(e.g. appendChild, addEventlistener, ...) directly on HTML elements
+(or on element identifiers, with [Manip.Named]).
 
 
 {2:reactive Reactive DOM}
@@ -201,7 +201,7 @@ can be found on the {{:http://erratique.ch/software/react} homepage}.
 The react nodes also use {{:https://github.com/ocsigen/reactiveData}ReactiveData},
 which allows to manipulate lists of nodes in a reactive way.
 
-When dealing with dynamic content, one usally ends up with a lot
+When dealing with dynamic content, one usually ends up with a lot
 of imperative DOM manipulations: replacing, appending, removing DOM
 elements, updating attributes, etc. [Html.R] hides most
 of those imperative DOM operations. Every time a signal
@@ -380,7 +380,7 @@ keep the element and its modified content when changing page. For
 example a [div] element which contains a chat box or a music
 player should be preserved while browsing across the different pages of
 your site. For this purpose, Eliom provides a notion of global element. Such
-elements are instantied only once for an application and that unique
+elements are instantiated only once for an application and that unique
 instance is used in every page that references the element.
 
 To create a global element, use function
@@ -422,10 +422,10 @@ let%server _ =
   My_app.register ~service:main_service
     (fun () () ->
        let page_number = incr cpt; string_of_int !cpt in
-       let append_item = [%client
-	 let item_text = "item inserted in page #" ^ ~%page_number in
-         let item = Eliom.Client.Html.of_li (li [txt item_text]) in
-         Dom.appendChild (Eliom.Client.Html.of_ul ~%global_list) item
+       let append_item = [%client fun _ ->
+         let item_text = "item inserted in page #" ^ ~%page_number in
+         let item = Eliom.Content.Html.To_dom.of_li (li [txt item_text]) in
+         Dom.appendChild (Eliom.Content.Html.To_dom.of_ul ~%global_list) item
        ]
        in
        let append_link =
@@ -443,7 +443,7 @@ let%server _ =
 Another use of global element is for external javascript that should
 be included in every page but must be executed only once in an
 application. In the following code snippet, the alert "global script"
-is displayed only once, while the alert "non global script" is display
+is displayed only once, while the alert "non global script" is displayed
 every time you click on the "reload page" link.
 
 {%wodoc:@ class=server%}
@@ -503,15 +503,15 @@ We do not recommend this.
 
 {2:custom_data Custom data for HTML}
 
-Eliom provides a type-safe interface for create new attributes of the form [data-*], using  {!Eliom.Content.Html.Custom_data}.
+Eliom provides a type-safe interface for creating new attributes of the form [data-*], using  {!Eliom.Content.Html.Custom_data}.
 
 {3 Creation}
-Custom data may be created either from string-conversation functions by
+Custom data may be created either from string-conversion functions by
 {!val:Eliom.Content.Html.Custom_data.create}
 
 {%wodoc:@ class=server%}
 {@ocaml[
-open%server Eliom.Content
+open%shared Eliom.Content
 let%server my_int_data =
   Html.Custom_data.create ~name:"my_int"
     ~of_string:int_of_string
@@ -524,7 +524,7 @@ or by a Json-deriving type {!Eliom.Content.Html.Custom_data.create_json}
 {@ocaml[
 type%shared coord = { x : int; y : int; } [@@deriving json]
 let%shared coord_data =
-  Html.Custom_data.create_json ~name:"coord" [%derive.json: coord]
+  Html.Custom_data.create_json ~name:"coord" [%json: coord]
 ]}
 
 {3 Injecting}
@@ -553,7 +553,8 @@ The custom data of a DOM-element can be set with the function
   [%client
     fun (div : Dom_html.element Js.t) ->
       let i = Html.Custom_data.get_dom div coord_data in
-      debug "{x=%d; y=%d}" i.x i.y;
+      Js_of_ocaml.Console.console##log
+        (Js.string (Printf.sprintf "{x=%d; y=%d}" i.x i.y));
       Html.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
   ]
 ]}
@@ -567,5 +568,5 @@ exception [Not_found].
 {@ocaml[
   let coord_data' =
     Html.Custom_data.create_json
-       ~name:"coord" default:{x=0;y=0;} [%derive.json: my_data]
+       ~name:"coord" ~default:{x = 0; y = 0} [%json: coord]
 ]}
