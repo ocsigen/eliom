@@ -257,6 +257,9 @@ You may also use
 to dynamically modify the parameters usually set on the register
 function. You can set the HTTP code, the charset, the content_type,
 the HTTP headers and the specific option of the output module.
+To change only the HTTP status of a page,
+{!val:Eliom.Registration.set_status} is simpler, see
+{{!//server/services/page-handlers.error_handling}Error handling}.
 
 {@ocaml[
 let change_option =
@@ -514,6 +517,26 @@ let looong2 =
 
 {2:error_handling Error handling}
 
+{3 Sending a page with an HTTP error status}
+
+A service handler can set the HTTP status of its answer with
+{!val:Eliom.Registration.set_status}, then return its page as usual:
+
+{@ocaml[
+let () =
+  My_app.register ~service:user_service (fun id () ->
+    match%lwt User.find id with
+    | Some user -> user_page user
+    | None ->
+      Eliom.Registration.set_status `Not_found;
+      not_found_page ())
+]}
+
+This status takes precedence over the [?code] parameter of the
+registration function. It is dropped if the handler raises an exception.
+On the client, [set_status] does nothing, so that [%shared] handlers can
+call it. {!val:Eliom.Registration.get_status} reads it.
+
 {3 Exception handling}
 
 You can catch exceptions raised during page generation in two places:
@@ -547,6 +570,11 @@ let () =
   | e ->
     Lwt.fail e
 ]}
+
+The handler may send any kind of content. In a client-server
+application, send the error page with the [send] function of the
+application, as in [My_app.send ~code:404 page]: the client-side program
+then displays it without leaving the application.
 
 {3 Fallback services}
 

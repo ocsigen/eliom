@@ -332,5 +332,7 @@ module Any = struct
 end
 
 let appl_self_redirect f x = f x
+let set_status _ = ()
+let get_status () = None
 
 module String = Base

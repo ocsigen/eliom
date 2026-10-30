@@ -483,9 +483,14 @@ module Customize
 
 (** {2 Using your own error pages} *)
 
-val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
+val set_exn_handler : (exn -> _ kind Lwt.t) -> unit
 (** The [set_exn_handler handler] allows redefinition of error pages:
     [404] or any exception during page generation.
+
+    The handler may send any kind of content, for instance a page of an
+    application with [My_app.send ~code:404 page]: the client-side program
+    then displays it without leaving the application. The status comes from
+    the [?code] of [send]: {!set_status} has no effect in this handler.
 
     Note that you should not catch every exception here since some
     Eliom mechanisms are done using exceptions, like redirections.  Do
@@ -503,6 +508,33 @@ val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
     {!Service.register_eliom_module}. Otherwise you will also
     get this exception.}
 *)
+
+(** {2 HTTP status of the response} *)
+
+val set_status : Cohttp.Code.status -> unit
+(** [set_status status] makes the response to the current request carry
+    the HTTP status [status], whatever the service handler returns. Call
+    it from a service handler, before returning the page: for instance
+    [set_status `Not_found] to send a page saying that something does not
+    exist, with status 404. The last call wins, and this status takes
+    precedence over the [?code] given at registration.
+
+    It is not used when the handler raises an exception: the handler set
+    with {!set_exn_handler} then decides alone, with the [?code] of [send].
+    Likewise, a handler registered with {!Any} gives the status to the
+    [send] function it calls. Output modules that build the whole response
+    themselves ignore it: {!File}, and {!Action} with the [`Reload] option,
+    since the reloaded page has its own status. It is not meant for
+    {!Ocaml} services either: the client-side program takes any status but
+    200 for a failed request.
+
+    @raise Common.Request_information_not_available outside a request. *)
+
+val get_status : unit -> Cohttp.Code.status option
+(** [get_status ()] is the status set by {!set_status} during the current
+    request, if any.
+
+    @raise Common.Request_information_not_available outside a request. *)
 
 (** {2 Unsafe cast of contents} *)
 

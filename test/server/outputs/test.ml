@@ -36,6 +36,15 @@ let case server name f =
   Alcotest.test_case name `Quick (fun () ->
     Lwt_main.run (f (Browser.create server)))
 
+(* [page_url link] is the URL of the page [/page?x=1] with the parameters
+   of [link], the link to a non-attached action *)
+let page_url link =
+  let uri = Uri.of_string link in
+  Uri.path_and_query
+    (Uri.add_query_param'
+       (Uri.with_path (Uri.remove_query_param uri "to") "/page")
+       ("x", "1"))
+
 (* A GET action reloads the page without its coservice. *)
 let actions server =
   let case = case server in
@@ -43,14 +52,7 @@ let actions server =
   , [ case "non-attached" (fun b ->
         (* The other GET parameters of the page are kept. *)
         let* url = body b "/link?to=non-attached" in
-        let uri = Uri.of_string url in
-        let url =
-          Uri.path_and_query
-            (Uri.add_query_param'
-               (Uri.with_path (Uri.remove_query_param uri "to") "/page")
-               ("x", "1"))
-        in
-        let+ r = Browser.get b url in
+        let+ r = Browser.get b (page_url url) in
         check_response "page" ~status:200 ~body:"page x=1 value=non-attached" r)
     ; case "attached" (fun b ->
         let* url = body b "/link?to=attached" in
@@ -117,9 +119,69 @@ let app server =
         check_occurrences "first" 1 r.body "<p>initial request</p>";
         let+ r = Eliom_test_client.Tab.get tab "/app" in
         check_occurrences "next" 1 r.body "<p>request of the client process</p>")
-    ] )
+    ; case "unknown URL" (fun b ->
+        (* The exception handler of the site sends a page of the
+           application, with its status, to the browser and to the client
+           process alike. *)
+        let check msg (r : Browser.response) =
+          check_response msg ~status:404 r;
+          Alcotest.(check (option string))
+            (msg ^ ": application") (Some "test_app")
+            (Browser.header r "x-eliom-application");
+          check_occurrences (msg ^ ": content") 1 r.body "<p>not found</p>"
+        in
+        let* r = Browser.get b "/unknown" in
+        check "browser" r;
+        let tab = Eliom_test_client.Tab.create b in
+        let* _ = Eliom_test_client.Tab.get tab "/app" in
+        let+ r =
+          Eliom_test_client.Tab.get ~expecting_process_page:true tab "/unknown"
+        in
+        check "client process" r) ] )
+
+(* The HTTP status set by the handler with [Registration.set_status] *)
+let status server =
+  let case = case server in
+  ( "status"
+  , [ case "set by the handler" (fun b ->
+        let+ r = Browser.get b "/status" in
+        check_response "page" ~status:404 ~body:"404 Not Found" r)
+    ; case "none by default" (fun b ->
+        let+ r = Browser.get b "/no_status" in
+        check_response "page" ~status:200 ~body:"none" r)
+    ; case "over the code of the registration" (fun b ->
+        let+ r = Browser.get b "/status_over_code" in
+        check_response "page" ~status:404 r)
+    ; case "page of an application" (fun b ->
+        let+ r = Browser.get b "/app_status" in
+        check_response "page" ~status:404 r;
+        Alcotest.(check (option string))
+          "application" (Some "test_app")
+          (Browser.header r "x-eliom-application"))
+    ; case "action without reload" (fun b ->
+        let+ r = Browser.get b "/status_no_reload" in
+        check_response "action" ~status:400 ~body:"" r)
+    ; case "dropped when the page is reloaded" (fun b ->
+        let* url = body b "/link?to=status" in
+        let+ r = Browser.get b (page_url url) in
+        check_response "page" ~status:200 ~body:"page x=1 value=status" r)
+    ; case "dropped when the handler raises" (fun b ->
+        let+ r = Browser.get b "/status_raise" in
+        check_response "error page" ~status:200 r;
+        check_occurrences "content" 1 r.body "<p>error page</p>")
+    ; case "page of an application, from the client process" (fun b ->
+        let tab = Eliom_test_client.Tab.create b in
+        let* _ = Eliom_test_client.Tab.get tab "/app" in
+        let+ r =
+          Eliom_test_client.Tab.get ~expecting_process_page:true tab
+            "/app_status"
+        in
+        check_response "page" ~status:404 r;
+        Alcotest.(check (option string))
+          "application" (Some "test_app")
+          (Browser.header r "x-eliom-application")) ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-outputs"
-      [actions server; ocaml server; app server])
+      [actions server; ocaml server; app server; status server])

@@ -126,6 +126,14 @@ let send_with_cookies
       ?headers
       content
   =
+  let code =
+    (* The status set by the handler with [Registration.set_status] wins
+       over the code given at registration. *)
+    match sp.Common.sp_response_status with
+    | Some status ->
+        Some (Cohttp.Code.code_of_status (status :> Cohttp.Code.status_code))
+    | None -> code
+  in
   let* result =
     pages.send ?options ?charset ?code ?content_type ?headers content
   in
@@ -156,6 +164,11 @@ let send_with_cookies
 type registration_table =
   | Global_table of Common.tables
   | Session_table of Common.server_params * Common.user_scope * bool option
+
+(* Before running a service handler: a previous service of the same request,
+   tried with the same [sp] and which raised [Eliom_Wrong_parameter], may have
+   set a status. *)
+let reset_response_status sp = sp.Common.sp_response_status <- None
 
 let register_aux
       pages
@@ -227,6 +240,7 @@ let register_aux
           ; s_f =
               (fun nosuffixversion sp ->
                 Lwt.with_value Common.sp_key (Some sp) (fun () ->
+                  reset_response_status sp;
                   let ri = Request_info.get_ri_sp sp
                   and suff = Request_info.get_suffix_sp sp in
                   let* content =
@@ -357,6 +371,7 @@ let register_aux
           , Option.map (fun t -> t, ref (t +. Unix.time ())) (S.timeout service)
           , fun sp ->
               Lwt.with_value Common.sp_key (Some sp) (fun () ->
+                reset_response_status sp;
                 let ri = Request_info.get_ri_sp sp in
                 let* content =
                   Lwt.catch

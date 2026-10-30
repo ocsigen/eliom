@@ -25,12 +25,24 @@ let store t (r : Browser.response) =
              cookies)
         (Eliom.Cookies_base.cookieset_of_json json)
 
-let headers t =
-  [ ( Eliom.Common_base.tab_cookies_header_name
-    , Deriving_Json.to_string [%json: (string * string) list] t.tab_cookies ) ]
+let headers ?(expecting_process_page = false) t =
+  let tab_cookies =
+    ( Eliom.Common_base.tab_cookies_header_name
+    , Deriving_Json.to_string [%json: (string * string) list] t.tab_cookies )
+  in
+  if expecting_process_page
+  then
+    (* As the client-side program asking for a page of the application *)
+    [ tab_cookies
+    ; "Accept", "application/xhtml+xml"
+    ; ( Eliom.Common_base.expecting_process_page_name
+      , Deriving_Json.to_string [%json: bool] true ) ]
+  else [tab_cookies]
 
-let get t url =
-  let+ r = Browser.get ~headers:(headers t) t.browser url in
+let get ?expecting_process_page t url =
+  let+ r =
+    Browser.get ~headers:(headers ?expecting_process_page t) t.browser url
+  in
   store t r; r
 
 let post t url params =

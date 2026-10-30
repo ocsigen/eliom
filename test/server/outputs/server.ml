@@ -85,6 +85,74 @@ let () =
   Test_app.register ~options:{Registration.do_not_launch = true}
     ~service:(get ["app_not_launched"] P.unit) (fun () () -> app_page ())
 
+(* Pages with the HTTP status set by their handler *)
+
+(* [status_text s] sets the status [s] and shows the status set *)
+let status_text s =
+  Registration.set_status s;
+  text
+    (match Registration.get_status () with
+    | Some s -> Cohttp.Code.string_of_status (s :> Cohttp.Code.status_code)
+    | None -> "none")
+
+let () = string (get ["status"] P.unit) (fun () () -> status_text `Not_found)
+
+let () =
+  string (get ["no_status"] P.unit) (fun () () ->
+    text
+      (match Registration.get_status () with
+      | Some _ -> "some"
+      | None -> "none"))
+
+(* The status set by the handler wins over the code of the registration. *)
+let () =
+  Registration.String.register ~code:410
+    ~service:(get ["status_over_code"] P.unit) (fun () () ->
+    status_text `Not_found)
+
+let () =
+  Test_app.register ~service:(get ["app_status"] P.unit) (fun () () ->
+    Registration.set_status `Not_found;
+    app_page ())
+
+(* Actions setting a status: sent as is without reload, dropped when the
+   page is reloaded. *)
+let status_action =
+  Service.create ~path:Service.No_path ~meth:(Service.Get P.unit) ()
+
+let () =
+  Registration.Action.register ~service:status_action (fun () () ->
+    Registration.set_status `Bad_request;
+    V.set value "status";
+    Lwt.return_unit)
+
+let () =
+  Registration.Action.register ~options:`NoReload
+    ~service:(get ["status_no_reload"] P.unit) (fun () () ->
+    Registration.set_status `Bad_request;
+    Lwt.return_unit)
+
+(* The status set by a handler that raises an exception is dropped: the
+   exception handler of the site answers with its own. *)
+exception Boom
+
+let () =
+  string (get ["status_raise"] P.unit) (fun () () ->
+    Registration.set_status `Not_found;
+    raise Boom)
+
+let error_page text =
+  Content.Html.F.(html (head (title (txt text)) []) (body [p [txt text]]))
+
+(* The exception handler of the site sends pages of the application: with
+   its own status for the exception of a handler, with status 404 for unknown
+   URLs. *)
+let () =
+  Registration.set_exn_handler (function
+    | Boom -> Test_app.send (error_page "error page")
+    | Common.Eliom_404 -> Test_app.send ~code:404 (error_page "not found")
+    | e -> Lwt.fail e)
+
 (* Links to the actions *)
 
 let () =
@@ -98,6 +166,9 @@ let () =
          | "attached" ->
              Eliom_uri.make_string_uri ~absolute_path:true
                ~service:attached_action ()
+         | "status" ->
+             Eliom_uri.make_string_uri ~absolute_path:true
+               ~service:status_action ()
          | _ -> invalid_arg target))
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

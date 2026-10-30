@@ -9,10 +9,16 @@ type t
 val create : Eliom_test_server.Browser.t -> t
 (** [create b] is a new tab of [b], with no tab cookie. *)
 
-val get : t -> string -> Eliom_test_server.Browser.response Lwt.t
+val get :
+   ?expecting_process_page:bool
+  -> t
+  -> string
+  -> Eliom_test_server.Browser.response Lwt.t
 (** [get t url] sends a GET request for [url] from [t], as
     {!Eliom_test_server.Browser.get}, with the tab cookies of [t], and keeps
-    the tab cookies set by the response. *)
+    the tab cookies set by the response. With [~expecting_process_page:true],
+    the request asks for a page of the application, as the client-side
+    program does when it changes page. *)
 
 val post :
    t
