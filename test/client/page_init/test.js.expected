@@ -1,0 +1,24 @@
+application: client_test
+host: eliom-test
+cookies of /page: __eliom_appl_name=client_test expires_later=expires_later_value plain=plain_value
+cookies of /page (https): __eliom_appl_name=client_test expires_later=expires_later_value plain=plain_value secure=secure_value
+cookies of /other/x: __eliom_appl_name=client_test expires_later=expires_later_value other_path=other_path_value plain=plain_value
+table: :__eliom_appl_name :expires_later :plain :secure other:other_path
+table: :__eliom_appl_name :new :secure other:other_path
+cookies of /page: __eliom_appl_name=client_test new=new_value
+cookies of /page: __eliom_appl_name=client_test new=new_value
+table: :__eliom_appl_name :new :secure other:other_path
+path: a/b?s=x&n=1
+special characters: a/b?s=%C3%A9%20%26%3D%3F/%23%2B%25&n=2, NOT a/b?s=%C3%A9+%26%3D%3F%2F%23%2B%25&n=2 on the server
+absolute path: /a/b?s=y&n=3
+absolute: http://eliom-test/a/b?s=z&n=4
+https: https://eliom-test/a/b?s=s&n=5
+fragment: a/b?s=t&n=6#f%20r, NOT a/b?s=t&n=6#f+r on the server
+root: ./
+same page: page
+deeper: x/y/z
+suffix: suffix/7/a/b, NOT suffix/7/a%2Fb on the server
+non-attached coservice: page?__eliom_na__name=na
+attached coservice: ./?__co_eliom_n=8&__eliom__=co
+external service: http://example.org/e?s=e
+preapplied: a/b?s=pre&n=1
