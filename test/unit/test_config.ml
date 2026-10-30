@@ -13,6 +13,26 @@ let check_error msg expected s =
   | exception Ocsigen.Extensions.Error_in_config_file e ->
       Alcotest.(check string) msg expected e
 
+(* A site of its own, for the options of the configuration of a site *)
+let site =
+  lazy
+    (Main.create_sitedata [] ["config"]
+       (Ocsigen.Extensions.default_config_info ()))
+
+(* [parse_site s] reads the options [s], the content of an <eliom> element of
+   a site, and returns those left to the Eliom modules. *)
+let parse_site s =
+  match Xml.parse_string ("<eliom>" ^ s ^ "</eliom>") with
+  | Xml.Element (_, _, options) ->
+      Main.parse_site_options (Lazy.force site) options
+  | Xml.PCData _ -> Alcotest.fail "not an element"
+
+let check_site_error msg expected s =
+  match parse_site s with
+  | _ -> Alcotest.failf "%s: accepted in a site" msg
+  | exception Ocsigen.Extensions.Error_in_config_file e ->
+      Alcotest.(check string) (msg ^ ", in a site") expected e
+
 let frequency = Alcotest.(option (float 0.))
 
 let test_gc_frequencies () =
@@ -110,10 +130,14 @@ let test_limits () =
        List.iter
          (fun v ->
             let before = List.map (fun (_, r) -> !r) limits in
-            check_error
-              (Printf.sprintf "%s=%d" tag v)
-              (Printf.sprintf "Eliom: Wrong attribute value for %s tag" tag)
-              (Printf.sprintf {|<%s value="%d"/>|} tag v);
+            let msg = Printf.sprintf "%s=%d" tag v
+            and expected =
+              Printf.sprintf
+                "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+                tag
+            and option = Printf.sprintf {|<%s value="%d"/>|} tag v in
+            check_error msg expected option;
+            check_site_error msg expected option;
             Alcotest.(check (list int))
               (tag ^ ": unchanged") before
               (List.map (fun (_, r) -> !r) limits))
@@ -125,9 +149,7 @@ let test_limits () =
     (fun () -> Eliom.Config.set_max_service_sessions_per_group 0)
 
 (* The options renamed or removed in Eliom 13 are errors, which tell what
-   replaces them. In the
-   configuration of a site, unknown options are left to the Eliom modules:
-   [check_renamed] rejects them before. *)
+   replaces them, also in the configuration of a site. *)
 let test_renamed () =
   let renamed what tag new_tag =
     ( tag
@@ -144,10 +166,7 @@ let test_renamed () =
     (fun (tag, expected) ->
        let option = Printf.sprintf {|<%s value="10"/>|} tag in
        check_error tag expected option;
-       match Main.check_renamed (Xml.parse_string option) with
-       | () -> Alcotest.failf "%s: accepted in a site" tag
-       | exception Ocsigen.Extensions.Error_in_config_file e ->
-           Alcotest.(check string) (tag ^ ", in a site") expected e)
+       check_site_error tag expected option)
     [ sessions "maxvolatilesessionspersubnet" "maxvolatilesessionswithoutgroup"
     ; sessions "maxservicesessionspersubnet" "maxservicesessionswithoutgroup"
     ; sessions "maxdatasessionspersubnet" "maxdatasessionswithoutgroup"
@@ -155,6 +174,19 @@ let test_renamed () =
         "maxanonymouscoservicespersubnet" "maxanonymouscoservicespersite"
     ; removed "ipv4subnetmask"
     ; removed "ipv6subnetmask" ]
+
+(* In the configuration of a site, the options of Eliom apply to the site,
+   and the other ones are left to the Eliom modules. *)
+let test_site_options () =
+  match
+    parse_site {|<maxdatasessionspergroup value="3"/><mymodule a="b"/>|}
+  with
+  | [Xml.Element ("mymodule", [("a", "b")], [])] ->
+      Alcotest.(check int)
+        "limit of the site" 3
+        (Lazy.force site).Eliom.Common.max_volatile_data_sessions_per_group
+          .Eliom.Common.cf_value
+  | _ -> Alcotest.fail "options left to the modules"
 
 let test_cookies () =
   parse {|<securecookies value="true"/>|};
@@ -243,6 +275,7 @@ let suite =
     ; Alcotest.test_case "Comet timeout" `Quick test_comet_timeout
     ; Alcotest.test_case "limits" `Quick test_limits
     ; Alcotest.test_case "renamed options" `Quick test_renamed
+    ; Alcotest.test_case "options of a site" `Quick test_site_options
     ; Alcotest.test_case "secure cookies" `Quick test_cookies
     ; Alcotest.test_case "client program" `Quick test_client_program
     ; Alcotest.test_case "ignored parameters" `Quick test_ignored_params

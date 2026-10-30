@@ -64,10 +64,16 @@ val create_sitedata :
 
 val parse_global_config : Xml_light_types.xml list -> unit
 
-val check_renamed : Xml_light_types.xml -> unit
-(** [check_renamed e] raises [Ocsigen.Extensions.Error_in_config_file] if [e]
-    is an option renamed or removed in Eliom 13, in the global configuration
-    as in the configuration of a site. *)
+val parse_site_options :
+   Common.sitedata
+  -> Xml_light_types.xml list
+  -> Xml_light_types.xml list
+(** [parse_site_options sitedata options] applies to [sitedata] the options of
+    Eliom in [options], the content of an [<eliom>] element of a site, and
+    returns the other ones, left to the Eliom modules.
+
+    @raise Ocsigen.Extensions.Error_in_config_file for an option of Eliom
+    with a wrong value, or renamed or removed in Eliom 13. *)
 
 val exception_during_eliommodule_loading : bool ref
 val end_init : unit -> unit

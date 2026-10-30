@@ -299,6 +299,10 @@ type option_setters =
   ; set_omitpersistentstorage :
       Common.omitpersistentstorage_rule list option -> unit }
 
+(* An option that is not an option of Eliom: in the configuration of a site,
+   it is left to the Eliom modules *)
+exception Unknown_option of string
+
 (* The following is common to global config and site config *)
 let parse_eliom_option
       { set_volatile_timeout
@@ -392,7 +396,13 @@ let parse_eliom_option
      sessions, groups or services, which must be positive. *)
   let with_limit tag v f =
     with_int tag v (fun i ->
-      if i < 1 then failwith "not positive";
+      if i < 1
+      then
+        raise
+          (Error_in_config_file
+             (Printf.sprintf
+                "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+                tag));
       f i)
   in
   let parse_application_script_attrs attrs =
@@ -532,9 +542,14 @@ let parse_eliom_option
       set_omitpersistentstorage (Some rules)
   | Xml.Element (s, _, _) ->
       raise
-        (Error_in_config_file
-           ("Unexpected content <" ^ s ^ "> inside eliom config"))
-  | _ -> raise (Error_in_config_file "Unexpected content inside eliom config")
+        (Unknown_option ("Unexpected content <" ^ s ^ "> inside eliom config"))
+  | _ -> raise (Unknown_option "Unexpected content inside eliom config")
+
+(* [parse_known_option f e] is [parse_eliom_option f e], for an option that
+   must be an option of Eliom *)
+let parse_known_option f e =
+  try parse_eliom_option f e
+  with Unknown_option message -> raise (Error_in_config_file message)
 
 let parse_eliom_options f l =
   List.iter check_renamed l;
@@ -542,7 +557,7 @@ let parse_eliom_options f l =
     | [] -> rest
     | e :: l -> (
       try parse_eliom_option f e; aux rest l
-      with Error_in_config_file _ -> aux (e :: rest) l)
+      with Unknown_option _ -> aux (e :: rest) l)
   in
   List.rev (aux [] l)
 
@@ -590,7 +605,7 @@ let rec parse_global_config = function
       parse_global_config ll
   | e :: ll ->
       check_renamed e;
-      parse_eliom_option
+      parse_known_option
         { set_volatile_timeout =
             (fun ct sh m ->
               Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
@@ -827,7 +842,91 @@ Make possible to customize this? *)
     ?cookie_level:(Some cookie_type) ~recompute_expdates:false
     ~override_configfile:true ~from_configfile:true sitedata v
 
+(* [parse_site_options sitedata options] applies to [sitedata] the options of
+   Eliom in [options], the content of an <eliom> element of a site, and
+   returns the other ones, left to the Eliom modules. *)
+
 (** Parsing of config file for each site: *)
+let parse_site_options sitedata content =
+  parse_eliom_options
+    { set_volatile_timeout =
+        (fun ct snoo v ->
+          set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata ct snoo v;
+          set_timeout
+            (Mod_timeouts.set_global_ ~kind:`Service)
+            sitedata ct snoo v)
+    ; set_data_timeout =
+        set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
+    ; set_service_timeout =
+        set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
+    ; set_persistent_timeout =
+        set_timeout (Mod_timeouts.set_global_ ~kind:`Persistent) sitedata
+    ; set_max_service_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_service_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_service_sessions_without_group =
+        (fun v ->
+          sitedata.Common.max_service_sessions_without_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_data_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_volatile_data_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_data_sessions_without_group =
+        (fun v ->
+          sitedata.Common.max_volatile_data_sessions_without_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_persistent_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_persistent_data_sessions_per_group <-
+            {Common.cf_value = Some v; cf_from_config = true})
+    ; set_max_service_tab_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_service_tab_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_data_tab_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_volatile_data_tab_sessions_per_group <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_persistent_tab_sessions_per_group =
+        (fun v ->
+          sitedata.Common.max_persistent_data_tab_sessions_per_group <-
+            {Common.cf_value = Some v; cf_from_config = true})
+    ; set_max_services_per_session =
+        (fun v ->
+          sitedata.Common.max_anonymous_services_per_session <-
+            {Common.cf_value = v; cf_from_config = true})
+    ; set_max_services_per_site =
+        (fun v ->
+          sitedata.Common.max_anonymous_services_per_site <-
+            {Common.cf_value = v; cf_from_config = true};
+          Common.set_max_anonymous_services sitedata.Common.anonymous_services v)
+    ; set_max_volatile_groups_per_site =
+        (fun v ->
+          ignore
+            (Ocsigen_base.Cache.Dlist.set_maxsize
+               sitedata.Common.group_of_groups v))
+    ; set_secure_cookies = (fun v -> sitedata.Common.secure_cookies <- v)
+    ; set_application_script =
+        (fun v -> sitedata.Common.application_script <- v)
+    ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)
+    ; set_global_data_caching =
+        (fun v -> sitedata.Common.cache_global_data <- v)
+    ; set_html_content_type =
+        (fun v -> sitedata.Common.html_content_type <- Some v)
+    ; set_ignored_get_params =
+        (fun regexp ->
+          sitedata.Common.ignored_get_params <-
+            regexp :: sitedata.Common.ignored_get_params)
+    ; set_ignored_post_params =
+        (fun regexp ->
+          sitedata.Common.ignored_post_params <-
+            regexp :: sitedata.Common.ignored_post_params)
+    ; set_omitpersistentstorage =
+        (fun v -> sitedata.Common.omitpersistentstorage <- v) }
+    content
+
 let parse_config _ hostpattern conf_info site_dir =
   (*--- if we put the following line here: *)
   let sitedata = create_sitedata hostpattern site_dir conf_info in
@@ -902,92 +1001,7 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let content =
-          parse_eliom_options
-            { set_volatile_timeout =
-                (fun ct snoo v ->
-                  set_timeout
-                    (Mod_timeouts.set_global_ ~kind:`Data)
-                    sitedata ct snoo v;
-                  set_timeout
-                    (Mod_timeouts.set_global_ ~kind:`Service)
-                    sitedata ct snoo v)
-            ; set_data_timeout =
-                set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
-            ; set_service_timeout =
-                set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
-            ; set_persistent_timeout =
-                set_timeout
-                  (Mod_timeouts.set_global_ ~kind:`Persistent)
-                  sitedata
-            ; set_max_service_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_service_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_service_sessions_without_group =
-                (fun v ->
-                  sitedata.Common.max_service_sessions_without_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_data_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_volatile_data_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_data_sessions_without_group =
-                (fun v ->
-                  sitedata.Common.max_volatile_data_sessions_without_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_persistent_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_persistent_data_sessions_per_group <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_max_service_tab_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_service_tab_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_data_tab_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_volatile_data_tab_sessions_per_group <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_persistent_tab_sessions_per_group =
-                (fun v ->
-                  sitedata.Common.max_persistent_data_tab_sessions_per_group <-
-                    {Common.cf_value = Some v; cf_from_config = true})
-            ; set_max_services_per_session =
-                (fun v ->
-                  sitedata.Common.max_anonymous_services_per_session <-
-                    {Common.cf_value = v; cf_from_config = true})
-            ; set_max_services_per_site =
-                (fun v ->
-                  sitedata.Common.max_anonymous_services_per_site <-
-                    {Common.cf_value = v; cf_from_config = true};
-                  Common.set_max_anonymous_services
-                    sitedata.Common.anonymous_services v)
-            ; set_max_volatile_groups_per_site =
-                (fun v ->
-                  ignore
-                    (Ocsigen_base.Cache.Dlist.set_maxsize
-                       sitedata.Common.group_of_groups v))
-            ; set_secure_cookies =
-                (fun v -> sitedata.Common.secure_cookies <- v)
-            ; set_application_script =
-                (fun v -> sitedata.Common.application_script <- v)
-            ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)
-            ; set_global_data_caching =
-                (fun v -> sitedata.Common.cache_global_data <- v)
-            ; set_html_content_type =
-                (fun v -> sitedata.Common.html_content_type <- Some v)
-            ; set_ignored_get_params =
-                (fun regexp ->
-                  sitedata.Common.ignored_get_params <-
-                    regexp :: sitedata.Common.ignored_get_params)
-            ; set_ignored_post_params =
-                (fun regexp ->
-                  sitedata.Common.ignored_post_params <-
-                    regexp :: sitedata.Common.ignored_post_params)
-            ; set_omitpersistentstorage =
-                (fun v -> sitedata.Common.omitpersistentstorage <- v) }
-            content
-        in
+        let content = parse_site_options sitedata content in
         let default_links_xhr, atts = parse_default_links_xhr [] None atts in
         (match default_links_xhr with
         | Some default_links_xhr ->

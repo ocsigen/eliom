@@ -239,7 +239,9 @@
    setting a session group, Config.set_max_*, App.run and the options of
    the configuration file reject 0 or less (Invalid_argument, or a
    configuration error). A limit of 0 behaved as 1, or raised
-   Failure "Dlist.set_maxsize" on a group that was not empty.
+   Failure "Dlist.set_maxsize" on a group that was not empty. In the
+   configuration of a site, an option of Eliom with a wrong value is now
+   an error too: it was left to the Eliom modules, and ignored.
 ** The default maximum number of tab sessions in a browser session is now
    100 instead of 50. A closed tab does not tell the server, so the limit
    must exceed the number of tabs of the site that a user keeps open at
