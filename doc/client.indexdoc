@@ -5,6 +5,7 @@ Lib
 Client
 Client_value
 Request_info
+Config
 }
 
 {2 Content and form creation}
@@ -23,6 +24,7 @@ Tools
 Service
 Parameter
 Registration
+Eliom_uri
 }
 
 {2 Client/server communication}
@@ -33,6 +35,7 @@ Cscache
 Bus
 Comet
 Eliom_react
+Request
 }
 
 {2 Index}
