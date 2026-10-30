@@ -371,6 +371,13 @@ different groups, see section {{!//server/page-state.new_scope}Hierarchies of sc
 It's possible to fetch the current session group name of a session, if
 any, or to detach a session from a group. See the module {!Eliom.State} for more information.
 
+Services registered with scope {!val:Eliom.Common.default_group_scope}
+are found only by the requests whose service session is in the group:
+attach the service session with {!Eliom.State.set_service_session_group},
+attaching the data sessions is not enough. Like volatile group data, these
+services are discarded when the last service session of the group is
+closed, for example when a user who has only one session disconnects.
+
 {3 Limit the number of sessions within a group}
 
 The number of sessions in a group is limited: when a group is full,
