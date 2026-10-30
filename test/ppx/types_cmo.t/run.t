@@ -8,8 +8,9 @@ given by `-server-cmo` (test/ppx/cmo tests a real one). Errors:
   [1]
 
   $ ppx_eliom_client -server-cmo other.ml --impl injection.eliom
-  Fatal error: exception End_of_file
-  [2]
+  File "other.ml", line 1:
+  Error: Eliom: Error while loading types: not an object file
+  [1]
 
   $ ppx_eliom_client -server-cmo other.cmo --impl injection.eliom
   File "other.cmo", line 1:

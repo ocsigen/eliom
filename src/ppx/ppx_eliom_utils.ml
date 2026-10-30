@@ -333,7 +333,8 @@ module Cmo = struct
     | ic ->
         let open Cmo_format in
         let buffer =
-          really_input_string ic (String.length Config.cmo_magic_number)
+          try really_input_string ic (String.length Config.cmo_magic_number)
+          with End_of_file -> ""
         in
         if buffer <> Config.cmo_magic_number
         then
