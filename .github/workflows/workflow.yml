@@ -58,6 +58,19 @@ jobs:
 
       - run: opam exec -- dune runtest -p eliom,eliom-compat
 
+      # Browser tests (test/e2e), not required to pass for now
+      - name: Browser tests
+        if: runner.os == 'Linux' && matrix.ocaml-compiler == 5
+        continue-on-error: true
+        working-directory: test/e2e
+        env:
+          E2E_BROWSERS: chromium,firefox,webkit
+        run: |
+          opam exec -- dune build @app/all
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+          npx playwright test
+
   lint-fmt:
     runs-on: ubuntu-latest
     steps:
