@@ -1,4 +1,4 @@
-===== 13.0~dev =====
+===== 13.0.0 (2026-11-01) =====
 * Dependencies
 ** Requires OCaml >= 4.14, Ocsigen Server >= 8.0 (wrapped module names),
    TyXML >= 5.0, ocsipersist >= 3.1 (JSON frontends with the Decoding_error

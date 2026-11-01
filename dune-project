@@ -3,7 +3,7 @@
 (cram enable)
 
 (name eliom)
-(version 13.0~dev)
+(version 13.0.0)
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
