@@ -65,8 +65,13 @@ end
 module Up = struct
   type 'a t = 'a -> unit Lwt.t
 
+  (* The service is an action, whose answer has no content (204), as for
+     Bus.write *)
   let internal_unwrap (service, _unwrapper) x =
-    Lwt.map ignore (Client.call_service ~service () x)
+    Lwt.catch
+      (fun () -> Lwt.map ignore (Client.call_service ~service () x))
+      (function
+        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc)
 
   let () = Unwrap.register_unwrapper Common.react_up_unwrap_id internal_unwrap
 end

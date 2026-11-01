@@ -574,6 +574,9 @@
 ** The fragments of URLs and of the actions of forms built by the server
    encode spaces as %20, as on the client, not +, which is not a space in a
    fragment.
+** Eliom_react.Up: sending an event from the client no longer fails with
+   Failed_request 204 once the server has received it. Its service is an
+   action, which answers without content.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
