@@ -5,7 +5,7 @@
 
 (executable
  (name test)
- (modes js)
+ (modes js wasm)
  (modules urls test)
  (preprocess
   (pps js_of_ocaml-ppx))
@@ -19,9 +19,10 @@
    test.js.output
    (run
     node
-    %{dep:../run.js}
-    %{dep:../stub.js}
-    %{dep:../page/page.js}
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
     %{dep:test.bc.js}))))
 
 (rule
@@ -29,4 +30,27 @@
  (package eliom)
  (enabled_if %{bin-available:node})
  (action
-  (diff test.js.expected test.js.output)))
+  (diff test.expected test.js.output)))
+
+(rule
+ (package eliom)
+ (enabled_if %{bin-available:node})
+ (action
+  (with-stdout-to
+   test.wasm.output
+   (run
+    node
+    --require
+    ./%{dep:../wasm_node.js}
+    --require
+    ./%{dep:../stub.js}
+    --require
+    ./%{dep:../page/page.js}
+    %{dep:test.bc.wasm.js}))))
+
+(rule
+ (alias runtest)
+ (package eliom)
+ (enabled_if %{bin-available:node})
+ (action
+  (diff test.expected test.wasm.output)))
