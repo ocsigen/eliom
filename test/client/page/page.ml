@@ -27,6 +27,8 @@ let rec cdata_sections page from =
           String.sub page start (stop - start)
           :: cdata_sections page (stop + String.length close_cdata))
 
+(* Besides the quote and the backslash, only the characters below 0x20 are
+   escaped: Node.js reads page.js in UTF-8, as a browser reads the page. *)
 let js_string s =
   let b = Buffer.create (String.length s + 2) in
   Buffer.add_char b '"';
@@ -34,8 +36,7 @@ let js_string s =
     (function
       | '"' -> Buffer.add_string b "\\\""
       | '\\' -> Buffer.add_string b "\\\\"
-      | c when Char.code c < 0x20 || Char.code c >= 0x7f ->
-          Printf.bprintf b "\\u%04x" (Char.code c)
+      | c when Char.code c < 0x20 -> Printf.bprintf b "\\u%04x" (Char.code c)
       | c -> Buffer.add_char b c)
     s;
   Buffer.add_char b '"';
