@@ -249,6 +249,9 @@ val all_suffix_string :
   (string, [ `One of string ] param_name) params_type_
 ```
 ```ocaml
+val check_suffix : string -> ('a, 'b) params_type_ -> unit
+```
+```ocaml
 val suffix : 
   ?redirect_if_not_suffix:bool ->
   ('a, 'b) params_type_ ->

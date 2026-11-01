@@ -25,9 +25,14 @@ val get_full_url : unit -> string
 returns the full URL as a string
 
 ```ocaml
+val get_client_conn : unit -> Ocsigen.Request.client_conn
+```
+returns how the client is connected: ``Inet (ip, port)` if it is connected directly through the internet, ``Forwarded_for ip` if it is behind a trusted reverse proxy (see the option `<allow-forward-for/>` of Ocsigen Server), ``Unix path` through a Unix socket, ``Unknown` otherwise. In ``Forwarded_for ip`, `ip` is the address given by the proxy, as is, without parsing.
+
+```ocaml
 val get_client_conn_to_string : unit -> string
 ```
-returns the address of the client in textual format. This is an IP address if the client is connected through the internet.
+returns the connection of the client in textual format, for logs: an IP address if the client is connected directly through the internet, and a prefixed string otherwise (`"forwarded:<ip>"`, `"unix:<path>"`, `"unknown"`). Use [`get_client_conn`](./#val-get_client_conn) to get the address itself.
 
 ```ocaml
 val get_original_full_path_string : unit -> string

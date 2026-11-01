@@ -113806,7 +113806,7 @@ A parameter as `radio f s` specifies that the service takes an optional argument
 ```ocaml
 val any : ((string * string) list, [ `WithoutSuffix ], unit) params_type
 ```
-Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings.
+Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings. It cannot be used in a suffix (see [`all_suffix`](./#val-all_suffix)).
 
 ```ocaml
 val set : 
@@ -113835,6 +113835,8 @@ Tells that the parameter of the service handler is the suffix of the URL of the 
 For each service with suffix, there is also a service with regular parameters (without suffix) that will be used if you create a form towards a service with suffix. If `redirect_if_not_suffix` is `true` (default), this service without suffix will be redirected to the suffix version.
 
 The value of a parameter of the suffix is a decoded segment of the path, which may contain slashes (written `%2F` in URLs) and `../`: only the `..` segments of the path are removed. Check it before using it as a file name.
+
+A suffix cannot contain [`any`](./#val-any), [`unit`](./#val-unit), a file, raw POST data or non-localised parameters, and a list or a set must end the path, even inside an option or a list: `suffix` raises `Invalid_argument` otherwise, so that the error shows when the service is created. The same holds for the first argument of [`suffix_prod`](./#val-suffix_prod), whose second argument, outside the path, has no such restriction.
 
 ```ocaml
 val all_suffix : 
@@ -114219,6 +114221,9 @@ val all_suffix :
 val all_suffix_string : 
   string ->
   (string, [ `One of string ] param_name) params_type_
+```
+```ocaml
+val check_suffix : string -> ('a, 'b) params_type_ -> unit
 ```
 ```ocaml
 val suffix : 
@@ -114636,7 +114641,7 @@ A parameter as `radio f s` specifies that the service takes an optional argument
 ```ocaml
 val any : ((string * string) list, [ `WithoutSuffix ], unit) params_type
 ```
-Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings.
+Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings. It cannot be used in a suffix (see [`all_suffix`](./#val-all_suffix)).
 
 ```ocaml
 val set : 
@@ -114665,6 +114670,8 @@ Tells that the parameter of the service handler is the suffix of the URL of the 
 For each service with suffix, there is also a service with regular parameters (without suffix) that will be used if you create a form towards a service with suffix. If `redirect_if_not_suffix` is `true` (default), this service without suffix will be redirected to the suffix version.
 
 The value of a parameter of the suffix is a decoded segment of the path, which may contain slashes (written `%2F` in URLs) and `../`: only the `..` segments of the path are removed. Check it before using it as a file name.
+
+A suffix cannot contain [`any`](./#val-any), [`unit`](./#val-unit), a file, raw POST data or non-localised parameters, and a list or a set must end the path, even inside an option or a list: `suffix` raises `Invalid_argument` otherwise, so that the error shows when the service is created. The same holds for the first argument of [`suffix_prod`](./#val-suffix_prod), whose second argument, outside the path, has no such restriction.
 
 ```ocaml
 val all_suffix : 
@@ -115154,6 +115161,7 @@ type options = [
   | `MovedPermanently
   | `Found
   | `SeeOther
+  | `NotModified
   | `NotNodifed
   | `UseProxy
   | `TemporaryRedirect
@@ -115337,6 +115345,7 @@ module Redirection :
            [ `MovedPermanently
            | `Found
            | `SeeOther
+           | `NotModified
            | `NotNodifed
            | `UseProxy
            | `TemporaryRedirect ]
@@ -117922,6 +117931,14 @@ type send_appl_content =
   | XAlways
   | XSame_appl of string * string option (* Whether the service is capable to send application content or not. (application content has type Service.eliom_appl_answer: content of the application container, or xhr redirection ...). A link towards a service with send_appl_content = XNever will always answer a regular http frame (this will stop the application if used in a regular link or form, but not with XHR). XAlways means "for all applications" (like redirections/actions). XSame_appl means "only for this application". If there is a client side application, and the service has XAlways or XSame_appl when it is the same application, then the link (or form or change_page) will expect application content. *)
 ```
+```ocaml
+type xhr = 
+  | No_xhr
+  | Xhr
+  | Xhr_template of string
+```
+How a client-side program requests a service: `No_xhr`, a regular HTTP request, which leaves the application; `Xhr`, an XHR expecting application content; `Xhr_template t`, the same with the template `t`.
+
 ```ocaml
 type service_kind = [ 
   | `Service
@@ -122472,13 +122489,13 @@ val run :
     ([< Common.cookie_level ]
      * Common_base.scope_hierarchy option
      * float option) ->
-  ?max_service_sessions_per_group:(int * bool) ->
-  ?max_volatile_data_sessions_per_group:(int * bool) ->
+  ?max_service_sessions_per_group:int ->
+  ?max_volatile_data_sessions_per_group:int ->
   ?max_persistent_data_sessions_per_group:int ->
-  ?max_service_tab_sessions_per_group:(int * bool) ->
-  ?max_volatile_data_tab_sessions_per_group:(int * bool) ->
+  ?max_service_tab_sessions_per_group:int ->
+  ?max_volatile_data_tab_sessions_per_group:int ->
   ?max_persistent_data_tab_sessions_per_group:int ->
-  ?max_anonymous_services_per_session:(int * bool) ->
+  ?max_anonymous_services_per_session:int ->
   ?secure_cookies:bool ->
   ?application_script:(bool * bool) ->
   ?enable_wasm:bool ->
@@ -122490,7 +122507,7 @@ val run :
   unit ->
   Ocsigen.Server.instruction
 ```
-`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise).
+`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise). As the values of a configuration file, these maximum numbers are kept when the program calls a `State.set_default_max_*` function without `~override_configfile:true`.
 
 As for a site of a configuration file, the services with a path created during the initialisation of the application must be registered by then: otherwise `run` raises [`Common.Eliom_there_are_unregistered_services`](./Eliom-Common.md#exception-Eliom_there_are_unregistered_services), and the server does not start. Unregistered non-attached coservices are reported by a warning.
 
@@ -224293,7 +224310,7 @@ A parameter as `radio f s` specifies that the service takes an optional argument
 ```ocaml
 val any : ((string * string) list, [ `WithoutSuffix ], unit) params_type
 ```
-Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings.
+Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings. It cannot be used in a suffix (see [`all_suffix`](./#val-all_suffix)).
 
 ```ocaml
 val set : 
@@ -224322,6 +224339,8 @@ Tells that the parameter of the service handler is the suffix of the URL of the 
 For each service with suffix, there is also a service with regular parameters (without suffix) that will be used if you create a form towards a service with suffix. If `redirect_if_not_suffix` is `true` (default), this service without suffix will be redirected to the suffix version.
 
 The value of a parameter of the suffix is a decoded segment of the path, which may contain slashes (written `%2F` in URLs) and `../`: only the `..` segments of the path are removed. Check it before using it as a file name.
+
+A suffix cannot contain [`any`](./#val-any), [`unit`](./#val-unit), a file, raw POST data or non-localised parameters, and a list or a set must end the path, even inside an option or a list: `suffix` raises `Invalid_argument` otherwise, so that the error shows when the service is created. The same holds for the first argument of [`suffix_prod`](./#val-suffix_prod), whose second argument, outside the path, has no such restriction.
 
 ```ocaml
 val all_suffix : 
@@ -224742,6 +224761,9 @@ val all_suffix_string :
   (string, [ `One of string ] param_name) params_type_
 ```
 ```ocaml
+val check_suffix : string -> ('a, 'b) params_type_ -> unit
+```
+```ocaml
 val suffix : 
   ?redirect_if_not_suffix:bool ->
   ('a, 'b) params_type_ ->
@@ -225157,7 +225179,7 @@ A parameter as `radio f s` specifies that the service takes an optional argument
 ```ocaml
 val any : ((string * string) list, [ `WithoutSuffix ], unit) params_type
 ```
-Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings.
+Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings. It cannot be used in a suffix (see [`all_suffix`](./#val-all_suffix)).
 
 ```ocaml
 val set : 
@@ -225186,6 +225208,8 @@ Tells that the parameter of the service handler is the suffix of the URL of the 
 For each service with suffix, there is also a service with regular parameters (without suffix) that will be used if you create a form towards a service with suffix. If `redirect_if_not_suffix` is `true` (default), this service without suffix will be redirected to the suffix version.
 
 The value of a parameter of the suffix is a decoded segment of the path, which may contain slashes (written `%2F` in URLs) and `../`: only the `..` segments of the path are removed. Check it before using it as a file name.
+
+A suffix cannot contain [`any`](./#val-any), [`unit`](./#val-unit), a file, raw POST data or non-localised parameters, and a list or a set must end the path, even inside an option or a list: `suffix` raises `Invalid_argument` otherwise, so that the error shows when the service is created. The same holds for the first argument of [`suffix_prod`](./#val-suffix_prod), whose second argument, outside the path, has no such restriction.
 
 ```ocaml
 val all_suffix : 
@@ -228427,7 +228451,7 @@ The default returned HTTP code is `302 Found`. You could use the optional parame
 - ``MovedPermanently` to return `301 Moved Permanently`.
 - ``Found` to return `302 Found`.
 - ``SeeOther` to return `303 See Other`.
-- ``NotNodifed` to return `304 Not Modified`.
+- ``NotModified` to return `304 Not Modified` (``NotNodifed`, a former misspelling, is still accepted).
 - ``UseProxy` to return `305 Use Proxy`.
 - ``TemporaryRedirect` to return `307 Temporary Redirect`.
 ```ocaml
@@ -228438,6 +228462,7 @@ type options = [
   | `MovedPermanently
   | `Found
   | `SeeOther
+  | `NotModified
   | `NotNodifed
   | `UseProxy
   | `TemporaryRedirect
@@ -228821,6 +228846,7 @@ type options = [
   | `MovedPermanently
   | `Found
   | `SeeOther
+  | `NotModified
   | `NotNodifed
   | `UseProxy
   | `TemporaryRedirect
@@ -229666,6 +229692,7 @@ module String_redirection :
            [ `MovedPermanently
            | `Found
            | `SeeOther
+           | `NotModified
            | `NotNodifed
            | `UseProxy
            | `TemporaryRedirect ]
@@ -230608,9 +230635,14 @@ val get_full_url : unit -> string
 returns the full URL as a string
 
 ```ocaml
+val get_client_conn : unit -> Ocsigen.Request.client_conn
+```
+returns how the client is connected: ``Inet (ip, port)` if it is connected directly through the internet, ``Forwarded_for ip` if it is behind a trusted reverse proxy (see the option `<allow-forward-for/>` of Ocsigen Server), ``Unix path` through a Unix socket, ``Unknown` otherwise. In ``Forwarded_for ip`, `ip` is the address given by the proxy, as is, without parsing.
+
+```ocaml
 val get_client_conn_to_string : unit -> string
 ```
-returns the address of the client in textual format. This is an IP address if the client is connected through the internet.
+returns the connection of the client in textual format, for logs: an IP address if the client is connected directly through the internet, and a prefixed string otherwise (`"forwarded:<ip>"`, `"unix:<path>"`, `"unknown"`). Use [`get_client_conn`](./#val-get_client_conn) to get the address itself.
 
 ```ocaml
 val get_original_full_path_string : unit -> string
@@ -232133,6 +232165,14 @@ type send_appl_content =
   | XAlways
   | XSame_appl of string * string option (* Whether the service is capable to send application content or not. (application content has type Service.eliom_appl_answer: content of the application container, or xhr redirection ...). A link towards a service with send_appl_content = XNever will always answer a regular http frame (this will stop the application if used in a regular link or form, but not with XHR). XAlways means "for all applications" (like redirections/actions). XSame_appl means "only for this application". If there is a client side application, and the service has XAlways or XSame_appl when it is the same application, then the link (or form or change_page) will expect application content. *)
 ```
+```ocaml
+type xhr = 
+  | No_xhr
+  | Xhr
+  | Xhr_template of string
+```
+How a client-side program requests a service: `No_xhr`, a regular HTTP request, which leaves the application; `Xhr`, an XHR expecting application content; `Xhr_template t`, the same with the template `t`.
+
 ```ocaml
 type service_kind = [ 
   | `Service

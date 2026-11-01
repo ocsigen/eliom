@@ -196,6 +196,14 @@ type send_appl_content =
   | XSame_appl of string * string option (* Whether the service is capable to send application content or not. (application content has type Service.eliom_appl_answer: content of the application container, or xhr redirection ...). A link towards a service with send_appl_content = XNever will always answer a regular http frame (this will stop the application if used in a regular link or form, but not with XHR). XAlways means "for all applications" (like redirections/actions). XSame_appl means "only for this application". If there is a client side application, and the service has XAlways or XSame_appl when it is the same application, then the link (or form or change_page) will expect application content. *)
 ```
 ```ocaml
+type xhr = 
+  | No_xhr
+  | Xhr
+  | Xhr_template of string
+```
+How a client-side program requests a service: `No_xhr`, a regular HTTP request, which leaves the application; `Xhr`, an XHR expecting application content; `Xhr_template t`, the same with the template `t`.
+
+```ocaml
 type service_kind = [ 
   | `Service
   | `AttachedCoservice

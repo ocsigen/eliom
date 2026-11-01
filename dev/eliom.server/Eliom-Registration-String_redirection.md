@@ -12,6 +12,7 @@ type options = [
   | `MovedPermanently
   | `Found
   | `SeeOther
+  | `NotModified
   | `NotNodifed
   | `UseProxy
   | `TemporaryRedirect

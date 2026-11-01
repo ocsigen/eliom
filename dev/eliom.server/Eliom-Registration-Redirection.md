@@ -7,7 +7,7 @@ The default returned HTTP code is `302 Found`. You could use the optional parame
 - ``MovedPermanently` to return `301 Moved Permanently`.
 - ``Found` to return `302 Found`.
 - ``SeeOther` to return `303 See Other`.
-- ``NotNodifed` to return `304 Not Modified`.
+- ``NotModified` to return `304 Not Modified` (``NotNodifed`, a former misspelling, is still accepted).
 - ``UseProxy` to return `305 Use Proxy`.
 - ``TemporaryRedirect` to return `307 Temporary Redirect`.
 ```ocaml
@@ -18,6 +18,7 @@ type options = [
   | `MovedPermanently
   | `Found
   | `SeeOther
+  | `NotModified
   | `NotNodifed
   | `UseProxy
   | `TemporaryRedirect

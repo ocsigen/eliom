@@ -26,13 +26,13 @@ val run :
     ([< Common.cookie_level ]
      * Common_base.scope_hierarchy option
      * float option) ->
-  ?max_service_sessions_per_group:(int * bool) ->
-  ?max_volatile_data_sessions_per_group:(int * bool) ->
+  ?max_service_sessions_per_group:int ->
+  ?max_volatile_data_sessions_per_group:int ->
   ?max_persistent_data_sessions_per_group:int ->
-  ?max_service_tab_sessions_per_group:(int * bool) ->
-  ?max_volatile_data_tab_sessions_per_group:(int * bool) ->
+  ?max_service_tab_sessions_per_group:int ->
+  ?max_volatile_data_tab_sessions_per_group:int ->
   ?max_persistent_data_tab_sessions_per_group:int ->
-  ?max_anonymous_services_per_session:(int * bool) ->
+  ?max_anonymous_services_per_session:int ->
   ?secure_cookies:bool ->
   ?application_script:(bool * bool) ->
   ?enable_wasm:bool ->
@@ -44,7 +44,7 @@ val run :
   unit ->
   Ocsigen.Server.instruction
 ```
-`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise).
+`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise). As the values of a configuration file, these maximum numbers are kept when the program calls a `State.set_default_max_*` function without `~override_configfile:true`.
 
 As for a site of a configuration file, the services with a path created during the initialisation of the application must be registered by then: otherwise `run` raises [`Common.Eliom_there_are_unregistered_services`](./Eliom-Common.md#exception-Eliom_there_are_unregistered_services), and the server does not start. Unregistered non-attached coservices are reported by a warning.
 

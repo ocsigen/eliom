@@ -200,6 +200,7 @@ module String_redirection :
            [ `MovedPermanently
            | `Found
            | `SeeOther
+           | `NotModified
            | `NotNodifed
            | `UseProxy
            | `TemporaryRedirect ]

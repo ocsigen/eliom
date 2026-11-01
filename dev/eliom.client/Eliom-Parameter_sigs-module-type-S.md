@@ -205,7 +205,7 @@ A parameter as `radio f s` specifies that the service takes an optional argument
 ```ocaml
 val any : ((string * string) list, [ `WithoutSuffix ], unit) params_type
 ```
-Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings.
+Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings. It cannot be used in a suffix (see [`all_suffix`](./#val-all_suffix)).
 
 ```ocaml
 val set : 
@@ -234,6 +234,8 @@ Tells that the parameter of the service handler is the suffix of the URL of the 
 For each service with suffix, there is also a service with regular parameters (without suffix) that will be used if you create a form towards a service with suffix. If `redirect_if_not_suffix` is `true` (default), this service without suffix will be redirected to the suffix version.
 
 The value of a parameter of the suffix is a decoded segment of the path, which may contain slashes (written `%2F` in URLs) and `../`: only the `..` segments of the path are removed. Check it before using it as a file name.
+
+A suffix cannot contain [`any`](./#val-any), [`unit`](./#val-unit), a file, raw POST data or non-localised parameters, and a list or a set must end the path, even inside an option or a list: `suffix` raises `Invalid_argument` otherwise, so that the error shows when the service is created. The same holds for the first argument of [`suffix_prod`](./#val-suffix_prod), whose second argument, outside the path, has no such restriction.
 
 ```ocaml
 val all_suffix : 
