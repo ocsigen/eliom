@@ -1,0 +1,6 @@
+val x : int
+val _eliom_injected_ident_N63mRt1 : int option ref
+val _eliom_fragment_N63mRt1 : int Eliom.Client_value.t option ref
+val _eliom_escaped_ident_1 : 'eliom_inferred_type__weak1 list option ref
+val length : 'eliom_inferred_type__weak1 list -> int Eliom.Client_value.t
+val missing : unit -> int Eliom.Client_value.t
