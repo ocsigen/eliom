@@ -287,7 +287,8 @@
       (param $s (ref $intern_state)) (param $code i32) (result (ref eq))
       (local $ops (ref $custom_operations))
       (local $expected_size i32)
-      (local $r (tuple (ref eq) i32))
+      (local $r_0 (ref eq))
+      (local $r_1 i32)
       (block $unknown
          (local.set $ops
             (br_on_null $unknown
@@ -310,18 +311,19 @@
                      (struct.set $intern_state $pos (local.get $s)
                         (i32.add (struct.get $intern_state $pos (local.get $s))
                            (i32.const 8)))))))
-            (local.set $r
-               (call_ref $deserialize (local.get $s)
-                  (struct.get $custom_operations $deserialize (local.get $ops))))
+            (call_ref $deserialize (local.get $s)
+               (struct.get $custom_operations $deserialize (local.get $ops)))
+            (local.set $r_1)
+            (local.set $r_0)
             (if (i32.and
-                  (i32.ne (tuple.extract 2 1 (local.get $r))
+                  (i32.ne (local.get $r_1)
                      (local.get $expected_size))
                   (i32.ne (local.get $code) (global.get $CODE_CUSTOM)))
                (then
                   (call $caml_failwith
                      (array.new_data $string $incorrect_size
                         (i32.const 0) (i32.const 57)))))
-            (return (tuple.extract 2 0 (local.get $r))))
+            (return (local.get $r_0)))
          (call $caml_failwith
             (array.new_data $string $expected_size
                (i32.const 0) (i32.const 48))))

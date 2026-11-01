@@ -253,6 +253,8 @@
    must exceed the number of tabs of the site that a user keeps open at
    the same time; beyond it, the tab session used least recently is
    closed.
+* Compatibility with the WebAssembly text parser of the next
+  wasm_of_ocaml, which has no tuple types
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
