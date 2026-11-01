@@ -38,7 +38,8 @@ tags 0 to 16: [C0 0; C1 1; C2 2; C3 3; C4 4; C5 5; C6 6; C7 7; C8 8; C9 9; C10 1
 8 fields: [1; 2; 3; 4; 5; 6; 7; 8]
 polymorphic variants: [`A; `B 1; `C ("c", 0x1p+1)]
 sharing: [1; 2], shared: true
-objects shared: 1 40 300 0x1.8p+0 0x1p+1 1, shared: true
+far sharing: 300 objects between, shared: true
+objects shared: 1 40 300 0x1.8p+0 0x1p+1 256 1 1, shared: true
 cycle: cycle of 2: true
 unwrapped: 1 one
 shared: 2 shared, 2 shared, shared: true, unwrapped 1 time(s)

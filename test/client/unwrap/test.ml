@@ -22,13 +22,16 @@ let () =
     Values.cases
 
 (* The unwrapper registered for a mark replaces the marked value, once even if
-   the value is shared. A value whose mark has no unwrapper is kept. *)
+   the value is shared. A value whose mark has no unwrapper is kept. The
+   unwrapper returns a block, as [==] compares JavaScript strings by value. *)
 let calls = ref 0
 
 let () =
   Eliom.Unwrap.register_unwrapper (Eliom.Unwrap.id_of_int 1000)
-    (fun (n, s, (_ : unit)) -> incr calls; Printf.sprintf "%d %s" n s);
-  print "unwrapped" (fun () -> unwrap Encoded.unwrapped);
+    (fun (n, s, (_ : unit)) ->
+       incr calls;
+       ref (Printf.sprintf "%d %s" n s));
+  print "unwrapped" (fun () -> !(unwrap Encoded.unwrapped));
   calls := 0;
   print "shared" (fun () ->
     let a, b =
@@ -36,7 +39,7 @@ let () =
       | [a; b] -> a, b
       | _ -> failwith "not a list of two values"
     in
-    Printf.sprintf "%s, %s, shared: %b, unwrapped %d time(s)" a b (a == b)
+    Printf.sprintf "%s, %s, shared: %b, unwrapped %d time(s)" !a !b (a == b)
       !calls);
   print "not registered" (fun () ->
     let n, s, (_ : unit) = unwrap Encoded.not_registered in
