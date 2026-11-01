@@ -555,10 +555,12 @@
    window.btoa, which raised a ReferenceError there.
 ** The client reads the long float arrays sent by a big-endian server
    correctly: the shared values read after them were wrong.
-** Lib.Url.encode of the client encodes slashes as %2F, as on the server.
-   URLs built by the client thus encode the slashes of the values of suffix
-   parameters, which the server read as separators. BREAKING for direct
-   callers on the client.
+** Lib.Url.encode of the client encodes slashes, + and spaces as the server
+   does: slashes as %2F, + always as %2B, and spaces as + by default or %20
+   with ~plus:false. URLs built by the client thus encode the slashes of the
+   values of suffix parameters, which the server read as separators.
+   BREAKING for direct callers on the client: slashes were kept, ~plus told
+   whether + is encoded, and spaces were always %20.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
