@@ -9,6 +9,7 @@ Config
 Request_info
 Reference
 State
+Extension
 }
 
 {2 Content and form creation}
@@ -26,6 +27,7 @@ Tools
 {!modules:
 Service
 Parameter
+Eliom_uri
 Registration
 Registration.Html
 Registration.Action

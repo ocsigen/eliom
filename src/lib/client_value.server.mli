@@ -29,10 +29,11 @@ type +'a t
     {{!Client_value.t}the concrete representation on the client}. *)
 
 exception Client_value_creation_invalid_context of string
-(** Raised if a client value of the given closure ID is created at a
-    point in time where it is neither global (i.e. during the
-    initialization of the server program), nor request (i.e. during
-    the processing of a request). *)
+(** Raised if a global client value (a client fragment evaluated by the
+    toplevel code of a module) of the given closure ID is created during
+    a request. Global client values are created during the initialization
+    of the server program, the other ones during the processing of a
+    request. *)
 
 (**/**)
 

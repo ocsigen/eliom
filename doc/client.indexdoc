@@ -4,6 +4,8 @@
 Lib
 Client
 Client_value
+Request_info
+Config
 }
 
 {2 Content and form creation}
@@ -13,17 +15,27 @@ Content.Html
 Content.Html.Manip
 Content.Svg
 Content.Xml
+Tools
+}
+
+{2 Service creation}
+
+{!modules:
+Service
+Parameter
+Registration
+Eliom_uri
 }
 
 {2 Client/server communication}
 
 {!modules:
-Service
 Shared
 Cscache
 Bus
 Comet
 Eliom_react
+Request
 }
 
 {2 Index}

@@ -547,7 +547,7 @@ module Html : sig
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
     (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element]
-        ({!Js_of_ocaml.Dom_html.element}).
+        ({!type:Js_of_ocaml.Dom_html.element}).
         @return The value encoded in the respective custom data attribute of [element], or the default value, if any.
         @raise Not_found if the element does not contain the respective custom
           data attribute and the [custom_data] was created without [default].
@@ -556,7 +556,7 @@ module Html : sig
     val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
     (** [set_dom element custom_data value] sets the custom data attribute for
         [custom_data] of an JavaScript [element]
-        ({!Js_of_ocaml.Dom_html.element})
+        ({!type:Js_of_ocaml.Dom_html.element})
         to [value]. *)
   end
 
