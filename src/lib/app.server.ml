@@ -88,24 +88,31 @@ let run
   Option.iter
     (fun v -> sitedata.max_anonymous_services_per_session <- configured v)
     max_anonymous_services_per_session;
-  Option.iter (fun v -> sitedata.secure_cookies <- v) secure_cookies;
-  Option.iter
-    (fun (defer, async) -> sitedata.application_script <- {defer; async})
-    application_script;
-  (* Always update enable_wasm: use provided value or current global default *)
-  sitedata.enable_wasm <-
-    Option.value enable_wasm ~default:!Mod_main.default_enable_wasm;
-  Option.iter (fun v -> sitedata.cache_global_data <- v) global_data_caching;
-  Option.iter (fun v -> sitedata.html_content_type <- Some v) html_content_type;
-  Option.iter
-    (fun v -> sitedata.ignored_get_params <- v :: sitedata.ignored_get_params)
-    ignored_get_params;
-  Option.iter
-    (fun v -> sitedata.ignored_post_params <- v :: sitedata.ignored_post_params)
-    ignored_post_params;
-  Option.iter
-    (fun v -> sitedata.omitpersistentstorage <- v)
-    omitpersistentstorage;
+  (* The site of the default application is created when Eliom is
+     initialised (see [Mod_main.get_sitedata]), before the toplevel code of
+     the modules sets the defaults with the functions of [Config]: these
+     options are the values given here, or else the current defaults. Only
+     [Config] and [App.run] set them. *)
+  let current param default = Option.value param ~default:!default in
+  sitedata.secure_cookies <-
+    current secure_cookies Mod_main.default_secure_cookies;
+  sitedata.application_script <-
+    (match application_script with
+    | Some (defer, async) -> {defer; async}
+    | None -> !Mod_main.default_application_script);
+  sitedata.enable_wasm <- current enable_wasm Mod_main.default_enable_wasm;
+  sitedata.cache_global_data <-
+    current global_data_caching Mod_main.default_cache_global_data;
+  sitedata.html_content_type <-
+    (match html_content_type with
+    | Some _ -> html_content_type
+    | None -> !Mod_main.default_html_content_type);
+  sitedata.ignored_get_params <-
+    Option.to_list ignored_get_params @ !Mod_main.default_ignored_get_params;
+  sitedata.ignored_post_params <-
+    Option.to_list ignored_post_params @ !Mod_main.default_ignored_post_params;
+  sitedata.omitpersistentstorage <-
+    current omitpersistentstorage Mod_main.default_omitpersistentstorage;
   (* end sitedata *)
   Common.absolute_change_sitedata sitedata;
   Fun.protect ~finally:Common.end_current_sitedata (fun () ->
