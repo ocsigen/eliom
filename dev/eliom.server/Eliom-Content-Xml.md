@@ -156,7 +156,7 @@ Unique nodes are XML nodes that are manipulated 'by reference' when sent to the 
 ```ocaml
 type caml_event_handler
 ```
-Values of type `caml_event_handler` represents event handler build with the `{{ ... }}` syntax (see the Eliom manual for more information on [syntax extension](./../clientserver/html.md#syntax)). Such values are expected by functions like `Content.Html.a_onclick`.
+Values of type `caml_event_handler` represents event handler built with the `[%client ...]` syntax (see the Eliom manual for more information on the [syntax extension](./../clientserver/multitier.md)). Such values are expected by functions like `Content.Html.a_onclick`.
 
 ```ocaml
 val wrap : elt -> 'a -> 'a Wrap.wrapped_value

@@ -147,6 +147,7 @@
 <li data-wodoc-page="Request_info"><a href="./eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="./eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="./eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="./eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -160,6 +161,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="./eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="./eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="./eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="./eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="./eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="./eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -254,6 +256,7 @@
 <li data-wodoc-page="Request_info"><a href="./eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="./eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="./eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="./eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -267,6 +270,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="./eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="./eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="./eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="./eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="./eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="./eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -289,8 +293,8 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1 id="eliom">Eliom</h1><p><em>The full-stack OCaml Web and mobile framework</em></p><p>Eliom is a framework for building client/server Web and mobile applications in OCaml.</p><p>It can be used both as a traditional server-side Web framework or to implement complex client-server applications.</p><p>Eliom transforms OCaml into a multi-tier language, making it possible to implement both the server and client parts of a Web and mobile app as a single program. This simplifies a lot the communication between server and client.</p><p>Applications can run on any Web browser or mobile device (iOS, Android), saving from the need to develop one version for each platform.</p><p>Eliom has support for reactive pages (generated on server or client), advanced session mechanism, server to client communication, continuation based Web programming, etc.</p></header>
-        <div class="odoc-content"><h2 id="installation-instructions">Installation Instructions</h2><pre>opam install eliom</pre><h2 id="a-quick-tour">A quick tour</h2><p>Here is a quick overview of what programming with Eliom look like.</p><p>Defining a service on path <code>/foo</code>, taking any GET parameters:</p><pre class="language-ocaml server"><code>let myservice =
+        <header class="odoc-preamble"><h1 id="eliom">Eliom</h1><p><em>The full-stack OCaml Web and mobile framework</em></p><p>Eliom is a framework for building client/server Web and mobile applications in OCaml.</p><p>It can be used both as a traditional server-side Web framework or to implement complex client-server applications.</p><p>Eliom transforms OCaml into a multi-tier language, making it possible to implement both the server and client parts of a Web and mobile app as a single program. This simplifies a lot the communication between server and client.</p><p>Applications can run on any Web browser or mobile device (iOS, Android), removing the need to develop one version for each platform.</p><p>Eliom has support for reactive pages (generated on server or client), an advanced session mechanism, server to client communication, continuation based Web programming, etc.</p></header>
+        <div class="odoc-content"><h2 id="installation-instructions">Installation Instructions</h2><pre>opam install eliom</pre><h2 id="a-quick-tour">A quick tour</h2><p>Here is a quick overview of what programming with Eliom looks like.</p><p>Defining a service on path <code>/foo</code>, taking any GET parameters:</p><pre class="language-ocaml server"><code>let myservice =
   Eliom.Service.create
     ~path:(Eliom.Service.Path [&quot;foo&quot;])
     ~meth:(Eliom.Service.Get (Eliom.Parameter.any))
@@ -300,17 +304,16 @@ let () =
   Eliom.Registration.Html.register ~service:myservice
     (fun get_params () -&gt;
       Lwt.return
-         Eliom.Content.Html.F.(html (head (title (txt &quot;&quot;)))
-                                    (body [h1 [txt &quot;Hello&quot;]])))</code></pre><p>Inserting a link towards that service, with parameters:</p><pre class="language-ocaml server"><code>Eliom.Content.Html.D.a ~service:myservice [txt &quot;Home&quot;] [(&quot;param1&quot;, &quot;v1&quot;); (&quot;param2&quot;, &quot;v2&quot;)]</code></pre><p>Event handlers are written in OCaml:</p><pre class="language-ocaml server"><code>div ~a:[a_onclick [%client fun ev -&gt; ... ]] [ ... ]</code></pre><p>The client-side and server programs are written as a single program:</p><pre class="language-ocaml server"><code>let%server a = ... (* code for the server part of the application *)</code></pre><pre class="language-ocaml client"><code>let%client b = ... (* code for the client part of the application *)</code></pre><pre class="language-ocaml shared"><code>let%shared a = ... (* code that will be included in both parts *)</code></pre><p>Using a server-side value in client-side code:</p><pre class="language-ocaml server"><code>let%server a = ...</code></pre><pre class="language-ocaml client"><code>let%client f () =
-  [%client (print_endline ~%a : unit)] (* print in browser console *)</code></pre><p>Calling a server function from the client program:</p><pre class="language-ocaml shared"><code>let%rpc f (x : int) : unit Lwt.t = ... (* server-side code *)</code></pre><pre class="language-ocaml client"><code>let%client () =
+         Eliom.Content.Html.F.(html (head (title (txt &quot;&quot;)) [])
+                                    (body [h1 [txt &quot;Hello&quot;]])))</code></pre><p>Inserting a link towards that service, with parameters:</p><pre class="language-ocaml server"><code>Eliom.Content.Html.D.a ~service:myservice [txt &quot;Home&quot;] [(&quot;param1&quot;, &quot;v1&quot;); (&quot;param2&quot;, &quot;v2&quot;)]</code></pre><p>Event handlers are written in OCaml:</p><pre class="language-ocaml server"><code>div ~a:[a_onclick [%client fun ev -&gt; ... ]] [ ... ]</code></pre><p>The client-side and server programs are written as a single program:</p><pre class="language-ocaml server"><code>let%server a = ... (* code for the server part of the application *)</code></pre><pre class="language-ocaml client"><code>let%client b = ... (* code for the client part of the application *)</code></pre><pre class="language-ocaml shared"><code>let%shared a = ... (* code that will be included in both parts *)</code></pre><p>Using a server-side value in client-side code:</p><pre class="language-ocaml server"><code>let%server a = ...</code></pre><pre class="language-ocaml client"><code>let%client f () = print_endline ~%a (* print in browser console *)</code></pre><p>Calling a server function from the client program (with <a href="https://github.com/ocsigen/ocsigen-ppx-rpc">ocsigen-ppx-rpc</a>):</p><pre class="language-ocaml shared"><code>let%rpc f (x : int) : unit Lwt.t = ... (* server-side code *)</code></pre><pre class="language-ocaml client"><code>let%client g () =
   let%lwt r = f 4 in
   ...</code></pre><p>Saving session data on the server using Eliom references:</p><pre class="language-ocaml server"><code>let%server r = Eliom.Reference.eref ~scope:Eliom.Common.default_session_scope 0
 
 let%server f () =
   let%lwt v = Eliom.Reference.get r in
-  Eliom.Reference.set r (v + 1);
+  let%lwt () = Eliom.Reference.set r (v + 1) in
   ...
-</code></pre><p>Where scope can be:</p><ul><li><code>Eliom.Common.default_session_scope</code> (different value for each browser),</li><li><code>Eliom.Common.default_process_scope</code> (different value for each tab),</li><li><code>Eliom.Common.default_group_scope</code> (different value for each user),</li><li><code>Eliom.Common.site_scope</code> (value for the whole site),</li><li><code>Eliom.Common.global_scope</code> (global value for the whole server). Eliom references are persistent if you add <code>~persistent:(name, json_codec)</code> to function <code>Eliom.Reference.eref</code>. Their values are then stored with Ocsipersist, whose database location <a href="server/state.html#ocsipersist_config" title="ocsipersist_config">must be configured</a>.</li></ul><h2 id="learning-eliom">Learning Eliom</h2><p>To learn Eliom, read one the main documentation pages first: <a href="https://ocsigen.org/tuto/latest/basics.html">application development</a> (client-server programming) or <a href="https://ocsigen.org/tuto/latest/basics-server.html">website development</a> (server-side programming).</p><p>Write your first Web and mobile application with Eliom using <a href="./../../ocsigen-start/dev/index.html">Ocsigen Start</a></p><p>If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:</p><ul><li><a href="https://ocsigen.org/tuto/latest/basics-server.html">A basic Web site in OCaml</a></li><li><a href="https://ocsigen.org/tuto/latest/how-to-register-session-data.html">Session data: Eliom references</a></li><li><a href="https://ocsigen.org/tuto/latest/interaction.html">Service based Web programming</a></li></ul><p>The full <a href="intro.html" title="intro">reference manual</a>, for technical details</p></div>
+</code></pre><p>Where scope can be:</p><ul><li><code>Eliom.Common.default_session_scope</code> (different value for each browser),</li><li><code>Eliom.Common.default_process_scope</code> (different value for each tab),</li><li><code>Eliom.Common.default_group_scope</code> (different value for each user),</li><li><code>Eliom.Common.site_scope</code> (value for the whole site),</li><li><code>Eliom.Common.global_scope</code> (global value for the whole server). Eliom references are persistent if you add <code>~persistent:(name, json_codec)</code> to function <code>Eliom.Reference.eref</code>. Their values are then stored with Ocsipersist, whose database location <a href="server/state.html#ocsipersist_config" title="ocsipersist_config">must be configured</a>.</li></ul><h2 id="learning-eliom">Learning Eliom</h2><p>To learn Eliom, read one of the main documentation pages first: <a href="https://ocsigen.org/tuto/latest/basics.html">application development</a> (client-server programming) or <a href="https://ocsigen.org/tuto/latest/basics-server.html">website development</a> (server-side programming).</p><p>Write your first Web and mobile application with Eliom using <a href="./../../ocsigen-start/dev/index.html">Ocsigen Start</a>.</p><p>If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:</p><ul><li><a href="https://ocsigen.org/tuto/latest/basics-server.html">A basic Web site in OCaml</a></li><li><a href="https://ocsigen.org/tuto/latest/how-to-register-session-data.html">Session data: Eliom references</a></li><li><a href="https://ocsigen.org/tuto/latest/interaction.html">Service based Web programming</a></li></ul><p>Read the full <a href="intro.html" title="intro">reference manual</a> for technical details.</p></div>
       </article>
     </div>
   </div>

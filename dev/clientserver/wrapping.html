@@ -147,6 +147,7 @@
 <li data-wodoc-page="Request_info"><a href="../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -160,6 +161,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -254,6 +256,7 @@
 <li data-wodoc-page="Request_info"><a href="../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -267,6 +270,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -290,20 +294,20 @@
       </nav>
       <article class="rightcol">
         <header class="odoc-preamble"><h1 id="wrapping">Wrapping</h1><p>Reading this chapter is not mandatory for writing Eliom applications. However, it is worth reading if you are planning to hack on the Eliom codebase.</p></header>
-        <div class="odoc-content"><h2 id="basics">Basics</h2><p>The server side of Eliom can communicate to the client other kinds of data than the raw XML contents of the pages. The wrapper mechanism is used to allow the browser side to access to the contents of variables declared on server side. For instance when we write</p><pre class="language-ocaml"><code> ignore [%client (Dom_html.window##alert(Js.string ~%text) : unit)] </code></pre><p>the contents of the <code>text</code> variable is sent along the page for the client code to access it.</p><p>Server side, when</p><pre class="language-ocaml"><code> [%client (Dom_html.window##alert(Js.string ~%text) : unit)] </code></pre><p>is executed, the variable <code>text</code> is registered into a table and an id is associated to it. This table will contain all the data references by variables annotated with <code>~%</code> in a page, and will be sent marshalled to the client. On client side the id will be used to retrieve <code>text</code>.</p><p>Since all data are sent in one table, if a variable is referenced multiples times, it will be sent only once, and sharing will be preserved:</p><pre class="language-ocaml"><code>let a = ref 0 in
+        <div class="odoc-content"><h2 id="basics">Basics</h2><p>The server side of Eliom can communicate to the client other kinds of data than the raw XML contents of the pages. The wrapper mechanism is used to allow the browser side to access to the contents of variables declared on server side. For instance when we write</p><pre class="language-ocaml"><code> ignore [%client (Dom_html.window##alert(Js.string ~%text) : unit)] </code></pre><p>the contents of the <code>text</code> variable is sent along the page for the client code to access it.</p><p>Server side, when</p><pre class="language-ocaml"><code> [%client (Dom_html.window##alert(Js.string ~%text) : unit)] </code></pre><p>is executed, the variable <code>text</code> is registered into a table and an id is associated to it. This table will contain all the data referenced by variables annotated with <code>~%</code> in a page, and will be sent marshalled to the client. On client side the id will be used to retrieve <code>text</code>.</p><p>Since all data are sent in one table, if a variable is referenced multiples times, it will be sent only once, and sharing will be preserved:</p><pre class="language-ocaml"><code>let a = ref 0 in
 let b = (1,a) in
 ignore [%client
   ((~%a := 42;
-    Dom_html.window##alert(snd ~%b |&gt; string_of_int |&gt; Js.string))
+    Dom_html.window##alert(!(snd ~%b) |&gt; string_of_int |&gt; Js.string))
    : unit)
-]</code></pre><p>This code will display 42. After being sent, the client and server side values are distinct: the server side version of <code>a</code> won't be modified by the client side affectation and conversely the client side value won't change if <code>a</code> is changed later on server side.</p><h2 id="special-types">Special types</h2><h3 id="custom-wrappers">Custom wrappers</h3><p>Usually, client and server side values are represented the same way, and it is sufficient to only copy their content ( marshalled ) to the client. But certain types can't be transmitted this easily: for instance, services.</p><p>Those values must be transformed before marshalling: We need for this to use custom wrappers. This wrapping mechanism is defined in <a href="../eliom.server/Eliom/Wrap/index.html"><code>Eliom.Wrap</code></a>.</p><p>Before sending, the values goes thought <a href="../eliom.server/Eliom/Wrap/index.html#val-wrap"><code>Eliom.Wrap.wrap</code></a> which transform marked values. A value marked is a value which have as its last field a value of type <a href="../eliom.server/Eliom/Wrap/index.html#type-wrapper"><code>Eliom.Wrap.wrapper</code></a>. For instance</p><pre class="language-ocaml"><code>type marked_tupple =
-  int * ... * marked_tupple Eliom.Wrap.wrapper
+]</code></pre><p>This code will display 42. After being sent, the client and server side values are distinct: the server side version of <code>a</code> won't be modified by the client side assignment and conversely the client side value won't change if <code>a</code> is changed later on server side.</p><h2 id="special-types">Special types</h2><h3 id="custom-wrappers">Custom wrappers</h3><p>Usually, client and server side values are represented the same way, and it is sufficient to only copy their content ( marshalled ) to the client. But certain types can't be transmitted this easily: for instance, services.</p><p>Those values must be transformed before marshalling: We need for this to use custom wrappers. This wrapping mechanism is defined in <a href="../eliom.server/Eliom/Wrap/index.html"><code>Eliom.Wrap</code></a>.</p><p>Before sending, values go through <a href="../eliom.server/Eliom/Wrap/index.html#val-wrap"><code>Eliom.Wrap.wrap</code></a>, which transforms marked values. A marked value is a value which has as its last field a value of type <a href="../eliom.server/Eliom/Wrap/index.html#type-wrapper"><code>Eliom.Wrap.wrapper</code></a>. For instance</p><pre class="language-ocaml"><code>type marked_tuple =
+  int * ... * marked_tuple Eliom.Wrap.wrapper
 type marked_record =
   { f1 : int;
     ...
-    fn : marked_record Eliom.Wrap.wrapper }</code></pre><p>but not</p><pre class="language-ocaml"><code>type not_marked_tupple = int * ... * marked_tupple Eliom.Wrap.wrapper * float
-type not_marked_tupple = int * ... * (int * marked_tupple Eliom.Wrap.wrapper)
-type not_marked_tupple = int * ... * marked_tupple Eliom.Wrap.wrapper list
+    fn : marked_record Eliom.Wrap.wrapper }</code></pre><p>but not</p><pre class="language-ocaml"><code>type not_marked_tuple = int * ... * marked_tuple Eliom.Wrap.wrapper * float
+type not_marked_tuple = int * ... * (int * marked_tuple Eliom.Wrap.wrapper)
+type not_marked_tuple = int * ... * marked_tuple Eliom.Wrap.wrapper list
 type not_marked_record =
      { f1 : int;
           ...
@@ -314,9 +318,8 @@ let wrapper =
   let wrap = function
     | Value i,wrapper -&gt; Value i, Eliom.Wrap.empty_wrapper
     | Fun f,wrapper -&gt; Value (f ()), Eliom.Wrap.empty_wrapper
-  in Eliom.Wrap.create_wrapper f
-let v = ( Fun (fun () -&gt; 1), wrapper )
-let (v', empty_wrapper) = Eliom.Wrap.wrap v</code></pre><p>At that time <code>v'</code> will be <code>Value 1</code>. Notice that <a href="../eliom.server/Eliom/Wrap/index.html#val-create_wrapper"><code>Eliom.Wrap.create_wrapper</code></a> does not enforce the output type of the wrapping function to be the same as the input type: Eliom.Wrap is to be use with much caution! Do not use it if you don't understand how it works, it may lead to unpredictable segmentation faults and corrupted memory.</p><h2 id="eliom-types-with-predefined-custom-wrappers">Eliom types with predefined custom wrappers</h2><p>The Eliom types that are marked are:</p><ul><li><a href="../eliom.server/Eliom/Service/index.html#type-t"><code>Eliom.Service.t</code></a> transformed to <a href="../eliom.server/Eliom/Service/index.html#type-t"><code>Eliom.Service.t</code></a> (but the client side representation)</li><li><a href="../eliom.server/Eliom/Comet/Channel/index.html#type-t"><code>Eliom.Comet.Channel.t</code></a> transformed to <a href="../../../lwt/dev/lwt/Lwt_stream/index.html#type-t"><code>Lwt_stream.t</code></a></li><li><a href="../eliom.server/Eliom/Eliom_react/Up/index.html#type-t"><code>Eliom.Eliom_react.Up.t</code></a> transformed to <code>'a -&gt; unit</code></li><li><a href="../eliom.server/Eliom/Eliom_react/Down/index.html#type-t"><code>Eliom.Eliom_react.Down.t</code></a> transformed to <code>'a React.E.t</code></li><li><a href="../eliom.server/Eliom/Bus/index.html#type-t"><code>Eliom.Bus.t</code></a> transformed to <a href="../eliom.server/Eliom/Bus/index.html#type-t"><code>Eliom.Bus.t</code></a></li></ul></div>
+  in Eliom.Wrap.create_wrapper wrap
+let v = ( Fun (fun () -&gt; 1), wrapper )</code></pre><p>When <code>v</code> is sent to the client, the value received is <code>(Value 1, empty_wrapper)</code>. Notice that <a href="../eliom.server/Eliom/Wrap/index.html#val-create_wrapper"><code>Eliom.Wrap.create_wrapper</code></a> does not enforce the output type of the wrapping function to be the same as the input type: Eliom.Wrap is to be used with much caution! Do not use it if you don't understand how it works, it may lead to unpredictable segmentation faults and corrupted memory.</p><h2 id="eliom-types-with-predefined-custom-wrappers">Eliom types with predefined custom wrappers</h2><p>The Eliom types that are marked are:</p><ul><li><a href="../eliom.server/Eliom/Service/index.html#type-t"><code>Eliom.Service.t</code></a> transformed to <a href="../eliom.server/Eliom/Service/index.html#type-t"><code>Eliom.Service.t</code></a> (but the client side representation)</li><li><a href="../eliom.server/Eliom/Comet/Channel/index.html#type-t"><code>Eliom.Comet.Channel.t</code></a> transformed to <a href="../../../lwt/dev/lwt/Lwt_stream/index.html#type-t"><code>Lwt_stream.t</code></a></li><li><a href="../eliom.server/Eliom/Eliom_react/Up/index.html#type-t"><code>Eliom.Eliom_react.Up.t</code></a> transformed to <code>'a -&gt; unit Lwt.t</code></li><li><a href="../eliom.server/Eliom/Eliom_react/Down/index.html#type-t"><code>Eliom.Eliom_react.Down.t</code></a> transformed to <code>'a React.E.t</code></li><li><a href="../eliom.server/Eliom/Bus/index.html#type-t"><code>Eliom.Bus.t</code></a> transformed to <a href="../eliom.server/Eliom/Bus/index.html#type-t"><code>Eliom.Bus.t</code></a></li></ul></div>
       </article>
     </div>
   </div>

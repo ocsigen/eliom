@@ -8,7 +8,7 @@ Note, however, that [Eliom's distillery](./distillery.md) provides templates to 
 
 #### Configuration file
 
-To run an Ocsigen server with an Eliom module `example.cmo`, add the following lines to the Ocsigen configuration file (/etc/ocsigen/ocsigen.conf most of the times):
+To run an Ocsigen server with an Eliom module `example.cmo`, add the following lines to the Ocsigen configuration file (`/etc/ocsigenserver/ocsigenserver.conf` most of the time):
 
 ```
 <extension findlib-package="ocsipersist-sqlite-config">
@@ -40,7 +40,7 @@ or, if your configuration file is not in the default location:
 ```
 ocsigenserver -c <your configuration file>
 ```
-You should see the page corresponding to service `"coucou"` in site `examples/` at url<br/> http://*your\_server*/examples/coucou.<br/>
+You should see the pages of your module in site `examples/`, for example at url `http://your_server/examples/<service path>`.
 
 **Debugging**
 
@@ -67,12 +67,14 @@ If your module has a findlib META file, it is also possible (and recommended!) t
 
 ### Updating sites without shutting down the server
 
-Ocsigen server has a feature that allows the configuration to be reloaded without shutting down the server (see section "Reloading the configuration file" of the [server's configuration](./../../ocsigenserver/config.md)). This can be used to reload Eliom modules without closing volatile sessions. To do that use /etc/init.d/ocsigen reload for most of the distributions, or do it manually using:
+Ocsigen server has a feature that allows the configuration to be reloaded without shutting down the server (see section "Reloading the configuration file" of the [server's configuration](./../../ocsigenserver/config.md)). This can be used to reload Eliom modules without closing volatile sessions. To do that, write `reload` into the server's command pipe (the path given by `<commandpipe>`), for example:
 
 ```
-echo reload > /var/run/ocsigen_command
+echo reload > /var/run/ocsigenserver_command
 ```
-Only modules loaded inside \<host\>, \<site\> or \<library\> will be reloaded. Modules loaded using \<extension\> will not.
+Most distributions also provide a command, usually `/etc/init.d/ocsigenserver reload`.
+
+Only modules loaded inside `<host>` or `<site>` will be reloaded. Modules loaded using `<extension>` or `<library>` will not.
 
 Have a look at the logs to see if all went well during the reload. If something went wrong, old services may still be reachable.
 
@@ -182,13 +184,13 @@ Review the timeouts for client processes and groups
 
 State timeouts can be set either inside tag `<extension findlib-package="eliom.server"/>` (default value for all sites), or inside a `<eliom/>` tag (default for one site).
 
-Timeouts can also be modified programmatically using functions like `Eliom.State.set_global_volatile_timeout`, but by default these functions will not override configuration files. (see module [`Eliom.State`](./../eliom.server/Eliom-State.md) for other functions). Thus, a Web site can set its own defaults and the user can still override them from the configuration file. If you want to set a timeout programmatically even if it has been modified in a configuration file, use the optional parameter `~override_configfile:true`.
+Timeouts can also be modified programmatically using functions like `Eliom.State.set_global_volatile_state_timeout`, but by default these functions will not override configuration files. (see module [`Eliom.State`](./../eliom.server/Eliom-State.md) for other functions). Thus, a Web site can set its own defaults and the user can still override them from the configuration file. If you want to set a timeout programmatically even if it has been modified in a configuration file, use the optional parameter `~override_configfile:true`.
 
-Timeouts can be set either for all scopes hierarchies, for one precise hierarchy, or for the default scope hierarchy. To do this programmatically, use the optional parameter `~scope`. In a configuration file, use the optional attribute `hierarchyname` (where an empty string value means default hierarchy). If this attribute is absent, the timeout will affect all states for which no other default has been set. The `hierarchyname` attribute exists only inside an `<eliom/>` tag (and not inside `<extension findlib-package="eliom.server"/>`).
+Timeouts can be set either for all scope hierarchies, for one precise hierarchy, or for the default scope hierarchy. To do this programmatically, use the parameter `~cookie_scope` of the `set_global_*` functions (one hierarchy), or the `set_default_global_*` functions (all the hierarchies without a value of their own). In a configuration file, use the optional attribute `hierarchyname` (where an empty string value means default hierarchy). If this attribute is absent, the timeout will affect all states for which no other default has been set.
 
 The level attribute can take values `session` (browser) or `clientprocess` (tab).
 
-- `<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>` The default timeout for volatile (in memory) states (value in seconds). `value="infinity"` means that the state will never expire. Note that each eliom module can set its own default, that will override this one.
+- `<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>` The default timeout for volatile (in memory) states (value in seconds). `value="infinity"` means that the state will never expire. Note that an Eliom module can set its own default, which the configuration file overrides (unless the module uses `~override_configfile:true`).
 - `<persistenttimeout value="7200"/>` Idem for persistent state data
 - `<datatimeout value="30"  [hierarchyname=""] [level="session"]/>` Like `<volatiletimeout>`, but for in memory data states only (not service states).
 - `<servicetimeout value="30" [hierarchyname=""] [level="session"]/>` Like `<volatiletimeout>`, but for service states only (not in memory data states).
@@ -197,7 +199,7 @@ The level attribute can take values `session` (browser) or `clientprocess` (tab)
 
 These options can appear inside tag `<extension findlib-package="eliom.server"/>`. For now, it cannot be set for each site independently (tell us if you need that).
 
-- `<sessiongcfrequency value="30"/>` Time between two garbage collections of sessions, in seconds (default 3600\). The value `"infinity"` means no GC of session.
+- `<sessiongcfrequency value="30"/>` Time between two garbage collections of sessions, in seconds (default 1200\). The value `"infinity"` means no GC of session.
 - `<persistentsessiongcfrequency value="86400"/>` Time between two garbage collections of persistent sessions, in seconds (default 86400\.). The value `"infinity"` means no GC of session.
 - `<servicesessiongcfrequency value="3600"/>` Like `<sessiongcfrequency>`, but for service sessions only
 - `<datasessiongcfrequency value="3600"/>` Like `<sessiongcfrequency>`, but for "in memory data" sessions only
@@ -273,7 +275,7 @@ WebAssembly support is disabled by default for backward compatibility. The Eliom
 
 It can also be enabled programmatically using `Eliom.Config.set_enable_wasm true` or via the `~enable_wasm` parameter of [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run).
 
-For production, use `--profile release` (or `DEBUG := no` in `Makefile.options`) to bundle all WASM modules into a single file, avoiding multiple HTTP requests at startup.
+For production, use `--profile release` to bundle all WASM modules into a single file, avoiding multiple HTTP requests at startup.
 
 ### Serving global data through a distinct URL
 
@@ -285,6 +287,16 @@ The syntax to activate this option is the following:
 All attributes are optional. The `path` option can be used to indicate the path below which the JavaScript file providing the global data is served. The default path is the empty path. This script name is the MD5 checksum of its contents (with a `.js` suffix). Thus, it can be safely cached and is unlikely to conflict with any other service. The caching duration, in seconds, is set using the `cache` attribute. It defaults to zero (no caching).
 
 When the application script defer attribute is set (see just above), global data are also loaded in a deferred way.
+
+### Other options
+
+These options can appear inside tag `<extension findlib-package="eliom.server"/>` (default for all sites), or inside a `<eliom/>` tag (for one site):
+
+- `<securecookies value="true"/>`: session states are secure by default, that is, their cookies are sent only through HTTPS (see [Secure session](./../server/state.md#secure_state)).
+- `<htmlcontenttype value="application/xhtml+xml"/>`: the content type of the HTML pages sent by Eliom. By default, Eliom chooses it from the `Accept` header of the request.
+- `<ignoredgetparams regexp="utm_.*"/>` and `<ignoredpostparams regexp="..."/>`: the parameters whose whole name matches the regular expression (Perl syntax) are ignored when Eliom looks for the service to answer. The service handler can read them with [`Eliom.Request_info.get_ignored_get_params`](./../eliom.server/Eliom-Request_info.md#val-get_ignored_get_params) and [`Eliom.Request_info.get_ignored_post_params`](./../eliom.server/Eliom-Request_info.md#val-get_ignored_post_params).
+- `<omitpersistentstorage><header User-Agent=".*bot.*"/></omitpersistentstorage>`: the requests whose headers match all the rules do not write Eliom's persistent data (persistent references and sessions), for example requests from search engine robots.
+The same options can be given to [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run) for a statically linked executable.
 
 ## Per site configuration options
 

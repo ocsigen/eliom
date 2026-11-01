@@ -6,7 +6,7 @@ See the Eliom manual for a detailed introduction to the concept of [client serve
 
 When the page is not active the client stops making comet requests to the server, implying that the client can't be notified by the server anymore. The activity status is changed when the page is focused or unfocused.
 
-To stop receiving inputs from a channel, use Lwt.cancel on a thread waiting for data. For instance, if you iterate with ` let t = Lwt_stream.iter f %channel ` calling `Lwt.cancel t` will close the channel.
+To stop receiving inputs from a channel, use Lwt.cancel on a thread waiting for data. For instance, if you iterate with ` let t = Lwt_stream.iter f ~%channel ` calling `Lwt.cancel t` will close the channel.
 
 ```ocaml
 exception Channel_full

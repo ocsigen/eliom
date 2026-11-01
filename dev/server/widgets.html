@@ -147,6 +147,7 @@
 <li data-wodoc-page="Request_info"><a href="../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -160,6 +161,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -254,6 +256,7 @@
 <li data-wodoc-page="Request_info"><a href="../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -267,6 +270,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -294,7 +298,7 @@
     ~src:(Eliom.Content.Html.F.make_uri
             ~service:(Eliom.Service.static_dir ())
             [&quot;images&quot;; &quot;ocsigen1024.jpg&quot;])
-    ()</code></pre><p>The function <a href="../eliom.server/Eliom/Content/Html/D/index.html#val-make_uri"><code>Eliom.Content.Html.D.make_uri</code></a> creates a relative URL string from current URL (see above) to the URL of the image (here in the static directory configured in the configuration file).</p><p>To simplify the creation of <code>&lt;link&gt;</code> tags for CSS or <code>&lt;script&gt;</code> tags for Javascript, use the following functions:</p><pre class="language-ocaml"><code>Eliom.Content.Html.F.css_link
+    ()</code></pre><p>The function <a href="../eliom.server/Eliom/Content/Html/F/index.html#val-make_uri"><code>Eliom.Content.Html.F.make_uri</code></a> creates the URL of the image, relative to the current URL (here in the static directory configured in the configuration file).</p><p>To simplify the creation of <code>&lt;link&gt;</code> tags for CSS or <code>&lt;script&gt;</code> tags for Javascript, use the following functions:</p><pre class="language-ocaml"><code>Eliom.Content.Html.F.css_link
   ~uri:(Eliom.Content.Html.F.make_uri
          ~service:(Eliom.Service.static_dir ()) [&quot;style.css&quot;]) ()</code></pre><pre class="language-ocaml"><code>Eliom.Content.Html.F.js_script
   ~uri:(Eliom.Content.Html.F.make_uri

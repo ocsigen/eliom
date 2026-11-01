@@ -18,7 +18,7 @@ Use this module:
 - if your application does not have a client-side part (server-side generated Web site)
 - or if the client-side is not written with Eliom,
 - or if you do not need to use this node from the client-side program (no injection `%n` on this node) and want to avoid the extra attributes added by module `D`.
-If you use a `F`\-node `n` in an injection (`%n`), it is considered as any OCaml value, NOT precisely the copy you (possibly) inserted in the page. For example, `To_dom.of_element %n` will not refer to the element in the page, but create a new DOM node.
+If you use a `F`\-node `n` in an injection (`~%n`), it is considered as any OCaml value, NOT precisely the copy you (possibly) inserted in the page. For example, `To_dom.of_element ~%n` will not refer to the element in the page, but create a new DOM node.
 
 ###### DOM semantics
 

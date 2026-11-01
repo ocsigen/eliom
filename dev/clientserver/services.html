@@ -147,6 +147,7 @@
 <li data-wodoc-page="Request_info"><a href="../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -160,6 +161,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -254,6 +256,7 @@
 <li data-wodoc-page="Request_info"><a href="../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -267,6 +270,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -301,7 +305,7 @@ let%client s = ~%s</code></pre><p>The above style makes the service available un
     (fun () () -&gt;
        Lwt.return
          (Eliom.Tools.F.html ~title:&quot;hybrid&quot;
-            Eliom.Content.Html.F.(body [h1 [txt &quot;Salut !&quot;]])))</code></pre><p>The types of the handlers are compatible between the two sides. For instance, <a href="../eliom.server/Eliom/Registration/Html/index.html"><code>Eliom.Registration.Html</code></a> expects a function that produces a <code>Html_types.html Eliom.Content.Html.D.elt Lwt.t</code>, for <a href="../eliom.server/Eliom/Registration/Action/index.html"><code>Eliom.Registration.Action</code></a> we must return <code>unit Lwt.t</code>, and so on. The behavior of all services is compatible to the extent possible, e.g., actions perform a reload after performing their side effect.</p><p>For application services, the <a href="../eliom.server/Eliom/Registration/App/index.html"><code>Eliom.Registration.App</code></a> functor needs to be called just like on the server. The signatures are compatible between the two sides, and therefore the functor invocation can happen in a shared section.</p><p>A service registered as above can be called via links (e.g., <code>Eliom.Content.Html.D.a</code>) and forms just like a standard server-only service. Eliom detects the existence of a client-side implementation and calls that instead of performing a request to the server. If no client-side implementation exists, a standard server request is performed, which may cause problems in the context of mobile applications.</p><h2 id="service-routing">Service routing</h2><p>Service routing is the operation of choosing a service based on a URL and a collection of POST parameters. This is clearly a key operation on the server, allowing Eliom to respond on different paths. Routing has also become available on the client via the function <code>Eliom.Client.change_page_uri</code>. This function can be used for example in order to open a link inside a mobile application without launching the Web browser.</p></div>
+            Eliom.Content.Html.F.(body [h1 [txt &quot;Salut !&quot;]])))</code></pre><p>The types of the handlers are compatible between the two sides. For instance, <a href="../eliom.server/Eliom/Registration/Html/index.html"><code>Eliom.Registration.Html</code></a> expects a function that produces a <code>Html_types.html Eliom.Content.Html.D.elt Lwt.t</code>, for <a href="../eliom.server/Eliom/Registration/Action/index.html"><code>Eliom.Registration.Action</code></a> we must return <code>unit Lwt.t</code>, and so on. The behavior of all services is compatible to the extent possible, e.g., actions perform a reload after performing their side effect.</p><p>For application services, the <a href="../eliom.server/Eliom/Registration/App/index.html"><code>Eliom.Registration.App</code></a> functor needs to be called just like on the server. The signatures are compatible between the two sides, and therefore the functor invocation can happen in a shared section.</p><p>A service registered as above can be called via links (e.g., <code>Eliom.Content.Html.D.a</code>) and forms just like a standard server-only service. Eliom detects the existence of a client-side implementation and calls that instead of performing a request to the server. If no client-side implementation exists, a standard server request is performed, which may cause problems in the context of mobile applications.</p><h2 id="service-routing">Service routing</h2><p>Service routing is the operation of choosing a service based on a URL and a collection of POST parameters. This is clearly a key operation on the server, allowing Eliom to respond on different paths. Routing has also become available on the client via the function <a href="../eliom.client/Eliom/Client/index.html#val-change_page_uri"><code>Eliom.Client.change_page_uri</code></a>. This function can be used for example in order to open a link inside a mobile application without launching the Web browser.</p></div>
       </article>
     </div>
   </div>

@@ -32,7 +32,7 @@ let service_with_params =
          Eliom.Parameter.(int "i" ** (int "ii" ** string "s")))
     writeparams
 ```
-Eliom will automaticaly try to convert the parameters and call the handler with the right OCaml types (here `int * (int * string)`).
+Eliom will automatically try to convert the parameters and call the handler with the right OCaml types (here `int * (int * string)`).
 
 It is possible to register several services on the same path, if they do not have the same parameters. Eliom will try them in order of registration until one of them is able to answer. We send an error otherwise.
 
@@ -61,8 +61,8 @@ let uasuffix =
                                string_of_int month)];
                txt ", your user-agent is ";
                strong [txt (Eliom.Request_info.get_user_agent ())];
-               txt ", your IP is ";
-               strong [txt (Eliom.Request_info.get_remote_ip ())]]]))
+               txt ", your address is ";
+               strong [txt (Eliom.Request_info.get_client_conn_to_string ())]]]))
 ```
 This service will answer to URLs like `http://.../uasuffix/2000/11`.
 
@@ -85,13 +85,13 @@ let isuffix =
                strong [txt (string_of_int suff)];
                txt " followed by ";
                strong [txt
-                         (Ocsigen_lib.Url.string_of_url_path
+                         (Ocsigen_base.Lib.Url.string_of_url_path
                             ~encode:false
                             endsuff)];
                txt " and i is equal to ";
                strong [txt (string_of_int i_param)]]]))
 ```
-If you want parameters in the path but not always at the end, use the `const` parameter specification. It will match for example URLs like `/param1/const/param2`. Example:
+If you want parameters in the path but not always at the end, use the `suffix_const` parameter specification. It will match for example URLs like `/param1/const/param2`. Example:
 
 ```ocaml
 let constfix =
@@ -112,7 +112,7 @@ let constfix =
 
 ### Custom parameter types
 
-The following example shows how to use your own types :
+The following example shows how to use your own types:
 
 ```ocaml
 type mysum = A | B
@@ -132,8 +132,8 @@ let mytype =
     ~meth:
       (Eliom.Service.Get
          (Eliom.Parameter.user_type
-            mysum_of_string
-            string_of_mysum
+            ~of_string:mysum_of_string
+            ~to_string:string_of_mysum
             "value"))
     (fun x () -> Lwt.return @@
       let open Eliom.Content.Html.D in
@@ -158,7 +158,7 @@ let raw_serv =
     let module Html = Eliom.Content.Html.D in
     let ll =
       List.map
-        (fun (a,s) -> strong [txt a; txt ", "; txt s]) l
+        (fun (a,s) -> Html.strong [Html.txt a; Html.txt ", "; Html.txt s]) l
     in
     Lwt.return
       [%html "<html>
@@ -211,7 +211,7 @@ let tonlparams =
   Eliom.Registration.Html.create
     ~path:(Eliom.Service.Path ["nlparams"])
     ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
-    (fun i () -> Lwt.return @@
+    (fun () () -> Lwt.return @@
       let open Eliom.Content.Html.D in
       html
         (head (title (txt "")) [])
@@ -256,6 +256,7 @@ It is also possible to create a new service by adding the non-localized paramete
 
 ```ocaml
 let nlparams_with_nlp =
-  Eliom.Service.add_non_localized_get_parameters my_nl_params nlparams
+  Eliom.Service.add_non_localized_get_parameters ~params:my_nl_params
+    ~service:nlparams
 ```
 Then create your link as usual.

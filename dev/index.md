@@ -8,9 +8,9 @@ It can be used both as a traditional server-side Web framework or to implement c
 
 Eliom transforms OCaml into a multi-tier language, making it possible to implement both the server and client parts of a Web and mobile app as a single program. This simplifies a lot the communication between server and client.
 
-Applications can run on any Web browser or mobile device (iOS, Android), saving from the need to develop one version for each platform.
+Applications can run on any Web browser or mobile device (iOS, Android), removing the need to develop one version for each platform.
 
-Eliom has support for reactive pages (generated on server or client), advanced session mechanism, server to client communication, continuation based Web programming, etc.
+Eliom has support for reactive pages (generated on server or client), an advanced session mechanism, server to client communication, continuation based Web programming, etc.
 
 ## Installation Instructions
 
@@ -20,7 +20,7 @@ opam install eliom
 
 ## A quick tour
 
-Here is a quick overview of what programming with Eliom look like.
+Here is a quick overview of what programming with Eliom looks like.
 
 Defining a service on path `/foo`, taking any GET parameters:
 
@@ -35,7 +35,7 @@ let () =
   Eliom.Registration.Html.register ~service:myservice
     (fun get_params () ->
       Lwt.return
-         Eliom.Content.Html.F.(html (head (title (txt "")))
+         Eliom.Content.Html.F.(html (head (title (txt "")) [])
                                     (body [h1 [txt "Hello"]])))
 ```
 Inserting a link towards that service, with parameters:
@@ -68,17 +68,16 @@ let%server a = ...
 ```
 
 ```ocaml
-let%client f () =
-  [%client (print_endline ~%a : unit)] (* print in browser console *)
+let%client f () = print_endline ~%a (* print in browser console *)
 ```
-Calling a server function from the client program:
+Calling a server function from the client program (with [ocsigen-ppx-rpc](https://github.com/ocsigen/ocsigen-ppx-rpc)):
 
 ```ocaml
 let%rpc f (x : int) : unit Lwt.t = ... (* server-side code *)
 ```
 
 ```ocaml
-let%client () =
+let%client g () =
   let%lwt r = f 4 in
   ...
 ```
@@ -89,7 +88,7 @@ let%server r = Eliom.Reference.eref ~scope:Eliom.Common.default_session_scope 0
 
 let%server f () =
   let%lwt v = Eliom.Reference.get r in
-  Eliom.Reference.set r (v + 1);
+  let%lwt () = Eliom.Reference.set r (v + 1) in
   ...
 
 ```
@@ -103,13 +102,13 @@ Where scope can be:
 
 ## Learning Eliom
 
-To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/latest/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/latest/basics-server.html) (server-side programming).
+To learn Eliom, read one of the main documentation pages first: [application development](https://ocsigen.org/tuto/latest/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/latest/basics-server.html) (server-side programming).
 
-Write your first Web and mobile application with Eliom using `Ocsigen Start`
+Write your first Web and mobile application with Eliom using `Ocsigen Start`.
 
 If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:
 
 - [A basic Web site in OCaml](https://ocsigen.org/tuto/latest/basics-server.html)
 - [Session data: Eliom references](https://ocsigen.org/tuto/latest/how-to-register-session-data.html)
 - [Service based Web programming](https://ocsigen.org/tuto/latest/interaction.html)
-The full [reference manual](./intro.md), for technical details
+Read the full [reference manual](./intro.md) for technical details.

@@ -23,7 +23,7 @@ let%client () =
        Lwt.async
          (fun () -> log "Hello from the client to the server!"))
 ```
-The type annotations are mandatory, for the syntax extension to be able to inject the correct serialisation functions. The serialisation functions for each types must be derivable using `Deriving_Json`. To do that, just add `[@@deriving json]` after your type definitions.
+The type annotations are mandatory, for the syntax extension to be able to inject the correct serialisation functions. The serialisation functions for each type must be derivable using `Deriving_Json`. To do that, just add `[@@deriving json]` after your type definitions.
 
 Example:
 
@@ -31,7 +31,7 @@ Example:
 type%shared t = A | B
 [@@deriving json]
 ```
-Exceptions raised in the server-side function cannot be handled directly on the client; it is impossible to marshal them in OCaml to send them to the client. Instead, if an exception is raised in the server function, the function application fails (in Lwt) on the client with the exception `Eliom.Client_value.Exception_on_server` whose argument describes the original exception (according to `Printexc.to_string`).
+Exceptions raised in the server-side function cannot be handled directly on the client; it is impossible to marshal them in OCaml to send them to the client. Instead, if an exception is raised in the server function, the function application fails (in Lwt) on the client with the exception [`Eliom.Client_value.Exception_on_server`](../eliom.client/Eliom/Client_value/index.html#exception-Exception_on_server) whose argument describes the original exception (according to `Printexc.to_string`).
 
 ## Remote Procedure Calls: low level API
 
@@ -43,9 +43,9 @@ For example, the example above produces the following code:
 let%server log str = Lwt_io.write_line Lwt_io.stdout str
 
 let%client log =
-  ~%(Eliom.Client.server_function [%derive.json: string] log)
+  ~%(Eliom.Client.server_function [%json: string] log)
 ```
-A function `'a -> 'b Lwt.t` can be wrapped on the server by [`Eliom.Client.server_function`](./../eliom.server/Eliom-Client.md#type-server_function). When the result is injected to the client, it appears as a plain function `'a -> 'b Lwt`.
+A function `'a -> 'b Lwt.t` can be wrapped on the server by [`Eliom.Client.server_function`](./../eliom.server/Eliom-Client.md#type-server_function). When the result is injected to the client, it appears as a plain function `'a -> 'b Lwt.t`.
 
 It is necessary to provide an instance of `Deriving_Json` for the argument type, to safely send the argument from the client to the server. Syntax `[%json: t]` corresponds to the serialisation functions of type `t`
 
@@ -65,9 +65,9 @@ More details in the API documentation of module [`Eliom.Notif`](./../eliom.serve
 
 ## Services returning OCaml values
 
-Server functions are implemented using special services that take and return OCaml values. In this section we will see how to define services returning OCaml data. This is a lower level interface to do remote procedure calls, and you won't probably need this for basic use.
+Server functions are implemented using special services that take and return OCaml values. In this section we will see how to define services returning OCaml data. This is a lower level interface to do remote procedure calls, and you probably won't need this for basic use.
 
-These services are registered using [`Eliom.Registration.Ocaml`](./../eliom.server/Eliom-Registration-Ocaml.md) and can be called using `Eliom.Client.call_ocaml_service`.
+These services are registered using [`Eliom.Registration.Ocaml`](./../eliom.server/Eliom-Registration-Ocaml.md) and can be called using [`Eliom.Client.call_ocaml_service`](../eliom.client/Eliom/Client/index.html#val-call_ocaml_service).
 
 Such services cannot be visited by the browser as Web pages. You usually want POST pathless services for this use case. This corresponds to remote function calls, that are typically handled by pathless POST services.
 
@@ -88,7 +88,7 @@ let _ =
     ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
        ignore [%client
-         (Lwt.ignore_result (
+         (Lwt.async (fun () ->
             let%lwt pi =
               Eliom.Client.call_ocaml_service ~service:~%pi_service () ()
             in
@@ -111,7 +111,7 @@ The client can send OCaml values as parameters to services. To do that, declare 
 
 This is used for example to implement server functions.
 
-Since the server cannot trust the client to send correctly-formed data, Eliom is not using the standard OCaml marshalling mechanism. (The server needs to be able to check that the value is of the expected type.) For this reason, you must declare the types of the data you want to be able to send to the server using our `ppx_deriving` syntax extension:
+Since the server cannot trust the client to send correctly-formed data, Eliom is not using the standard OCaml marshalling mechanism. (The server needs to be able to check that the value is of the expected type.) For this reason, you must declare the types of the data you want to be able to send to the server using the `[@@deriving json]` syntax extension of Js\_of\_ocaml (package `js_of_ocaml-ppx_deriving_json`):
 
 ```ocaml
   type%shared some_type = (int * string list) [@@deriving json]
@@ -130,7 +130,7 @@ let s =
     ~path:(Eliom.Service.Path ["s1"])
     ~meth:
       (Eliom.Service.Get
-         (Eliom.Parameter.ocaml "param" [%derive.json: another_type]))
+         (Eliom.Parameter.ocaml "param" [%json: another_type]))
     (fun v () ->
        Lwt.return Html.D.(
          html
@@ -159,7 +159,7 @@ let _ =
                        ]]
                  [txt "Click to send Ocaml data"]])))
 ```
-It works for the datatypes you define, and the data types from OCaml's standard library. For types defined in third-party libraries, have a look at deriving's documentation and Js\_of\_ocaml's `Deriving_Json`.
+It works for the datatypes you define, and the data types from OCaml's standard library. For types defined in third-party libraries, have a look at Js\_of\_ocaml's `Deriving_Json`.
 
 ## Server sending data (lower level interfaces for notifications)
 
@@ -181,42 +181,47 @@ On client-side, the type [`Eliom.Comet.Channel.t`](./../eliom.server/Eliom-Comet
 
 There are 3 kinds of channels, depending on how you want to send data.
 
-- Channels created with [`Eliom.Comet.Channel.create`](./../eliom.server/Eliom-Comet-Channel.md#val-create) have a buffer with a limited size. Message are read from the stream as soon as they are available, i.e. for stream created with [`Lwt_stream.from`](./../../lwt/lwt/Lwt_stream.md#val-from), that means that the function is called another time as soon as the previous one terminates. For stream created with [`Lwt_stream.create`](./../../lwt/lwt/Lwt_stream.md#val-create), this is as soon as they are pushed. If the client misses too many messages (more than the size of the buffer) it will receive an exception `Eliom.Comet.Channel_full` when reading data from the stream.
-- Channels created with [`Eliom.Comet.Channel.create_newest`](./../eliom.server/Eliom-Comet-Channel.md#val-create_newest) have no buffering and can lose messages, but the client will always receive the last value: For instance, if many messages are sent in a short time, the client may receive only the last one. Those channels never raise `Eliom.Comet.Channel_full`.
-- Channels created with [`Eliom.Comet.Channel.create_unlimited`](./../eliom.server/Eliom-Comet-Channel.md#val-create_unlimited) consume data on the stream only when their is a request from the client.
+- Channels created with [`Eliom.Comet.Channel.create`](./../eliom.server/Eliom-Comet-Channel.md#val-create) have a buffer with a limited size. Messages are read from the stream as soon as they are available, i.e. for streams created with [`Lwt_stream.from`](./../../lwt/lwt/Lwt_stream.md#val-from), that means that the function is called another time as soon as the previous one terminates. For streams created with [`Lwt_stream.create`](./../../lwt/lwt/Lwt_stream.md#val-create), this is as soon as they are pushed. If the client misses too many messages (more than the size of the buffer) it will receive an exception [`Eliom.Comet.Channel_full`](../eliom.client/Eliom/Comet/index.html#exception-Channel_full) when reading data from the stream.
+- Channels created with [`Eliom.Comet.Channel.create_newest`](./../eliom.server/Eliom-Comet-Channel.md#val-create_newest) have no buffering and can lose messages, but the client will always receive the last value: For instance, if many messages are sent in a short time, the client may receive only the last one. Those channels never raise [`Eliom.Comet.Channel_full`](../eliom.client/Eliom/Comet/index.html#exception-Channel_full).
+- Channels created with [`Eliom.Comet.Channel.create_unlimited`](./../eliom.server/Eliom-Comet-Channel.md#val-create_unlimited) consume data on the stream only when there is a request from the client.
 Channels can be closed on client side by cancelling a thread waiting for data on it.
 
 Like services, channels have a scope (only site or client process). The constraints vary with respect to the scope you choose:
 
 - Channels created with scope [`Eliom.Common.site_scope`](./../eliom.server/Eliom-Common.md#type-site_scope) or using [`Eliom.Comet.Channel.create_newest`](./../eliom.server/Eliom-Comet-Channel.md#val-create_newest) are stateless channels: the memory consumption does not depend on the number of users requesting data on it. When the channels are not reachable from the server code, they are garbage-collected and closed. Named stateless channels can be accessed from [other servers](./#cors_channels).
-- Channels created with scope [`Eliom.Common.default_process_scope`](./../eliom.server/Eliom-Common.md#val-default_process_scope) must be created inside a service handler. They are assigned to a particular client process. Different channels created with the same stream do not share memory. They are closed when requested or when the client process is closed. It is possible to know when a client stop requesting data on those channels using [`Eliom.Comet.Channel.wait_timeout`](./../eliom.server/Eliom-Comet-Channel.md#val-wait_timeout). Be careful about memory consumption when using client process channels.
+- Channels created with scope [`Eliom.Common.default_process_scope`](./../eliom.server/Eliom-Common.md#val-default_process_scope) must be created inside a service handler. They are assigned to a particular client process. Different channels created with the same stream do not share memory. They are closed when requested or when the client process is closed. It is possible to know when a client stops requesting data on those channels using [`Eliom.Comet.Channel.wait_timeout`](./../eliom.server/Eliom-Comet-Channel.md#val-wait_timeout). Be careful about memory consumption when using client process channels.
 
 ### Comet configuration
 
-The server can push data to a client only when the client has an open HTTP connection waiting for a response. As of now, a comet request can only last at most 10 seconds. After that, the client can either do a new request or stale for some time: this is the activity behavior. This can be configured on client-side, using the functions from `Eliom.Comet.Configuration`
+The server can push data to a client only when the client has an open HTTP connection waiting for a response. A Comet request waits at most 20 seconds by default ([`Eliom.Config.set_comet_timeout`](./../eliom.server/Eliom-Config.md#val-set_comet_timeout), or the option `<comettimeout>` of the configuration file). After that, the client can either do a new request or stay idle for some time: this is the activity behavior. This can be configured on client-side, using the functions from [`Eliom.Comet.Configuration`](../eliom.client/Eliom/Comet/Configuration/index.html)
 
 For instance, if you receive data which doesn't need frequent updates, you can set the time between different requests to a high value, and stop requesting data as soon as the browser loses the focus.
 
 ```ocaml
-open Eliom.Comet.Configuration
-let slow_c = new_configuration () in
-set_active_until_timeout slow_c false;
-set_time_between_request slow_c 60.
+let%client () =
+  let open Eliom.Comet.Configuration in
+  let slow_c = new_configuration () in
+  set_active_until_timeout slow_c false;
+  set_time_between_requests slow_c 60.
 ```
 If you need more reactivity for a few seconds, do:
 
 ```ocaml
-open Eliom.Comet.Configuration
-let fast_c = new_configuration () in
-set_set_always_active fast_c true;
-set_set_time_between_request fast_c 0.;
-ignore (Lwt_js.sleep 10. >|= (fun () -> drop_configuration fast_c))
+let%client () =
+  let open Eliom.Comet.Configuration in
+  let fast_c = new_configuration () in
+  set_always_active fast_c true;
+  set_time_between_requests fast_c 0.;
+  Lwt.async (fun () ->
+    let%lwt () = Lwt_js.sleep 10. in
+    drop_configuration fast_c;
+    Lwt.return_unit)
 ```
 The original setting will be reset after the drop.
 
 ## Reactive values
 
-A common usage of comet is for the server to update a value available on client side. A convenient way to implement this is to use reactive programming. Eliom provides a reactive interface for channels, using the [react](http://erratique.ch/software/react). library.
+A common usage of comet is for the server to update a value available on client side. A convenient way to implement this is to use reactive programming. Eliom provides a reactive interface for channels, using the [React](http://erratique.ch/software/react) library.
 
 To share a React event or signal with the client, use functions [`Eliom.Eliom_react.Down.of_react`](./../eliom.server/Eliom-Eliom_react-Down.md#val-of_react) or [`Eliom.Eliom_react.S.Down.of_react`](./../eliom.server/Eliom-Eliom_react-S-Down.md#val-of_react)
 
@@ -228,9 +233,9 @@ Since this is implemented using Comet, tuning Comet configuration will also affe
 
 ## Client-Server shared bus
 
-It is sometimes useful to have a bidirectional channel shared between multiple clients. This is the purpose of buses. Those are created using [`Eliom.Bus.create`](./../eliom.server/Eliom-Bus.md#val-create). Since the server will also receive data on the bus, the description of the type (using `deriving`) is needed to create a bus.
+It is sometimes useful to have a bidirectional channel shared between multiple clients. This is the purpose of buses. Those are created using [`Eliom.Bus.create`](./../eliom.server/Eliom-Bus.md#val-create). Since the server will also receive data on the bus, a JSON codec of the type (`[%json: t]`, with `[@@deriving json]`) is needed to create a bus.
 
-Like comet channels, the behaviour of buses can be tuned using the module `Eliom.Comet.Configuration`. There are additionnal configuration options available for buses to tune the client-side buffering.
+Like comet channels, the behaviour of buses can be tuned using the module [`Eliom.Comet.Configuration`](../eliom.client/Eliom/Comet/Configuration/index.html). There are additional configuration options available for buses to tune the client-side buffering.
 
 ## Another Server sending data (Comet on another server)
 

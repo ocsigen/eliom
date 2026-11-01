@@ -11,7 +11,7 @@ img ~alt:"Ocsigen"
             ["images"; "ocsigen1024.jpg"])
     ()
 ```
-The function [`Eliom.Content.Html.D.make_uri`](./../eliom.server/Eliom-Content-Html-D.md#val-make_uri) creates a relative URL string from current URL (see above) to the URL of the image (here in the static directory configured in the configuration file).
+The function [`Eliom.Content.Html.F.make_uri`](./../eliom.server/Eliom-Content-Html-F.md#val-make_uri) creates the URL of the image, relative to the current URL (here in the static directory configured in the configuration file).
 
 To simplify the creation of `<link>` tags for CSS or `<script>` tags for Javascript, use the following functions:
 

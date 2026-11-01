@@ -147,6 +147,7 @@
 <li data-wodoc-page="Request_info"><a href="../../../../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../../../../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../../../../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../../../../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -160,6 +161,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../../../../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../../../../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../../../../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../../../../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../../../../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../../../../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -254,6 +256,7 @@
 <li data-wodoc-page="Request_info"><a href="../../../../eliom.server/Eliom/Request_info/index.html">Request_info</a></li>
 <li data-wodoc-page="Reference"><a href="../../../../eliom.server/Eliom/Reference/index.html">Reference</a></li>
 <li data-wodoc-page="State"><a href="../../../../eliom.server/Eliom/State/index.html">State</a></li>
+<li data-wodoc-page="Extension"><a href="../../../../eliom.server/Eliom/Extension/index.html">Extension</a></li>
 </ul>
 <h4>Content and form creation</h4>
 <ul class="api-section">
@@ -267,6 +270,7 @@
 <ul class="api-section">
 <li data-wodoc-page="Service"><a href="../../../../eliom.server/Eliom/Service/index.html">Service</a></li>
 <li data-wodoc-page="Parameter"><a href="../../../../eliom.server/Eliom/Parameter/index.html">Parameter</a></li>
+<li data-wodoc-page="Eliom_uri"><a href="../../../../eliom.server/Eliom/Eliom_uri/index.html">Eliom_uri</a></li>
 <li data-wodoc-page="Registration"><a href="../../../../eliom.server/Eliom/Registration/index.html">Registration</a></li>
 <li data-wodoc-page="Registration.Html"><a href="../../../../eliom.server/Eliom/Registration/Html/index.html">Registration.Html</a></li>
 <li data-wodoc-page="Registration.Action"><a href="../../../../eliom.server/Eliom/Registration/Action/index.html">Registration.Action</a></li>
@@ -289,7 +293,7 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom_react.Down</span></code></h1><p>Event from server to client.</p><p>A &quot;Down event&quot; (AKA down-going event) is an event which occurrences are transmitted asynchronously to the client. Even if they are named &quot;events&quot;, it might be better to consider them as asynchronous server-to-client edges in the react events dependency graph.</p><p>To use this, call function <code>of_react</code> on server side, and just use the returned value as a react event on client side. Example: <code>let e = of_react ... in ... {{ ... React.E.map f %e; ... }}</code></p></header>
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_react.Down</span></code></h1><p>Event from server to client.</p><p>A &quot;Down event&quot; (AKA down-going event) is an event which occurrences are transmitted asynchronously to the client. Even if they are named &quot;events&quot;, it might be better to consider them as asynchronous server-to-client edges in the react events dependency graph.</p><p>To use this, call function <code>of_react</code> on server side, and just use the returned value as a react event on client side. Example: <code>let e = of_react ... in ... [%client ... React.E.map f ~%e; ...]</code></p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div><div class="spec-doc"><p>The abstract type of down events.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_react"><code><span><span class="keyword">val</span> of_react : 
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Comet/Channel/index.html#type-comet_scope">Comet.Channel.comet_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?throttling</span>:float <span class="arrow">&#45;&gt;</span></span>

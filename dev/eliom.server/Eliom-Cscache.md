@@ -8,7 +8,7 @@ On server side, Cscache is using a temporary cache (with "request" scope) to avo
 
 This module hides many subtelties that are useful for client-server (possibly reactive) applications, like, for example, handling delays correctly both on client and server sides.
 
-In the near future, Cscache will make it possible to save persistent data, which is useful for implementing off-line applications.
+In the future, Cscache will make it possible to save persistent data, which is useful for implementing off-line applications.
 
 ```ocaml
 type ('a, 'b) t

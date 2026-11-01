@@ -32,9 +32,9 @@ Finally, it's also possible to start a section for the rest of the file:
 
 ```ocaml
 [%%server.start]
-let s = ..
+let s = ...
 ```
-In `.eliomi` files, only the last version is available.
+In `.eliomi` files, the three forms are available, with signatures: `val%server x : t`, `[%%server: val x : t]`, and `[%%server.start]`.
 
 Sections are only available at top level and cannot be nested.
 
@@ -78,7 +78,7 @@ let%server x = [%shared ...]
 ```
 It will produce values of type [`Eliom.Shared.Value.t`](./../eliom.server/Eliom-Shared-Value.md#type-t).
 
-Shared fragments can be nested and can contain client fragments.
+Shared fragments can contain client fragments.
 
 ## Injections and escaped values
 
@@ -109,9 +109,9 @@ Inside a client fragment, `~%` also accepts the local variables of the server co
 
 ## Restrictions
 
-It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use either [`Eliom.Client.server_function`](./../eliom.server/Eliom-Client.md#type-server_function) (`let%rpc`) and client or shared fragments to circumvent this limitation.
+It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use [`Eliom.Client.server_function`](./../eliom.server/Eliom-Client.md#type-server_function) (`let%rpc`) or client or shared fragments to circumvent this limitation.
 
-To extend and customize the serialization from client to server, see chapter [Wrapping values](./wrapping.md).
+To extend and customize the serialization from server to client, see chapter [Wrapping values](./wrapping.md).
 
 ## Evaluation
 
@@ -119,7 +119,7 @@ To extend and customize the serialization from client to server, see chapter [Wr
 
 On the server, top-level declarations are evaluated when the server loads the module, before any request: no information on a request is available at that time.
 
-On the client, top-level declarations are evaluated when the client process starts, before the page is in the DOM. To act on the page, use `Eliom.Client.onload`.
+On the client, top-level declarations are evaluated when the client process starts, before the page is in the DOM. To act on the page, use [`Eliom.Client.onload`](../eliom.client/Eliom/Client/index.html#val-onload).
 
 ### Global and request client fragments
 

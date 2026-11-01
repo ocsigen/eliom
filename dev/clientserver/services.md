@@ -37,4 +37,4 @@ A service registered as above can be called via links (e.g., `Eliom.Content.Html
 
 ## Service routing
 
-Service routing is the operation of choosing a service based on a URL and a collection of POST parameters. This is clearly a key operation on the server, allowing Eliom to respond on different paths. Routing has also become available on the client via the function `Eliom.Client.change_page_uri`. This function can be used for example in order to open a link inside a mobile application without launching the Web browser.
+Service routing is the operation of choosing a service based on a URL and a collection of POST parameters. This is clearly a key operation on the server, allowing Eliom to respond on different paths. Routing has also become available on the client via the function [`Eliom.Client.change_page_uri`](../eliom.client/Eliom/Client/index.html#val-change_page_uri). This function can be used for example in order to open a link inside a mobile application without launching the Web browser.

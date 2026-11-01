@@ -1,8 +1,8 @@
 # Introduction
 
-*This document is the Eliom manual, where you will find an detailed explanation of all Eliom concepts. If you want to learn how to program with Ocsigen, please read the [Ocsigen tutorial](https://ocsigen.org/tuto/) first, and especially [this overview of all concepts](https://ocsigen.org/tuto/latest/basics.html) or the [server-side programming guide](https://ocsigen.org/tuto/latest/basics-server.html).*
+*This document is the Eliom manual, where you will find a detailed explanation of all Eliom concepts. If you want to learn how to program with Ocsigen, please read the [Ocsigen tutorial](https://ocsigen.org/tuto/) first, and especially [this overview of all concepts](https://ocsigen.org/tuto/latest/basics.html) or the [server-side programming guide](https://ocsigen.org/tuto/latest/basics-server.html).*
 
-Eliom is a framework for developing Web and mobile applications. It can be used to implement either basic server-side Web sites, or advanced client-server applications accessible through a Web browser. From Eliom 6\.0, it is also possible to implement, with a single code base, **multi-platform applications** that will run on a **Web browser** or a **mobile** device (iOS, Android~ ...).
+Eliom is a framework for developing Web and mobile applications. It can be used to implement either basic server-side Web sites, or advanced client-server applications accessible through a Web browser. From Eliom 6\.0, it is also possible to implement, with a single code base, **multi-platform applications** that will run on a **Web browser** or a **mobile** device (iOS, Android...).
 
 The goal of Eliom (and other projects of the Ocsigen framework) is to propose a new programming style that matches the needs of modern Web applications better than the usual languages (most of which were designed years ago, for a much more static Web).
 
@@ -15,11 +15,11 @@ Eliom does not restrict the possibilities offered by Web technology. For example
 
 Eliom is not an entirely new language, but an extension of OCaml. An Eliom application can use any existing OCaml library.
 
-Eliom Web sites are written as OCaml modules (producing `cma` or `cmxs` files) that are loaded as plugins into the Ocsigen server.
+Eliom Web sites are written as OCaml modules, either linked statically with Ocsigen Server into an executable, or compiled to `cma` or `cmxs` files loaded as plugins by the server.
 
 ## Client/server applications
 
-Eliom applications are applications distributed between a server and a browser. An instance of the application is running in a browser tab, and can communicate with the server. The entire application is written in OCaml, as a single program, with special syntax to distinguish between server-side and client-side code. Client-side code is compiled to JavaScript, using the Js~\_of~\_ocaml compiler, to be executed by the browser. It can also be compiled to WebAssembly using wasm~\_of~\_ocaml, with automatic browser detection and fallback.
+Eliom applications are applications distributed between a server and a browser. An instance of the application is running in a browser tab, and can communicate with the server. The entire application is written in OCaml, as a single program, with special syntax to distinguish between server-side and client-side code. Client-side code is compiled to JavaScript, using the Js\_of\_ocaml compiler, to be executed by the browser. It can also be compiled to WebAssembly using Wasm\_of\_ocaml, with automatic browser detection and fallback.
 
 It is possible to refer on the client side to values defined in server-side code. Communication between the server and the client is handled by Eliom automatically. The use of the same language on both sides makes it very easy to exchange data.
 
@@ -49,7 +49,7 @@ Services can be created dynamically. For example, you can create new services th
 
 Eliom has a very advanced session mechanism. Sessions are a common pattern in Web programming, allowing some data (a state) to be stored on the server for each browser. This is used for example to recognize connected users, or to store a shopping basket. This is usually implemented by recording a session identifier in a browser cookie. With Eliom, session data is stored in *Eliom references*, which are a kind of reference whose value depends on the session (the session identifier sent in the cookie).
 
-But you can choose other *scope* than "session" for Eliom references:
+But you can choose other *scopes* than "session" for Eliom references:
 
 - It is also possible to define references with scope *"client process"*, which corresponds to a tab of your browser (if you are using client-side features). For example, if you are implementing a game, you can have several instances of the game in separate tabs. The score is stored on the server in an Eliom reference of scope "client process".
 - Eliom also provides the scope *"session group"*. This allows for example grouping together all sessions belonging to the same user. For example, you can use this to share a shopping basket between several devices (e.g., the user's laptop and smartphone).

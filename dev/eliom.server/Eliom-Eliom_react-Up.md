@@ -4,7 +4,7 @@ Event from client to server.
 
 Up events are quite different from Down events. Because of the asymmetrical nature of web programming and because of the reactive model used, an Up event must be created on the server and wrapped into a callback (or something the client can build a callback with).
 
-Example of use: `let e_up = Eliom_react.Up.create (Parameter.ocaml "a" [%json: string]) in ... {{ ignore ( %e_up "A") }} ... `
+Example of use: `let e_up = Eliom_react.Up.create (Parameter.ocaml "a" [%json: string]) in ... [%client ignore (~%e_up "A")] ... `
 
 ```ocaml
 type 'a t
