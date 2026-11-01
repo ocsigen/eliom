@@ -45,9 +45,11 @@ applications.
 Eliom is not an entirely new language, but an extension of OCaml. An
 Eliom application can use any existing OCaml library.
 
-Eliom Web sites are written as OCaml modules, either linked statically
-with Ocsigen Server into an executable, or compiled to [cma] or [cmxs]
-files loaded as plugins by the server.
+The server-side code of an Eliom Web site is compiled into one or
+more {e Eliom modules}: OCaml libraries (or single modules) that
+either your own executable links statically with Ocsigen Server, or
+the [ocsigenserver] command loads dynamically ([cmo], [cma] or [cmxs]
+files), as specified in its configuration file.
 
 {1 Client/server applications}
 

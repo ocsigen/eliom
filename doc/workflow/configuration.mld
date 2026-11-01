@@ -4,6 +4,14 @@
 
 
 
+An {e Eliom module} is the server-side code of a Web site, or of part
+of it, compiled as an OCaml library (or as a single module). Either the
+[ocsigenserver] command loads it dynamically, as
+specified in its configuration file, or your own executable links it
+statically with Ocsigen Server
+(see {{!//workflow/page-configuration.static_linking}Static linking of
+Eliom modules}).
+
 This chapter explains how to set Eliom's
 options in the Ocsigen server configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
@@ -12,7 +20,7 @@ Eliom modules. See the Ocsigen server documentation for more information about t
 Note, however, that {{!//workflow/page-distillery}Eliom's
 distillery} provides templates to get started at once with Eliom!
 
-{1:misc Using Eliom modules with Ocsigen server}
+{1:misc Loading Eliom modules with the [ocsigenserver] command}
 
 {3 Configuration file}
 

@@ -24,12 +24,17 @@ $ eliom-distillery -list-templates
 Template "app" creates a simple client-server application project
 (Dune-based build system and main service), with build rules generated
 by {{:https://github.com/ocsigen/ocsigen-dune-rules}ocsigen-dune-rules}.
-The project runs either as a static executable
-{{!//workflow/page-configuration.no_config_file}without a configuration file},
-whose paths (log directory, command pipe, static files and Ocsipersist
-database file) are set in [app/main/main.ml], or as a library
-dynamically loaded by ocsigenserver with the configuration file
-[<name>.conf].
+The server side of the application is an
+{{!//workflow/page-configuration}Eliom module} (library [<name>]).
+It runs either:
+- in your own executable ([dune exec <name>]), which links Ocsigen Server
+  statically and needs
+  {{!//workflow/page-configuration.no_config_file}no configuration file}:
+  the paths (log directory, command pipe, static files and Ocsipersist
+  database file) are set in [app/main/main.ml];
+- or with the [ocsigenserver] command
+  ([dune exec -- ocsigenserver -c <name>.conf]), which loads it
+  dynamically, as specified in the configuration file [<name>.conf].
 
 Alternatively, you might want to use the legacy "basic.ppx" template,
 with a Makefile-based build system.
