@@ -6,12 +6,6 @@ open%shared Eliom.Content.Html
 let%server application_name = "%%%PROJECT_NAME%%%"
 let%client application_name = Eliom.Client.get_application_name ()
 
-let%server () =
-  (* Enable WebAssembly support with automatic browser detection. The server
-     will load the WASM version if the browser supports it, with fallback to
-     JavaScript otherwise. *)
-  Eliom.Config.set_enable_wasm true
-
 (* Create a module for the application. See
    https://ocsigen.org/eliom/latest/clientserver/applications.html for more
    information. *)

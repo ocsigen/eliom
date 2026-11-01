@@ -19,4 +19,9 @@ let () =
     ~veryverbose:() ~debugmode:true ~logdir ~uploaddir:(Some "/tmp")
     ~command_pipe:(Filename.concat rundir "%%%PROJECT_NAME%%%-cmd")
     ~default_charset:(Some "utf-8")
-    [Ocsigen.Server.host [Staticmod.run ~dir:staticdir (); Eliom.App.run ()]]
+    [ Ocsigen.Server.host
+        [ Staticmod.run ~dir:staticdir ()
+        ; (* As <wasm> in the configuration file: the page loads the WASM
+             version of the client program in the browsers that support it, and
+             the JavaScript version in the others. *)
+          Eliom.App.run ~enable_wasm:true () ] ]
