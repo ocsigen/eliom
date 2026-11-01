@@ -273,7 +273,7 @@ The syntax is:
 - `<wasm enabled="true"/>`
 WebAssembly support is disabled by default for backward compatibility. The Eliom template `app` enables it explicitly.
 
-It can also be enabled programmatically using `Eliom.Config.set_enable_wasm true` or via the `~enable_wasm` parameter of [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run).
+It can also be enabled programmatically, for a statically linked executable, via the `~enable_wasm` parameter of [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run), or with `Eliom.Config.set_enable_wasm true` before the server starts. (With a configuration file, the site exists before its modules are loaded, so `Eliom.Config.set_enable_wasm` in a module has no effect on it.)
 
 For production, use `--profile release` to bundle all WASM modules into a single file, avoiding multiple HTTP requests at startup.
 

@@ -3872,7 +3872,7 @@ The syntax is:
 - `<wasm enabled="true"/>`
 WebAssembly support is disabled by default for backward compatibility. The Eliom template `app` enables it explicitly.
 
-It can also be enabled programmatically using `Eliom.Config.set_enable_wasm true` or via the `~enable_wasm` parameter of [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run).
+It can also be enabled programmatically, for a statically linked executable, via the `~enable_wasm` parameter of [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run), or with `Eliom.Config.set_enable_wasm true` before the server starts. (With a configuration file, the site exists before its modules are loaded, so `Eliom.Config.set_enable_wasm` in a module has no effect on it.)
 
 For production, use `--profile release` to bundle all WASM modules into a single file, avoiding multiple HTTP requests at startup.
 
@@ -122495,11 +122495,11 @@ val run :
   unit ->
   Ocsigen.Server.instruction
 ```
-`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise). As the values of a configuration file, these maximum numbers are kept when the program calls a `State.set_default_max_*` function without `~override_configfile:true`.
+`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise). As the values of a configuration file, these maximum numbers are kept when the program calls a `State.set_default_max_*` function without `~override_configfile:true`. The other options that are not given take the defaults that the program set with the functions of [`Config`](./Eliom-Config.md) (such as [`Config.set_secure_cookies`](./Eliom-Config.md#val-set_secure_cookies)), even after the site was created.
 
 As for a site of a configuration file, the services with a path created during the initialisation of the application must be registered by then: otherwise `run` raises [`Common.Eliom_there_are_unregistered_services`](./Eliom-Common.md#exception-Eliom_there_are_unregistered_services), and the server does not start. Unregistered non-attached coservices are reported by a warning.
 
-When `?enable_wasm` is set to `true`, the server will generate a detection script that loads the WASM version of your client code if the browser supports WebAssembly, with automatic fallback to JavaScript otherwise. If not specified, the global default is used (see [`Config.set_enable_wasm`](./Eliom-Config.md#val-set_enable_wasm)), which is `false`.
+When `?enable_wasm` is set to `true`, the server will generate a detection script that loads the WASM version of your client code if the browser supports WebAssembly, with automatic fallback to JavaScript otherwise. If not specified, the global default is used (see [`Config.set_enable_wasm`](./Eliom-Config.md#val-set_enable_wasm)), which is `false` by default.
 
 
 ---
@@ -124885,17 +124885,19 @@ val set_max_anonymous_services_per_session : int -> unit
 ```ocaml
 val set_max_volatile_groups_per_site : int -> unit
 ```
-The functions `set_max_*` set the default limits of the sites created afterwards, as the global options of the configuration file: they do not change a site that already exists (the functions of [`State`](./Eliom-State.md) do). They raise `Invalid_argument` if the number is not positive.
+The functions `set_max_*` set the default limits of the sites created afterwards, as the global options of the configuration file: they do not change a site that already exists (the functions of [`State`](./Eliom-State.md) do). In a statically linked executable, the site of the default application exists from the start: give these limits to [`Eliom.App.run`](./Eliom-App.md#val-run), or use the functions of [`State`](./Eliom-State.md). They raise `Invalid_argument` if the number is not positive.
 
-```ocaml
-val set_secure_cookies : bool -> unit
-```
 ```ocaml
 val set_comet_timeout : float -> unit
 ```
 `set_comet_timeout t` sets the time, in seconds, after which the server answers a Comet request that waits for data with no data (default 20\). The client then sends a new request. Keep it below the timeouts of the proxies between clients and the server. The option `<comettimeout value="20"/>` of the configuration file sets it too.
 
 raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+The following functions, from `set_secure_cookies` to `set_omitpersistentstorage`, change the defaults of the sites created afterwards, as the options of `<extension findlib-package="eliom.server">` in the configuration file: they do not change a site that already exists. The modules of a site given in the configuration file are loaded once the site is created, so these functions have no effect on it there: use the options of its `<eliom>` element instead. A statically linked executable can call them before the server starts: [`Eliom.App.run`](./Eliom-App.md#val-run) takes the defaults for the options that it is not given.
+
+```ocaml
+val set_secure_cookies : bool -> unit
+```
 ```ocaml
 val set_application_script : (bool * bool) -> unit
 ```
@@ -124906,7 +124908,7 @@ Enable or disable WebAssembly support with automatic browser detection. When ena
 
 Disabled by default for backward compatibility. The Eliom templates enable it explicitly.
 
-This setting can be overridden per-site using the `~enable_wasm` parameter of [`Eliom.App.run`](./Eliom-App.md#val-run) or the `<wasm enabled="true|false"/>` tag in the configuration file.
+The option `<wasm enabled="true|false"/>` of the configuration file sets it too, and the parameter `~enable_wasm` of [`Eliom.App.run`](./Eliom-App.md#val-run) sets it for one site.
 
 ```ocaml
 val get_enable_wasm : unit -> bool
