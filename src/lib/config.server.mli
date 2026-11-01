@@ -88,9 +88,10 @@ val set_max_volatile_groups_per_site : int -> unit
 (** The functions [set_max_*] set the default limits of the sites created
     afterwards, as the global options of the configuration file: they do
     not change a site that already exists (the functions of {!State} do).
+    In a statically linked executable, the site of the default application
+    exists from the start: give these limits to {!Eliom.App.run}, or use
+    the functions of {!State}.
     They raise [Invalid_argument] if the number is not positive. *)
-
-val set_secure_cookies : bool -> unit
 
 val set_comet_timeout : float -> unit
 (** [set_comet_timeout t] sets the time, in seconds, after which the server
@@ -100,6 +101,17 @@ val set_comet_timeout : float -> unit
     [<comettimeout value="20"/>] of the configuration file sets it too.
     @raise Invalid_argument if [t] is not a positive number. *)
 
+(** The following functions, from [set_secure_cookies] to
+    [set_omitpersistentstorage], change the defaults of the sites created
+    afterwards, as the options of [<extension findlib-package="eliom.server">]
+    in the configuration file: they do not change a site that already
+    exists. The modules of a site given in the configuration file are loaded
+    once the site is created, so these functions have no effect on it there:
+    use the options of its [<eliom>] element instead. A statically linked
+    executable can call them before the server starts: {!Eliom.App.run}
+    takes the defaults for the options that it is not given. *)
+
+val set_secure_cookies : bool -> unit
 val set_application_script : bool * bool -> unit
 
 val set_enable_wasm : bool -> unit
@@ -111,9 +123,9 @@ val set_enable_wasm : bool -> unit
     Disabled by default for backward compatibility. The Eliom templates
     enable it explicitly.
 
-    This setting can be overridden per-site using the [~enable_wasm] parameter
-    of {!Eliom.App.run} or the [<wasm enabled="true|false"/>] tag in the
-    configuration file. *)
+    The option [<wasm enabled="true|false"/>] of the configuration file
+    sets it too, and the parameter [~enable_wasm] of {!Eliom.App.run} sets
+    it for one site. *)
 
 val get_enable_wasm : unit -> bool
 (** Get the current global setting for WebAssembly support. *)
