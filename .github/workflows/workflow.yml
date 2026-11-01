@@ -36,6 +36,7 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
+          dune-cache: true
 
       # The client tests run under Node.js; WebAssembly GC needs Node.js 22
       # or later.
