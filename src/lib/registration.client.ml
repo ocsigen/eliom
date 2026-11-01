@@ -29,12 +29,9 @@ module Base = struct
   type return = Service.non_ocaml
 end
 
-module Block5 = Base
 module Html_text = Base
 module CssText = Base
-module Text = Base
 module String_redirection = Base
-module Streamlist = Base
 
 module Ocaml = struct
   type 'a return = 'a Service.ocaml
