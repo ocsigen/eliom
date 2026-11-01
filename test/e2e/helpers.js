@@ -15,6 +15,13 @@ async function open(page, path) {
   await ready(page);
 }
 
+// Runs the garbage collector of [page] when the browser lets the tests do it
+// (Chromium, see playwright.config.js): a React value that nothing keeps
+// alive then stops being updated.
+async function collectGarbage(page) {
+  await page.evaluate(() => window.gc?.());
+}
+
 // Marks the document shown in [page], for [sameDocument]
 async function markDocument(page) {
   await page.evaluate(() => {
@@ -28,4 +35,4 @@ function sameDocument(page) {
   return page.evaluate(() => window.e2eDocument === true);
 }
 
-module.exports = { ready, open, markDocument, sameDocument };
+module.exports = { ready, open, collectGarbage, markDocument, sameDocument };

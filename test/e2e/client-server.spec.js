@@ -2,7 +2,7 @@
 // server, and the state of the tabs and of the session.
 "use strict";
 const { test, expect } = require("@playwright/test");
-const { open } = require("./helpers");
+const { open, collectGarbage } = require("./helpers");
 
 // The bus and the counter of the server are shared by the tests
 test.describe.configure({ mode: "serial" });
@@ -52,6 +52,7 @@ test("signal of the server in two browsers", async ({ browser }) => {
     const counter = b.locator("#counter-down");
     await expect(counter).toHaveText(/^\d+$/);
     const before = Number(await counter.textContent());
+    for (const page of [a, b]) await collectGarbage(page);
     await run(a, "increment", "sent");
     // The tests in other browsers can increment the counter too
     await expect

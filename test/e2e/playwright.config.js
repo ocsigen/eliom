@@ -42,7 +42,16 @@ module.exports = defineConfig({
   use: { baseURL: `http://127.0.0.1:${port}` },
   projects: (process.env.E2E_BROWSERS || "chromium")
     .split(",")
-    .map((name) => ({ name, use: { ...device(name) } })),
+    .map((name) => ({
+      name,
+      use: {
+        ...device(name),
+        // Lets the tests run the garbage collector (window.gc)
+        ...(name === "chromium"
+          ? { launchOptions: { args: ["--js-flags=--expose-gc"] } }
+          : {}),
+      },
+    })),
   webServer: {
     command: `rm -rf ${sh(data)} && mkdir -p ${sh(data)} && exec ${sh(path.join(app, "server.exe"), port, path.join(app, "static"), data)}`,
     url: `http://127.0.0.1:${port}/`,

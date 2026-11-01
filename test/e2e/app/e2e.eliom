@@ -282,11 +282,7 @@ let () =
       [%client
         Eliom.Client.onload (fun () ->
           Lwt.async (fun () ->
-            Lwt_stream.iter (fill "bus") (Eliom.Bus.stream ~%bus));
-          Lwt_react.S.keep
-            (React.S.map
-               (fun n -> fill "counter-down" (string_of_int n))
-               ~%counter_down))]
+            Lwt_stream.iter (fill "bus") (Eliom.Bus.stream ~%bus)))]
     in
     let action id label (f : (unit -> string Lwt.t) Eliom.Client_value.t) =
       button
@@ -336,7 +332,14 @@ let () =
     in
     page "client-server"
       (p ~a:[a_id "last-up"] [txt !last_up]
-      :: p [txt "counter: "; span ~a:[a_id "counter-down"] []]
+      :: p
+           [ txt "counter: "
+           ; span
+               ~a:[a_id "counter-down"]
+               [ Eliom.Content.Html.C.node
+                   [%client
+                     Eliom.Content.Html.R.txt
+                       (React.S.map string_of_int ~%counter_down)] ] ]
       :: p [txt "bus: "; span ~a:[a_id "bus"] []]
       :: List.map
            (fun (id, f) -> p [action id id f; txt " "; result id])
