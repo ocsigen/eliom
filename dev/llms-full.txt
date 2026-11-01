@@ -423,7 +423,7 @@ The same service can be registered with several scopes. This makes it possible, 
 
 ## Tips
 
-- All services created during initialization must be registered (with *"site"* scope) during the initialization phase of your module. If a service with a path is not, the server will not start, and an appropriate error message will appear in the logs. This prevents broken links. A non-attached coservice that is not registered is only reported by a warning in the logs, since libraries create some that applications may not use.
+- All services created during initialization must be registered (with *"site"* scope) during the initialization phase of your module. If a service with a path is not, the server will not start, and an appropriate error message will appear in the logs. This prevents broken links. A non-attached coservice that is not registered is only reported by a warning in the logs, since libraries create some that applications may not use. A service, with a path or not, that may be left unregistered on purpose is marked with [`Eliom.Service.allow_unregistered`](./../../eliom.server/Eliom-Service.md#val-allow_unregistered): a service registered later, during requests, or a service that a library creates for an optional feature.
 - Services may be registered only during the server's initialization phase (while reading the site configuration) or while processing a request, because Eliom must know the information about the site. Be very careful about this if you want to use static linking (see the section on [static linking](./../../workflow/configuration.md#static_linking) in the chapter about Compiling and configuring Eliom modules).
 - All regular services (but not pathless and attached services) need to be created in a module loaded inside a `<host>` tag of the configuration file. It is not possible to accomplish this using modules loaded inside `<extension>` or `<library>`.
 - If you create new main services dynamically, you will dynamically create new URLs\! This may be dangerous as they will disappear if you stop the server. Be very careful to re-create these URLs when you relaunch the server, otherwise, some external links or bookmarks will be broken\!<br/> The use of that feature is discouraged for services without timeout, as such services will be available only until the end of the server process (and it is not possible to re-create them with the same key).
@@ -231871,6 +231871,13 @@ val unregister :
   unit
 ```
 The function `unregister service` unregister the service handler previously associated to `service` with [`Registration.Html.register`](./Eliom-Registration-Html.md#val-register), [`Registration.App.register`](./Eliom-Registration-App.md#val-register) or any other [`Registration`](./Eliom-Registration.md)`.*.register` functions. See the documentation of those functions for a description of the `~scope` and `~secure` optional parameters.
+
+```ocaml
+val allow_unregistered : (_, _, _, _, _, _, reg, _, _, _, _) t -> unit
+```
+`allow_unregistered service` tells that `service`, created during the initialisation of a site, may be left unregistered at the end of the initialisation: a service with a path does not prevent the server from starting, and a non-attached coservice is not reported by a warning. The service may still be registered, during the initialisation or later, during requests. This is for a service registered for each request or client process, or for a service that a library creates for a feature that applications may not use. Attached coservices are never checked, so it has no effect on them, nor outside the initialisation of a site.
+
+Services are checked by path, or by name for non-attached coservices: if `service` is registered as well, another service with the same path or name left unregistered is not reported either.
 
 ```ocaml
 val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
