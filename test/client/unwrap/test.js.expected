@@ -45,4 +45,6 @@ unwrapped: 1 one
 shared: 2 shared, 2 shared, shared: true, unwrapped 1 time(s)
 not registered: 3 three
 not a value: Failure "unwrap_value: bad object bm90IGEgbWFyc2hhbGxlZCB2YWx1ZQ=="
-big-endian float array: 256 floats, last 0x1.fep+7, shared: true
+big-endian float: 0x1.8p+0, shared: true
+big-endian float array: 2 floats, last 0x1.4p+1, shared: true
+big-endian long float array: 256 floats, last 0x1.fep+7, shared: true

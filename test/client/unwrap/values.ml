@@ -179,3 +179,27 @@ let cases =
   ; (let rec l = 1 :: 2 :: l in
      case "cycle" l (fun l ->
        Printf.sprintf "cycle of 2: %b" (List.tl (List.tl l) == l))) ]
+
+type float_object = Boxed of float | Float_array of float array
+
+(* The floats lie between two occurrences of a list: if the client does not
+   count them as an object, the second occurrence is read wrong. *)
+let big_endian =
+  let l = [0] in
+  let around name x show =
+    case name (l, x, l) (fun (a, x, b) ->
+      Printf.sprintf "%s, shared: %b" (show x) (a == b))
+  in
+  let show_array a =
+    Printf.sprintf "%d floats, last %h" (Array.length a) a.(Array.length a - 1)
+  in
+  List.map
+    (fun (name, floats) ->
+       ( floats
+       , match floats with
+         | Boxed f -> around name f show_float
+         | Float_array a -> around name a show_array ))
+    [ "big-endian float", Boxed 1.5
+    ; "big-endian float array", Float_array [|1.; 2.5|]
+    ; "big-endian long float array", Float_array (Array.init 256 float_of_int)
+    ]
