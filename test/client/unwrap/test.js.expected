@@ -14,7 +14,11 @@ above 32 bits: Failure "unwrap_value: integer too large"
 int32: -2147483648
 int64: 9223372036854775807
 int64 min: -9223372036854775808
-nativeint: Failure "input_value: unknown custom block identifier"
+nativeint: 1
+nativeint max 32 bits: 2147483647
+nativeint min 32 bits: -2147483648
+nativeint above 32 bits: Failure "input_value: native integer value too large"
+nativeint below 32 bits: Failure "input_value: native integer value too large"
 float: 0x1.8p+0
 negative zero: -0x0p+0
 nan: nan

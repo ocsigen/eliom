@@ -283,6 +283,9 @@
 * Compatibility with the WebAssembly text parser of the next
   wasm_of_ocaml, which has no tuple types
 * Bug fixes
+** The JavaScript client reads the nativeint values sent by the server,
+   as the WebAssembly client does (32 bits on the client), instead of
+   failing with "unknown custom block identifier".
 ** App.run: the options that it is not given (secure cookies, application
    script, global data caching, HTML content type, ignored parameters,
    omitpersistentstorage) take the defaults set with the functions of
