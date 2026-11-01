@@ -150,6 +150,8 @@ val decode : string -> string
 ```ocaml
 val encode : ?plus:bool -> string -> string
 ```
+`encode ?plus s` percent-encodes `s`, slashes included. Spaces are written `+` if `plus` is `true` (the default) and `%20` otherwise, and `+` is always encoded, as by `encode` on the server.
+
 ```ocaml
 val make_encoded_parameters : (string * string) list -> string
 ```
