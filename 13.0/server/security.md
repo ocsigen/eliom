@@ -1,0 +1,95 @@
+# How to write secure applications with Eliom
+
+Eliom and Ocsigen server automatically take charge of a lot of security issues. This unburdens the programmer from having to think about most common security problems. This page details various possible design flaws of Web applications, how Eliom and Ocsigen server (possibly) protects you against a possible exploitation of these flaws, and where you should be careful. *Please help us maintain this page, by sending us any comments.*
+
+### HTTPS
+
+If your Web site is using HTTP, all requests and responses may be intercepted. If you want your Web site to be secure, never send private data through HTTP:
+
+- Pages containing personal data must be sent only through HTTPS
+- Passwords must be sent to the server only through HTTPS
+- Use secure Eliom references to record user name or user ID once the user is connected, otherwise the session ID may be sent through HTTP.
+
+### The application only does client-side verification
+
+This is probably the biggest (and most dangerous) possible mistake. As the user has an entire control over the data sent to the server, **never** assume that the data sent by the client has been verified (even if some validation happens in Js\_of\_ocaml). Instead, reimplement all verification server-side.
+
+- As a (small) mitigating factor, Eliom automatically checks that the type of the parameters is correct.
+- Suggested approach: use permissions to control if the user is allowed to perform an action. Then,
+
+  - when creating a form, check if the user has the required permission (if not, you will usually display a message *insufficient permissions* instead of the form)
+  - in the service that answers to the form, perform the exact same check
+However, as we are using safe unmarshaling, incorrect data will never crash the server.
+
+Example: Never trust the (current) user ID sent by the client process. Always take the userid from the session, through cookies.
+
+### Incorrect access controls
+
+This typically happens if authentication is badly implemented, or altogether missing in some places.
+
+- each URL should implement user verification. Never assume that the user comes from a trusted URL, for example because the URL is secret.
+- use a programmatic, layered model, which encodes the various user rights (for ex: admin/moderators/editors/connected users/anonymous). Thus a compromised login will not compromise the entire application
+- Do not leak information through erroneous login (such as *this login does not exist*). Always answer *Bad login or password*, using always the same string
+- Do not permit too many near-simultaneous login attempts, either for the same login, or from the same IP. You can use the module Lwt\_throttle to delay login, if too many connections are started.
+
+### [Code injection](http://en.wikipedia.org/wiki/Code_injection)
+
+- Eliom modules are written in OCaml, which is a compiled language. This prevents all code injection possible with scripting languages.
+- No SQL injection is possible if you use a library that passes values as parameters of prepared statements, like PG'OCaml or Caqti.
+- No HTML injection is possible, as unsafe HTML characters are always escaped before being written.
+
+### [Path traversal](http://en.wikipedia.org/wiki/Directory_traversal)
+
+- The module [Extendconfiguration](./../../ocsigenserver/extendconfiguration.md) can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
+- Even if [userconf](./../../ocsigenserver/userconf.md) is activated, users can only expose their own files; see the `localpath` option for details.
+- Occurrences of the `'..'` pattern appearing in URLs are automatically removed by the server
+- Ocsigen automatically decodes the percent-encoded characters of URLs, which protects against attacks based on quoted characters
+
+### [Session fixation](http://en.wikipedia.org/wiki/Session_fixation)
+
+- Ocsigen cookies are cryptographically generated, and cannot be guessed by the attacker. Thus the attacker cannot control, or supply, the cookie of the client.
+- To be completely safe, do not issue tokens to anonymous users, or issue a new token as soon as a login/logout takes place
+
+### [Cross-site scripting (XSS)](http://en.wikipedia.org/wiki/Cross-site_scripting)
+
+- most XSS attacks require code injection, from which you are automatically protected (see above)
+- However, avoid at all costs to put user-supplied text in sensitive tags, including:
+
+  - `<script>` tags
+  - JavaScript event attributes such as `onmouseover`
+  - inside `<meta>` refresh tags
+- if the user can upload files, sanitize very severely HTML or text files (that can contain JavaScript). Moreover, browsers may guess the type of a file whose content looks like HTML, so you also need to check those files. The header `X-Content-Type-Options: nosniff`, sent by the [Securityheaders](./../../ocsigenserver/securityheaders.md) extension of Ocsigen Server, prevents this guess.
+
+### [Cross site tracing](http://en.wikipedia.org/wiki/Cross-site_tracing)
+
+- Ocsigen server does not implement the TRACE method.
+- Furthermore, this attack is no longer really relevant, as current browsers protect against this kind of exploit
+
+### Redirection attacks
+
+- Do not let the user supply the URL to which a page redirects.
+- Using Eliom, you can use [pathless services](./services/types.md#pathless) (actions) to implement functionalities such as login forms. This way:
+
+  - you have a login form on each page
+  - you write the login code only once
+  - the user will not have control of any redirection
+
+### [Header injection](http://en.wikipedia.org/wiki/HTTP_header_injection)
+
+- In general, do not let the user write text inside HTTP headers
+- Likewise, do not let the user write its own value in a Cookie, as it gives access to this header
+- Ocsigen Server writes the headers as the application gives them: a CR or LF in the value of a header ends it, and lets the user add other headers. Never put user-supplied text containing CR or LF in a header
+
+### On-site request forgery
+
+- If a user has control of a URL (especially one that is automatically read, such as an `<img>`), remove characters such as `?, &, =`...
+- As a mitigating factor, do not write GET services that actually perform actions. Use only POST, which cannot be invoked from a URL.
+
+### [Cross-site request forgery (XSRF)](http://en.wikipedia.org/wiki/Cross-site_request_forgery)
+
+- Eliom provides automatic protection: see the parameter `csrf_safe` of coservices
+- Alternatively, each time you generate a form, add a hidden field containing a unique id. The service that is called by the form must check that the id is valid.
+
+### Denial of service
+
+- Put the sessions of each user in a session group, so that a user cannot create an unlimited number of sessions or dynamic services: each group has its own limit, and a user who floods the server with sessions only closes their own. Sessions without a group are limited together, for the whole site, with a much larger limit, and the number of persistent sessions without a group is not limited. So do not create sessions, nor dynamic services, for anonymous users unless needed, and limit the rate of requests by client address in front of the server (reverse proxy). See [Session groups](./state.md#session_groups).

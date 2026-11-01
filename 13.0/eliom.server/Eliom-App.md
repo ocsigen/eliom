@@ -1,0 +1,51 @@
+# Module `Eliom.App`
+
+```ocaml
+val set_app_name : string -> unit
+```
+Set your application name. Use this if you want to make it possible to link your Eliom application statically and to have several Eliom applications on the same Web server. See also parameter `?app_names` of `instruction` or `Eliom.App.run`.
+
+```ocaml
+val default_app_name : string
+```
+The default application name, if you don't specify any
+
+```ocaml
+val run : 
+  ?app:string ->
+  ?xhr_links:bool ->
+  ?data_timeout:
+    ([< Common.cookie_level ]
+     * Common_base.scope_hierarchy option
+     * float option) ->
+  ?service_timeout:
+    ([< Common.cookie_level ]
+     * Common_base.scope_hierarchy option
+     * float option) ->
+  ?persistent_timeout:
+    ([< Common.cookie_level ]
+     * Common_base.scope_hierarchy option
+     * float option) ->
+  ?max_service_sessions_per_group:int ->
+  ?max_volatile_data_sessions_per_group:int ->
+  ?max_persistent_data_sessions_per_group:int ->
+  ?max_service_tab_sessions_per_group:int ->
+  ?max_volatile_data_tab_sessions_per_group:int ->
+  ?max_persistent_data_tab_sessions_per_group:int ->
+  ?max_anonymous_services_per_session:int ->
+  ?secure_cookies:bool ->
+  ?application_script:(bool * bool) ->
+  ?enable_wasm:bool ->
+  ?global_data_caching:(string list * int) option ->
+  ?html_content_type:string ->
+  ?ignored_get_params:(string * Re.re) ->
+  ?ignored_post_params:(string * Re.re) ->
+  ?omitpersistentstorage:Common.omitpersistentstorage_rule list option ->
+  unit ->
+  Ocsigen.Server.instruction
+```
+`run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. The program must then also configure Ocsipersist, for example with `Ocsipersist_settings.set_db_file` for `ocsipersist-sqlite` (see the [manual](./../workflow/configuration.md#no_config_file)). Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site; the maximum numbers of sessions and services must be positive (`run` raises `Invalid_argument` otherwise). As the values of a configuration file, these maximum numbers are kept when the program calls a `State.set_default_max_*` function without `~override_configfile:true`. The other options that are not given take the defaults that the program set with the functions of [`Config`](./Eliom-Config.md) (such as [`Config.set_secure_cookies`](./Eliom-Config.md#val-set_secure_cookies)), even after the site was created.
+
+As for a site of a configuration file, the services with a path created during the initialisation of the application must be registered by then: otherwise `run` raises [`Common.Eliom_there_are_unregistered_services`](./Eliom-Common.md#exception-Eliom_there_are_unregistered_services), and the server does not start. Unregistered non-attached coservices are reported by a warning.
+
+When `?enable_wasm` is set to `true`, the server will generate a detection script that loads the WASM version of your client code if the browser supports WebAssembly, with automatic fallback to JavaScript otherwise. If not specified, the global default is used (see [`Config.set_enable_wasm`](./Eliom-Config.md#val-set_enable_wasm)), which is `false` by default.

@@ -1,0 +1,393 @@
+# Service handlers
+
+## Output modules
+
+Once the [service identification mechanism](./types.md#identification) identifies the service responsible for a given URL, it executes its service handler. The service handler is a function taking the GET and POST parameters as arguments and returning the content to be sent to the client. The return type of the service handler depends on the function used to register it. The most common case is HTML content built with the TyXML library, but Eliom additionally provides a lot of output modules to ease the implementation of common Web interaction. See section [List of predefined output modules](./#list_outputs) for a comprehensive list.
+
+### List of predefined output modules
+
+Services can send several types of data, using a variety of predefined modules. It is also possible to [create your own output modules](./#creating). The main predefined output modules are:
+
+ Generating content for the browser
+
+;[`Eliom.Registration.Html`](./../../eliom.server/Eliom-Registration-Html.md) : Registration of functions that generate HTML pages statically checked using polymorphic variant types. You may use constructor functions from [`Eliom.Content.Html.D`](./../../eliom.server/Eliom-Content-Html-D.md) or a syntax extension close to the standard HTML syntax. ;[`Eliom.Registration.Flow5`](./../../eliom.server/Eliom-Registration-Flow5.md) : Registration of functions that generate a portion of page using [`Eliom.Content.Html.F`](./../../eliom.server/Eliom-Content-Html-F.md) or the syntax extension (useful for `XMLHttpRequest` requests for example). Do not use with Eliom applications: you can instead use [`Eliom.Client.server_function`](./../../eliom.server/Eliom-Client.md#type-server_function) (or the `let%rpc` syntax) to call server functions that produce HTML nodes. ;[`Eliom.Registration.Html_text`](./../../eliom.server/Eliom-Registration-Html_text.md) : Registration of functions that generate text HTML pages, without any validation of the content. The content type sent by the server is "`text/html`". ;[`Eliom.Registration.CssText`](./../../eliom.server/Eliom-Registration-CssText.md) : Registration of functions that generate CSS pages, without any validation of the content. The content type sent by the server is "`text/css`". ;[`Eliom.Registration.String`](./../../eliom.server/Eliom-Registration-String.md) : Registration of functions that generate text pages, without any validation of the content. The services return a pair of strings. The first string is the content of the page, while the second string is the content type. ;[`Eliom.Registration.File`](./../../eliom.server/Eliom-Registration-File.md) : Registration of services that send files. See [here](./#eliomfiles) for an example of use.
+
+ Generating content for client-server applications
+
+;[`Eliom.Registration.App`](./../../eliom.server/Eliom-Registration-App.md) : Functor that allows creation of services belonging to a client-server Eliom application (see [chapter client-server applications](./../../clientserver/applications.md)).
+
+ Special browser interaction
+
+;[`Eliom.Registration.Action`](./../../eliom.server/Eliom-Registration-Action.md) : Registration of actions (functions that do not generate any page. See [Action](./#actions)). The page corresponding to the URL (without the special parameter identifying the action) is reloaded after the action by default if possible. ;[`Eliom.Registration.Unit`](./../../eliom.server/Eliom-Registration-Unit.md) : Like [`Eliom.Registration.Action`](./../../eliom.server/Eliom-Registration-Action.md), but the URL is not reloaded after the action. (Same as `Eliom.Registration.Action` with the ``NoReload` option). ;[`Eliom.Registration.redirection.Redirection`](./../../eliom.server/Eliom-Registration.md#type-redirection.Redirection) : Registration of HTTP redirections. The handler returns the service (without parameters) of the page you want to redirect to, wrapped in the `Redirection` constructor. The browser gets a 302 code by default and redoes the request to the new URL. To choose another code, use the `?options` parameter of registration functions, for example `register ~options:`MovedPermanently ...` (301) or `register ~options:`TemporaryRedirect ...` (307). ;[`Eliom.Registration.String_redirection`](./../../eliom.server/Eliom-Registration-String_redirection.md) : Same but the output type is a string. Use with care\! Warning: the URL must be absolute.
+
+ Customization of other outputs
+
+;[`Eliom.Registration.Customize`](./../../eliom.server/Eliom-Registration-Customize.md) : Specialization of service registration functions by customizing the page type.
+
+ Sending caml values to client side code
+
+;[`Eliom.Registration.Ocaml`](./../../eliom.server/Eliom-Registration-Ocaml.md) : Registration of services sending marshalled OCaml values. See the section on [communications in the chapter about client-server applications](./../../clientserver/communication.md).
+
+ Runtime choice of content
+
+;[`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) : Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See [here](https://ocsigen.org/tuto/latest/faq.html#choose) for an example of use.
+
+### Advanced output modules
+
+#### Sending files
+
+You may want to register a service that sends files. To do so, use the [`Eliom.Registration.File`](./../../eliom.server/Eliom-Registration-File.md) module. Example:
+
+```ocaml
+let sendfile =
+  Eliom.Registration.File.create
+    ~path:(Eliom.Service.Path ["sendfile"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () -> Lwt.return "filename")
+```
+Other example, with "suffix" services (see [here](./parameters.md#suffix)):
+
+```ocaml
+let sendfile2 =
+  Eliom.Registration.File.create
+    ~path:(Eliom.Service.Path ["files"])
+    ~meth:
+      (Eliom.Service.Get
+         Eliom.Parameter.(suffix (all_suffix "filename")))
+    (fun s () -> Lwt.return @@
+      "/var/www/files/" ^
+      Ocsigen_base.Lib.Url.string_of_url_path ~encode:false s)
+```
+The extension [Staticmod](./types.md#staticparts) is another way to handle static files.
+
+#### Sending portions of pages
+
+The [`Eliom.Registration.Flow5`](./../../eliom.server/Eliom-Registration-Flow5.md) module allows you to register services that send portions of pages, of any element type. It is sometimes useful to create AJAX pages (i.e. pages using the `XMLHttpRequest` JavaScript object). Note that the service returns a list of blocks. For sending HTML to the client-side portion of an Eliom application, server functions ([`Eliom.Client.server_function`](./../../eliom.server/Eliom-Client.md#type-server_function), `let%rpc`) are better-suited.
+
+```ocaml
+let divpage =
+  Eliom.Registration.Flow5.create
+    ~path:(Eliom.Service.Path ["div"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () ->
+      Lwt.return
+        [div [h2 [txt "Hallo"];
+              p [txt "Blablablabla"] ]])
+```
+To send portions of pages of other types, create your own output module with [`Eliom.Mkreg.Make`](./../../eliom.server/Eliom-Mkreg-Make.md) (see [Creating your own output modules](./#creating)).
+
+#### Redirections
+
+##### Redirections to Eliom services
+
+The [`Eliom.Registration.redirection.Redirection`](./../../eliom.server/Eliom-Registration.md#type-redirection.Redirection) module allows one to register HTTP redirections.<br/> If a request is made for such a service, the server asks the browser to retry with another URL.
+
+Redirection services need to return a GET service without parameter at all. Example:
+
+```ocaml
+let redir1 =
+  Eliom.Registration.Redirection.create
+    ~options:`TemporaryRedirect
+    ~path:(Eliom.Service.Path ["redir"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () -> Lwt.return (Eliom.Registration.Redirection someservice))
+```
+If you want to give parameters to such services, use [`Eliom.Service.preapply`](./../../eliom.server/Eliom-Service.md#val-preapply) (see also in [section about pre-applied services](./types.md#preapplied)). Example:
+
+```ocaml
+let redir = Eliom.Registration.Redirection.create
+   ~options:`TemporaryRedirect
+   ~path:(Eliom.Service.Path ["redir"])
+   ~meth:(Eliom.Service.Get Eliom.Parameter.(int "o"))
+   (fun o () ->
+      Lwt.return
+        (Eliom.Registration.Redirection
+           (Eliom.Service.preapply ~service:service_with_params (o, (22, "ee")))))
+```
+The `options` parameter sets the status code: ``Found` (302, the default), ``SeeOther` (303), ``TemporaryRedirect` (307) or ``MovedPermanently` (301), for instance.
+
+Note that the cost of a redirection is one more request and one more response.
+
+##### Redirections to generated URLs
+
+The [`Eliom.Registration.String_redirection`](./../../eliom.server/Eliom-Registration-String_redirection.md) module allows one to register HTTP redirections to custom URLs provided as strings. In most cases, it is a better idea to use [`Eliom.Registration.redirection.Redirection`](./../../eliom.server/Eliom-Registration.md#type-redirection.Redirection), even for external redirections (using [`Eliom.Service.extern`](./../../eliom.server/Eliom-Service.md#val-extern)). Use [`Eliom.Registration.String_redirection`](./../../eliom.server/Eliom-Registration-String_redirection.md) only when it is not possible to have a service corresponding to a URL.
+
+Notice that the supplied URL must be absolute.
+
+#### Actions
+
+Actions are used to perform side effects before generating the fallback of a service. When an action is called, the service handler is executed, then the service handler of the fallback service is executed.
+
+Eliom references of scope [`Eliom.Common.request_scope`](./../../eliom.server/Eliom-Common.md#type-request_scope) set in an action handler are still available in the service handler of the fallback.
+
+A common use of actions and pathless services working synergistically is the implementation of login/logout forms. Actions are well-suited for the following reasons:
+
+- Connection and disconnection can happen as the side-effect of the action, after which we stay on the same page; and
+- The connection/disconnection form generally needs to be present on all pages. An action implemented as a pathless service will respond no matter what page it is called from, so there is no need to create a version with POST parameters of each service. The implementation of the same behavior with standard Web programming techniques is usually much more complicated.
+
+#### Registering services that decide what they want to send
+
+You may want to register a service that will send, for instance, sometimes an HTML page, sometimes a file, sometimes something else. To do that, use the [`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) module, together with the send function of the module you want to use. Example:
+
+```ocaml
+let send_any =
+  Eliom.Registration.Any.create
+    ~path:(Eliom.Service.Path ["sendany"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(string "type"))
+    (fun s () ->
+       if s = "valid" then
+         Eliom.Registration.Html.send
+           (html
+              (head (title (txt "")) [])
+              (body [p [txt "This page has been statically checked. ";
+                        txt "If you change the parameter in the URL, ";
+                        txt "you will get an unchecked text page"]]))
+       else
+         Eliom.Registration.Html_text.send
+           "<p>Not a valid page. Try with type=\"valid\" in the URL.</p>")
+```
+
+##### Dynamically modifying register options using Any
+
+You may also use [`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md) to dynamically modify the parameters usually set on the register function. You can set the HTTP code, the charset, the content\_type, the HTTP headers and the specific option of the output module. To change only the HTTP status of a page, [`Eliom.Registration.set_status`](./../../eliom.server/Eliom-Registration.md#val-set_status) is simpler, see [Error handling](./#error_handling).
+
+```ocaml
+let change_option =
+  Eliom.Registration.Any.create
+    ~path:(Eliom.Service.Path ["change_option"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+   (fun () () ->
+     Eliom.Registration.Html.send
+       ~code:403
+       (html
+          (head (title (txt "forbidden")) [])
+          (body [p [txt "forbidden"]])))
+```
+
+##### About kind type and how to serve application and other content with the same service
+
+In Eliom applications, changing the current page does not always do the same thing. When going to a page inside the same application by clicking on a link (or calling [`Eliom.Client.change_page`](../../eliom.client/Eliom/Client/index.html#val-change_page)) the client application performs an `XMLHttpRequest` and modifies the displayed page according to the result. When going to content outside the application (another site, a static file, etc.) the client leaves the application by changing the browser URL.
+
+When using [`Eliom.Registration.Any`](./../../eliom.server/Eliom-Registration-Any.md), there is no way to know before the request whether the content is from the same application or not. To this end, there are phantom type annotations to the type of the `send` functions: [`Eliom.Registration.kind`](./../../eliom.server/Eliom-Registration.md#type-kind). The function [`Eliom.Registration.Any.register`](./../../eliom.server/Eliom-Registration-Any.md#val-register) takes a service handler that can serve only one kind of content: that way it is not possible to inadvertently mix kinds. The different kinds of content are:
+
+- Browser content: everything that can't be handled by the application directly, e.g., HTML pages, files
+- Block content: subparts of pages sent as XML, e.g., `Flow5`.
+- Application content: pages of application.
+- Ocaml content: marshalled OCaml values.
+- Unknown content: content generated as text.
+Yet sometimes you may want to mix the kinds of contents a service can return. The function [`Eliom.Registration.appl_self_redirect`](./../../eliom.server/Eliom-Registration.md#val-appl_self_redirect) allows one to cast browser content to application content. When an application requests some content cast through that function, the server sends some information asking the client to exit to a specific address. You should not use that on POST services: leaving the application sending POST parameters is not always possible and the request will be performed two times.
+
+For instance, you may want to serve a file if it exists, and generate some error message with client-side code otherwise. You can achieve this as follows.
+
+```ocaml
+let file_or_application =
+  Eliom.Registration.Any.create
+    ~path:(Eliom.Service.Path ["file_or_application"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(string "filename"))
+   (fun filename () ->
+     (* Never send a file named by the client without restricting it to
+        a directory. *)
+     let filename = Filename.concat "/var/www/files" (Filename.basename filename) in
+     if Eliom.Registration.File.check_file filename
+     then
+       Eliom.Registration.appl_self_redirect
+         Eliom.Registration.File.send
+         filename
+     else
+       My_application.send ~code:404
+         (html
+           (head (title (txt "no page")) [])
+           (body [p [txt "the file does not exist"]])))
+```
+Unknown content can be cast to browser content using [`Eliom.Registration.cast_unknown_content_kind`](./../../eliom.server/Eliom-Registration.md#val-cast_unknown_content_kind).
+
+### Creating your own output modules
+
+#### By customizing an existing registration module
+
+Using [`Eliom.Registration.Customize`](./../../eliom.server/Eliom-Registration-Customize.md), you can specialize a registration function to avoid code duplication. You can for instance add parameters before calling the service handler, or modify the answer.
+
+Importantly, you can use this customization mechanism to check whether a user is logged-in before serving the content of a page. That way, we don't need to do the check in every service handler, and we can get the user information directly.
+
+In this example, we check if we are in a session group telling that the user is connected. If this is not the case, we generate a login page. When we are in a group, we retrieve the user information and pass it to the service handler. It returns a title and the content of the body. That way, all pages also always get the same head (and CSS) without code duplication.
+
+```ocaml
+module Connected_param = struct
+
+  type page =
+    user_info ->
+    (string * Html_types.body_content Eliom.Content.Html.elt list) Lwt.t
+
+  let translate page =
+    match
+      Eliom.State.get_volatile_data_session_group
+        ~scope:Eliom.Common.default_session_scope ()
+    with
+    | None ->
+      login_page ()
+    | Some group_name ->
+      let%lwt user_info = get_user_info group_name in
+      let%lwt page_title, content = page user_info in
+      Lwt.return
+        Eliom.Content.Html.D.(
+          html (head (title (txt page_title)) [])
+            (body content)
+        )
+
+end
+
+
+module Connected =
+  Eliom.Registration.Customize
+    (Eliom.Registration.Html)
+    (Connected_param)
+```
+
+#### By building the HTTP frame
+
+For defining more sophisticated kinds of custom services, you may need to create your own registration module via the [`Eliom.Mkreg.Make`](./../../eliom.server/Eliom-Mkreg-Make.md) functor. As an example, we define a module serving integers as text. Notice that for this particular example you can (and should) use [`Eliom.Registration.Customize`](./../../eliom.server/Eliom-Registration-Customize.md) instead.
+
+```ocaml
+module Int_reg_base = struct
+  type page = int
+  type options = unit
+  type result = Eliom.Registration.browser_content Eliom.Registration.kind
+
+  let result_of_http_result = Eliom.Registration.cast_http_result
+  let send_appl_content = Eliom.Service.XNever
+
+  let send ?options:_ ?charset ?code ?content_type ?headers content =
+    let charset =
+      Option.value charset ~default:(Eliom.Config.get_config_default_charset ())
+    and content_type = Option.value content_type ~default:"text/plain" in
+    let headers =
+      Cohttp.Header.replace
+        (Option.value headers ~default:(Cohttp.Header.init ()))
+        "content-type"
+        (content_type ^ "; charset=" ^ charset)
+    in
+    let status = Option.map Cohttp.Code.status_of_code code in
+    Lwt.return
+      (Ocsigen.Response.make
+         ~body:(Ocsigen.Response.Body.of_string (string_of_int content))
+         (Cohttp.Response.make ?status ~headers ()))
+end
+
+module Int = Eliom.Mkreg.Make (Int_reg_base)
+```
+If your `page` type has parameters you should use [`Eliom.Mkreg.Make_poly`](./../../eliom.server/Eliom-Mkreg-Make_poly.md) instead.
+
+## Considerations for implementing services
+
+### Implementing cooperative service handlers with Lwt
+
+Remember that a Web site written with Eliom is an OCaml application. This application must be able to handle several requests at the same time, in order to prevent a single request from making the whole server hang. To make this possible, Ocsigen uses *cooperative threads*. The monadic style followed by [`Lwt`](./../../../lwt/lwt/Lwt.md) makes such threads easy to use.
+
+Below is an example of a page written in a non-cooperative way, that has the effect of stopping the entire server for 5 seconds. No one will be able to query the server during this period:
+
+```ocaml
+let looong =
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["looong"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () ->
+       Unix.sleep 5;
+       Lwt.return
+         Eliom.Content.Html.D.(
+           html
+             (head (title (txt "")) [])
+             (body [h1 [txt "Ok now, you can read the page."]])
+         ))
+```
+To solve this problem, use a cooperative version of `Unix.sleep`: [`Lwt_unix.sleep`](./../../../lwt/lwt.unix/Lwt_unix.md#val-sleep):
+
+```ocaml
+open Eliom.Content.Html.D
+let looong =
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["looong"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () ->
+       let%lwt () = Lwt_unix.sleep 5.0 in
+       Lwt.return
+         Eliom.Content.Html.D.(
+           html
+             (head (title (txt "")) [])
+             (body [h1 [txt "Ok now, you can read the page."]])
+         ))
+```
+If you want to use, say, a database library that is not written in a cooperative way, but which is thread-safe for preemptive threads, use the [`Lwt_preemptive`](./../../../lwt/lwt.unix/Lwt_preemptive.md) module to detach the computation. In the following example, we simulate the request by making a call to Unix.sleep:
+
+```ocaml
+let looong2 =
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["looong2"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    (fun () () ->
+       let%lwt () = Lwt_preemptive.detach Unix.sleep 5 in
+       Lwt.return
+         Eliom.Content.Html.D.(
+           html
+             (head (title (txt "")) [])
+             (body [h1 [txt "Ok now, you can read the page."]])
+         ))
+```
+
+### Error handling
+
+#### Sending a page with an HTTP error status
+
+A service handler can set the HTTP status of its answer with [`Eliom.Registration.set_status`](./../../eliom.server/Eliom-Registration.md#val-set_status), then return its page as usual:
+
+```ocaml
+let () =
+  My_app.register ~service:user_service (fun id () ->
+    match%lwt User.find id with
+    | Some user -> user_page user
+    | None ->
+      Eliom.Registration.set_status `Not_found;
+      not_found_page ())
+```
+This status takes precedence over the `?code` parameter of the registration function. It is dropped if the handler raises an exception. On the client, `set_status` does nothing, so that `%shared` handlers can call it. [`Eliom.Registration.get_status`](./../../eliom.server/Eliom-Registration.md#val-get_status) reads it.
+
+#### Exception handling
+
+You can catch exceptions raised during page generation in two places:
+
+- add an exception handler to services using the `?error_handler` parameter of the registration functions.
+- add a global exception handler using [`Eliom.Registration.set_exn_handler`](./../../eliom.server/Eliom-Registration.md#val-set_exn_handler)
+You can use it to catch exception [`Eliom.Common.Eliom_404`](./../../eliom.server/Eliom-Common.md#exception-Eliom_404) and generate a custom 404 page.
+
+```ocaml
+let () =
+  Eliom.Registration.set_exn_handler @@ function
+  | Eliom.Common.Eliom_404 ->
+    Eliom.Registration.Html.send ~code:404
+      Eliom.Content.Html.D.(
+        html
+          (head (title (txt "")) [])
+          (body [h1 [txt "Eliom tutorial"];
+                 p [txt "Page not found"]])
+      )
+  | Eliom.Common.Eliom_Wrong_parameter ->
+    Eliom.Registration.Html.send
+      Eliom.Content.Html.D.(
+        html
+          (head (title (txt "")) [])
+          (body [h1 [txt "Eliom tutorial"];
+                 p [txt "Wrong parameters"]])
+      )
+  | e ->
+    Lwt.fail e
+```
+The handler may send any kind of content. In a client-server application, send the error page with the `send` function of the application, as in `My_app.send ~code:404 page`: the client-side program then displays it without leaving the application.
+
+#### Fallback services
+
+You can check whether a service was directly called or if it was used as a fallback using the [`Eliom.Request_info.get_link_too_old`](./../../eliom.server/Eliom-Request_info.md#val-get_link_too_old) function. In case of services registered with a restricted scope, you can find out which state was closed using [`Eliom.Request_info.get_expired_service_sessions`](./../../eliom.server/Eliom-Request_info.md#val-get_expired_service_sessions)
+
+#### Error in service handlers of actions
+
+If something wrong happens during an action, it is possible to inform the service generating the page. For instance, you may want to display a "wrong password" message after an aborted connection. To transmit this kind of information, use Eliom references (see module [`Eliom.Reference`](./../../eliom.server/Eliom-Reference.md)) created using scope [`Eliom.Common.request_scope`](./../../eliom.server/Eliom-Common.md#type-request_scope). The value will be available to the service generating the page.
+
+Other example: creating user accounts using actions. If the creation fails, you may want to display some message to the user, like "password too weak" or "name already used".
