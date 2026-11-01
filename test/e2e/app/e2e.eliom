@@ -34,9 +34,18 @@ let fill id text =
 
 let () = Eliom.Client.onload (fun () -> fill "injection" greeting)
 
-(* Tells the tests that the client program has handled the loaded page *)
+(* Tells the tests that the client program has handled the loaded page, and
+   which one it is: js_of_ocaml or wasm_of_ocaml *)
 let () =
   Eliom.Client.onload (fun () ->
+    let backend =
+      match Sys.backend_type with
+      | Other name -> name
+      | Native -> "native"
+      | Bytecode -> "bytecode"
+    in
+    Js_of_ocaml.Js.Unsafe.set Js_of_ocaml.Js.Unsafe.global "e2eBackend"
+      (Js_of_ocaml.Js.string backend);
     Js_of_ocaml.Js.Unsafe.set Js_of_ocaml.Js.Unsafe.global "e2eReady"
       Js_of_ocaml.Js._true)
 

@@ -2,6 +2,7 @@
 // value, runs code at load, and handles events on nodes of the server.
 "use strict";
 const { test, expect } = require("@playwright/test");
+const { open } = require("./helpers");
 
 test("the client program runs in the page", async ({ page }) => {
   const errors = [];
@@ -9,7 +10,7 @@ test("the client program runs in the page", async ({ page }) => {
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
-  await page.goto("/");
+  await open(page, "/");
   await expect(page.locator("#injection")).toHaveText("sent by the server");
   await expect(page.locator("#onload")).toHaveText("ran at load");
   await page.click("#increment");
