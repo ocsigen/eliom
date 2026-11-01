@@ -24,6 +24,7 @@
  (libraries eliom.client eliom_test_values))
 
 (rule
+ (package eliom)
  (enabled_if %{bin-available:node})
  (action
   (with-stdout-to
@@ -37,6 +38,7 @@
 
 (rule
  (alias runtest)
+ (package eliom)
  (enabled_if %{bin-available:node})
  (action
   (diff test.js.expected test.js.output)))

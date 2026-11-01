@@ -11,24 +11,30 @@ let print name f =
       Printf.printf "%s: JavaScript error %S\n" name
         (Js_of_ocaml.Js_error.to_string e)
 
-let () =
+(* [check cases messages] reads back each case from its message. *)
+let check cases messages =
   List.iteri
     (fun n (Values.Case {name; value = _; show}) ->
-       let encoded, on_server = Encoded.cases.(n) in
+       let encoded, on_server = messages.(n) in
        print name (fun () ->
          match show (unwrap encoded) with
          | shown when shown = on_server -> shown
          | shown -> Printf.sprintf "%s, NOT %s on the server" shown on_server))
-    Values.cases
+    cases
+
+let () = check Values.cases Encoded.cases
 
 (* The unwrapper registered for a mark replaces the marked value, once even if
-   the value is shared. A value whose mark has no unwrapper is kept. *)
+   the value is shared. A value whose mark has no unwrapper is kept. The
+   unwrapper returns a block, as [==] compares JavaScript strings by value. *)
 let calls = ref 0
 
 let () =
   Eliom.Unwrap.register_unwrapper (Eliom.Unwrap.id_of_int 1000)
-    (fun (n, s, (_ : unit)) -> incr calls; Printf.sprintf "%d %s" n s);
-  print "unwrapped" (fun () -> unwrap Encoded.unwrapped);
+    (fun (n, s, (_ : unit)) ->
+       incr calls;
+       ref (Printf.sprintf "%d %s" n s));
+  print "unwrapped" (fun () -> !(unwrap Encoded.unwrapped));
   calls := 0;
   print "shared" (fun () ->
     let a, b =
@@ -36,15 +42,11 @@ let () =
       | [a; b] -> a, b
       | _ -> failwith "not a list of two values"
     in
-    Printf.sprintf "%s, %s, shared: %b, unwrapped %d time(s)" a b (a == b)
+    Printf.sprintf "%s, %s, shared: %b, unwrapped %d time(s)" !a !b (a == b)
       !calls);
   print "not registered" (fun () ->
     let n, s, (_ : unit) = unwrap Encoded.not_registered in
     Printf.sprintf "%d %s" n s);
   print "not a value" (fun () -> unwrap "not a marshalled value")
 
-let () =
-  print "big-endian float array" (fun () ->
-    let (a : float array), b = unwrap Encoded.big_endian in
-    Printf.sprintf "%d floats, last %h, shared: %b" (Array.length a) a.(255)
-      (a == b))
+let () = check (List.map snd Values.big_endian) Encoded.big_endian

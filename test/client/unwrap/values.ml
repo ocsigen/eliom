@@ -147,20 +147,59 @@ let cases =
     (let l = [1; 2] in
      case "sharing" (l, l) (fun (a, b) ->
        Printf.sprintf "%s, shared: %b" (show_list string_of_int a) (a == b)))
-  ; (* Each kind of object counts in the table of shared objects *)
+  ; (* CODE_SHARED16: a reference to an object read more than 255 objects
+       before *)
+    (let l = [0] in
+     case "far sharing"
+       (l, List.init 300 Fun.id, l)
+       (fun (a, between, b) ->
+          Printf.sprintf "%d objects between, shared: %b" (List.length between)
+            (a == b)))
+  ; (* Each kind of object counts in the table of shared objects. Under
+       js_of_ocaml, [==] compares the strings, the floats and the int32 by
+       value: a miscounted object is still detected, as the references to the
+       objects before it then point to wrong objects. *)
     (let short = "s"
      and medium = String.make 40 'm'
      and long = String.make 300 'l'
      and float = 1.5
      and floats = [|1.; 2.|]
+     and long_floats = Array.init 256 float_of_int
+     and int32 = 1l
      and int64 = 1L in
      case "objects shared"
-       ( (short, medium, long, float, floats, int64)
-       , (short, medium, long, float, floats, int64) )
-       (fun ((a, b, c, d, e, f), (a', b', c', d', e', f')) ->
-          Printf.sprintf "%d %d %d %h %h %Ld, shared: %b" (String.length a)
-            (String.length b) (String.length c) d e.(1) f
-            (a == a' && b == b' && c == c' && d == d' && e == e' && f == f')))
+       ( (short, medium, long, float, floats, long_floats, int32, int64)
+       , (short, medium, long, float, floats, long_floats, int32, int64) )
+       (fun ((a, b, c, d, e, f, g, h), (a', b', c', d', e', f', g', h')) ->
+          Printf.sprintf "%d %d %d %h %h %d %ld %Ld, shared: %b"
+            (String.length a) (String.length b) (String.length c) d e.(1)
+            (Array.length f) g h
+            (a == a' && b == b' && c == c' && d == d' && e == e' && f == f'
+           && g == g' && h == h')))
   ; (let rec l = 1 :: 2 :: l in
      case "cycle" l (fun l ->
        Printf.sprintf "cycle of 2: %b" (List.tl (List.tl l) == l))) ]
+
+type float_object = Boxed of float | Float_array of float array
+
+(* The floats lie between two occurrences of a list: if the client does not
+   count them as an object, the second occurrence is read wrong. *)
+let big_endian =
+  let l = [0] in
+  let around name x show =
+    case name (l, x, l) (fun (a, x, b) ->
+      Printf.sprintf "%s, shared: %b" (show x) (a == b))
+  in
+  let show_array a =
+    Printf.sprintf "%d floats, last %h" (Array.length a) a.(Array.length a - 1)
+  in
+  List.map
+    (fun (name, floats) ->
+       ( floats
+       , match floats with
+         | Boxed f -> around name f show_float
+         | Float_array a -> around name a show_array ))
+    [ "big-endian float", Boxed 1.5
+    ; "big-endian float array", Float_array [|1.; 2.5|]
+    ; "big-endian long float array", Float_array (Array.init 256 float_of_int)
+    ]
