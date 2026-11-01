@@ -3536,7 +3536,12 @@ This creates a project named `<name>` from the `"app"` template in the directory
 
 ### Compilation & Running
 
-Read the README file provided with the template.
+Read the README file provided with the template. For the `app` template, start by installing the opam packages that the project depends on:
+
+```shell
+$ opam install --deps-only .
+```
+`dune build` reports the libraries and tools that are missing, but not the packages that Ocsigen Server loads only when it starts, such as the storage backend given in the configuration file.
 
 #### WebAssembly compilation
 
