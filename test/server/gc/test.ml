@@ -3,16 +3,8 @@
    ends with all the states of the server collected. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
-
-let text b url =
-  let+ r = Browser.get b url in
-  if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
-  r.body
-
-let check msg expected b url =
-  let+ body = text b url in
-  Alcotest.(check string) msg expected body
 
 let sleep = Lwt_unix.sleep
 

@@ -1,9 +1,8 @@
 (* At most two volatile data sessions without a group in the site. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
-
-let text, get, register = Services.(text, get, register)
 
 let () =
   State.set_default_max_volatile_data_sessions_without_group
@@ -12,7 +11,7 @@ let () =
 (* The limit of the parent of the session of the request, which has no
    group *)
 let () =
-  register
+  string
     (get ["max_in_parent"] P.(int "n"))
     (fun n () ->
        State.set_max_volatile_data_states_in_parent
@@ -22,7 +21,7 @@ let () =
 
 (* The limit of the sessions without a group of the site *)
 let () =
-  register
+  string
     (get ["max_without_group"] P.(int "n"))
     (fun n () ->
        match

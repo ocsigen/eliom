@@ -2,16 +2,11 @@
    of the browser sending the request, and answer in plain text. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 module V = Reference.Volatile
 open Lwt.Syntax
 
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 let session_scope = Common.default_session_scope
 let group_scope = Common.default_group_scope
 

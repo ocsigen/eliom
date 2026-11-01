@@ -2,16 +2,10 @@
    services they submit to, which answer with their parameters. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 module F = Content.Html.F
 module Form = F.Form
-
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 
 (* [page path content] registers the page [path], whose body is [content ()] *)
 let page path content =

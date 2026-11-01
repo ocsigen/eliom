@@ -2,15 +2,9 @@
    and events of Eliom_react, whose information is sent in JSON. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 module Client = Eliom_test_client
-
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 
 (* [record stream] is the list of the values received on [stream] so far,
    most recent first. *)

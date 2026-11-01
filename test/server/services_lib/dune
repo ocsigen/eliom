@@ -1,0 +1,5 @@
+; Helpers of the test servers, to create and register services.
+
+(library
+ (name eliom_test_services)
+ (libraries eliom.server cohttp))

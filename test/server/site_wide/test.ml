@@ -3,24 +3,10 @@
    without a group and the collection of expired states. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
 
-let text b url =
-  let+ r = Browser.get b url in
-  if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
-  r.body
-
-let check msg expected b url =
-  let+ body = text b url in
-  Alcotest.(check string) msg expected body
-
 let sleep = Lwt_unix.sleep
-
-(* [case server name f] is a test that runs [f browser], where [browser ()]
-   is a new browser. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (fun () -> Browser.create server)))
 
 (* [with_setting b set reset f] runs [f ()] with the setting of the site [set],
    then restores it with [reset]. *)
@@ -47,7 +33,7 @@ let open_state kind b =
 let kinds = ["data"; "service"; "persistent"]
 
 let timeouts server =
-  let case = case server in
+  let case = case_browsers server in
   let global_timeout kind =
     case
       ("global timeout of " ^ kind ^ " states")
@@ -115,7 +101,7 @@ let timeouts server =
             check "after" "" b "/other/persistent/get")) ] )
 
 let hierarchies server =
-  let case = case server in
+  let case = case_browsers server in
   ( "scope hierarchies"
   , [ case "independent" (fun browser ->
         let b = browser () in
@@ -138,7 +124,7 @@ let hierarchies server =
         check "group" "" b "/group/get") ] )
 
 let groups server =
-  let case = case server in
+  let case = case_browsers server in
   ( "groups"
   , [ case "leave a group" (fun browser ->
         let a = browser () and b = browser () in
@@ -163,7 +149,7 @@ let groups server =
           [List.mem "list-a" groups; List.mem "list-b" groups]) ] )
 
 let without_group server =
-  let case = case server in
+  let case = case_browsers server in
   ( "without a group"
   , [ case "limit of sessions" (fun browser ->
         (* The sessions of the site that are not in a group count together. *)
@@ -210,7 +196,7 @@ let without_group server =
              check "oldest, closed" "" a "/get")) ] )
 
 let collection server =
-  let case = case server in
+  let case = case_browsers server in
   ( "collection"
   , [ case "expired sessions" (fun browser ->
         let a = browser () and b = browser () and c = browser () in
@@ -225,7 +211,7 @@ let collection server =
 (* The limit of groups of the site, set by a member of a group that has
    states of one kind only: the group used least recently is closed. *)
 let limit_of_groups kind server =
-  let case = case server in
+  let case = case_browsers server in
   ( "limit of groups"
   , match kind with
     | `Service ->
@@ -277,7 +263,7 @@ let limit_of_groups kind server =
    limited for the whole site; those created during the initialisation of the
    site are not counted, and stay. *)
 let anonymous_coservices server =
-  let case = case server in
+  let case = case_browsers server in
   ( "anonymous coservices"
   , [ case "limit of the site" (fun browser ->
         let a = browser () and b = browser () and c = browser () in

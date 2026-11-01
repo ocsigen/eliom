@@ -2,21 +2,13 @@
    assertions. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
-
-let text s = Lwt.return (s, "text/plain")
-
-let get ?priority path params =
-  Service.create ?priority ~path:(Service.Path path) ~meth:(Service.Get params)
-    ()
 
 let post path get_params post_params =
   Service.create ~path:(Service.Path path)
     ~meth:(Service.Post (get_params, post_params))
     ()
-
-let string ?options ?code ?headers service f =
-  Registration.String.register ?options ?code ?headers ~service f
 
 (* Dispatch and parameters *)
 

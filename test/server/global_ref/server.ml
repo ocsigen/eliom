@@ -3,15 +3,9 @@
    module [Toplevel_ref], and answer in plain text. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 open Lwt.Syntax
-
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 
 let () =
   string

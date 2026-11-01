@@ -4,7 +4,11 @@
 (executables
  (names server page)
  (modules server page urls js_literal)
- (libraries eliom.server ocsipersist-sqlite eliom_test_server))
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  eliom_test_server
+  eliom_test_services))
 
 (rule
  (target page.js)

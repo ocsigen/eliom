@@ -3,7 +3,11 @@
 (executable
  (name server)
  (modules server)
- (libraries eliom.server ocsipersist-sqlite eliom_test_server))
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  eliom_test_server
+  eliom_test_services))
 
 (test
  (name test)

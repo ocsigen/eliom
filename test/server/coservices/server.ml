@@ -2,10 +2,8 @@
    answer in plain text. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
-
-let text s = Lwt.return (s, "text/plain")
-let string service f = Registration.String.register ~service f
 
 (* A fallback says whether it replaces a coservice not found. *)
 let fallback name =

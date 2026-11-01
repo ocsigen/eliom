@@ -2,24 +2,8 @@
    cookies, hence its own sessions. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
-
-(* [text b url] is the body of the response to [url] for [b], checked to be a
-   success. *)
-let text b url =
-  let+ r = Browser.get b url in
-  if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
-  r.body
-
-let check msg expected b url =
-  let+ body = text b url in
-  Alcotest.(check string) msg expected body
-
-(* [case server name f] is a test that runs [f browser], where [browser ()]
-   is a new browser. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (fun () -> Browser.create server)))
 
 let cookie_header cookies =
   "cookie", String.concat "; " (List.map (fun (n, v) -> n ^ "=" ^ v) cookies)
@@ -32,7 +16,7 @@ let check_replay msg expected cookies b url =
   Alcotest.(check string) (msg ^ " (old cookies)") expected r.body
 
 let isolation server =
-  let case = case server in
+  let case = case_browsers server in
   ( "isolation"
   , [ case "session data" (fun browser ->
         let a = browser () and b = browser () in
@@ -68,7 +52,7 @@ let isolation server =
         Alcotest.(check string) "value of the cookie" "a" r.body) ] )
 
 let closing server =
-  let case = case server in
+  let case = case_browsers server in
   ( "closing"
   , [ case "discard the session" (fun browser ->
         let a = browser () in
@@ -114,7 +98,7 @@ let closing server =
 
 (* Each test uses groups of its own, since the server is shared. *)
 let groups server =
-  let case = case server in
+  let case = case_browsers server in
   let join b ?max name =
     text b
       ("/group/join?name=" ^ name

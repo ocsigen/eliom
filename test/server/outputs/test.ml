@@ -2,13 +2,8 @@
    and of the pages of an application. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
-
-let check_response ?status ?body msg (r : Browser.response) =
-  Option.iter
-    (fun s -> Alcotest.(check int) (msg ^ ": status") s r.status)
-    status;
-  Option.iter (fun b -> Alcotest.(check string) (msg ^ ": body") b r.body) body
 
 (* [body b url] is the body of the page [url], answered with 200 *)
 let body b url =
@@ -30,11 +25,6 @@ let occurrences s sub =
 
 let check_occurrences msg expected s sub =
   Alcotest.(check int) msg expected (occurrences s sub)
-
-(* [case server name f] is a test that runs [f b] with a new browser [b]. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (Browser.create server)))
 
 (* [page_url link] is the URL of the page [/page?x=1] with the parameters
    of [link], the link to a non-attached action *)

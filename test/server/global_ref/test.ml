@@ -2,18 +2,8 @@
    of a module of the server, before the location of the database is set. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
-
-(* [text b url] is the body of the response to [url] for [b], checked to be a
-   success. *)
-let text b url =
-  let+ r = Browser.get b url in
-  if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
-  r.body
-
-let check msg expected b url =
-  let+ body = text b url in
-  Alcotest.(check string) msg expected body
 
 let case name f = Alcotest.test_case name `Quick (fun () -> Lwt_main.run (f ()))
 

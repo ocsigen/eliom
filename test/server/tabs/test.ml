@@ -3,6 +3,7 @@
    sends in a header. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
 
 let tab = Eliom_test_client.Tab.create
@@ -16,14 +17,8 @@ let check msg expected tab url =
   let+ body = text tab url in
   Alcotest.(check string) msg expected body
 
-(* [case server name f] is a test that runs [f browser], where [browser ()]
-   is a new browser. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (fun () -> Browser.create server)))
-
 let tabs server =
-  let case = case server in
+  let case = case_browsers server in
   ( "tabs"
   , [ case "tab data" (fun browser ->
         let b = browser () in
@@ -57,7 +52,7 @@ let tabs server =
         check "value of the tab cookies" "1" t2 "/tab/get") ] )
 
 let closing server =
-  let case = case server in
+  let case = case_browsers server in
   ( "closing"
   , [ case "close a tab" (fun browser ->
         let b = browser () in
@@ -103,7 +98,7 @@ let closing server =
         check "group coservice" "coservice of the group" t url) ] )
 
 let limits server =
-  let case = case server in
+  let case = case_browsers server in
   ( "limits"
   , [ case "least recently used tab" (fun browser ->
         (* Beyond the limit, the tab used least recently is closed: [t1] is

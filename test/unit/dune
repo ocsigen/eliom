@@ -5,4 +5,10 @@
  (package eliom)
  (preprocess
   (pps js_of_ocaml-ppx_deriving_json))
- (libraries eliom.server ocsipersist-sqlite xml-light re alcotest))
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  xml-light
+  re
+  alcotest
+  eliom_test_server))

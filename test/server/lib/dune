@@ -1,4 +1,5 @@
-; Helpers of the tests that run an Eliom server and send it requests.
+; Helpers of the tests: a test server, simulated browsers, checks of their
+; requests with Alcotest. The unit tests use its checks too.
 
 (library
  (name eliom_test_server)
@@ -12,4 +13,5 @@
   cohttp-lwt-unix
   conduit-lwt-unix
   ocsipersist-sqlite.settings
-  uri))
+  uri
+  alcotest))

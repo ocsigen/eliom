@@ -3,15 +3,13 @@
    server. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 
 module Client_test = Registration.App (struct
     let application_name = "client_test"
     let global_data_path = None
   end)
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
 
 let main = get ["a"; "b"] P.(int "n" ** string "s")
 let root = get [] P.unit

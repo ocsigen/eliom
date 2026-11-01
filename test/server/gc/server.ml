@@ -2,6 +2,7 @@
    only when /collect is called, which runs each collector once. *)
 
 open Eliom
+open Eliom_test_services
 open Lwt.Syntax
 module P = Parameter
 module V = Reference.Volatile
@@ -16,12 +17,6 @@ let () =
   Config.set_session_gc_frequency None;
   Config.set_persistent_session_gc_frequency None
 
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 let session_scope = Common.default_session_scope
 let value = V.eref ~scope:session_scope ""
 

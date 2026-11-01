@@ -2,13 +2,8 @@
    send the parameters of their service. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
-
-let check_response ?status ?body msg (r : Browser.response) =
-  Option.iter
-    (fun s -> Alcotest.(check int) (msg ^ ": status") s r.status)
-    status;
-  Option.iter (fun b -> Alcotest.(check string) (msg ^ ": body") b r.body) body
 
 (* The forms of the page [url] *)
 let forms b url =
@@ -21,19 +16,6 @@ let form b url =
   match forms with
   | [form] -> form
   | _ -> Alcotest.failf "%s: %d forms" url (List.length forms)
-
-(* [contains s sub] tells whether [sub] occurs in [s] *)
-let contains s sub =
-  let n = String.length sub in
-  let rec from i =
-    i + n <= String.length s && (String.sub s i n = sub || from (i + 1))
-  in
-  from 0
-
-(* [case server name f] is a test that runs [f b] with a new browser [b]. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (Browser.create server)))
 
 let submitted msg expected b form =
   let+ r = Html_form.submit b form in
