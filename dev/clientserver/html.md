@@ -367,6 +367,15 @@ let%server hello =
 ```
 Writing HTML as text makes applications much more difficult to maintain. We do not recommend this.
 
+### Raw HTML in a typed page
+
+`Unsafe.data` inserts a string of HTML in a TyXML tree, as it is, for example an SVG image made by another library. Nothing checks or escapes this string: content from users must be sanitized first.
+
+```ocaml
+let%shared image svg = div [Unsafe.data svg]
+```
+The client parses the string as the content of its parent element, and the scripts it contains run. For well-formed markup allowed in that element, it gives the same nodes as the server. A string that gives several top-level nodes does not form one element: as a D node or in reactive content, raw HTML must give a single node, so wrap it in an element.
+
 ### Custom data for HTML
 
 Eliom provides a type-safe interface for creating new attributes of the form `data-*`, using [`Eliom.Content.Html.Custom_data`](./../eliom.server/Eliom-Content-Html-Custom_data.md).

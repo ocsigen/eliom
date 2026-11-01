@@ -262,13 +262,31 @@ type content_ns = [
  ]
 ```
 ```ocaml
+val svg_ns : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t
+```
+```ocaml
+val parse_html : 
+  [< `HTML5 | `SVG ] ->
+  Js_of_ocaml.Dom.node Js_of_ocaml.Js.t option ->
+  string ->
+  Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+```
+```ocaml
+val tracked : 
+  string ->
+  Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
+  Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+```
+```ocaml
 val rebuild_node' : 
+  ?parent:Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
   [< `HTML5 | `SVG SVG ] ->
   Xml.elt ->
   Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
 ```
 ```ocaml
 val raw_rebuild_node : 
+  ?parent:Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
   [< `HTML5 | `SVG SVG ] ->
   Xml.econtent ->
   Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
