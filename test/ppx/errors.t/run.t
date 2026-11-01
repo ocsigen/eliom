@@ -74,24 +74,26 @@ Client values cannot be nested:
   The syntax [%client ...] can not be nested.
   The syntax [%client.unsafe ...] can not be nested.
 
-In an interface, a section takes a signature, `[%%client: ...]`. Without the
-colon, the error says that the section is not at toplevel, which is misleading:
+In an interface, a section takes a signature, `[%%client: ...]`. The error says
+so when the colon is missing:
 
   $ ppx_eliom_server --intf section_without_colon.eliomi
-  File "section_without_colon.eliomi", lines 1-2, characters 0-12:
-  1 | [%%client
-  2 | val x : int]
-  Error: Sections are only allowed at toplevel.
-  [1]
+  [%%ocaml.error
+    "In an interface, a section takes a signature: [%%client: ...]."]
   $ ppx_eliom_client --intf section_without_colon.eliomi
-  File "section_without_colon.eliomi", lines 1-2, characters 0-12:
-  1 | [%%client
-  2 | val x : int]
-  Error: Sections are only allowed at toplevel.
-  [1]
+  [%%ocaml.error
+    "In an interface, a section takes a signature: [%%client: ...]."]
 
-An empty section in an interface is not reported, unlike in an implementation
-(see error_empty_section.t):
+An empty section without colon is reported as in an implementation:
+
+  $ ppx_eliom_server --intf empty_section_without_colon.eliomi
+  [%%ocaml.error "Empty [%%client] extension. Did you mean [%%client.start] ?"]
+  val x : int
+  $ ppx_eliom_client --intf empty_section_without_colon.eliomi
+  [%%ocaml.error "Empty [%%client] extension. Did you mean [%%client.start] ?"]
+
+An empty signature section, `[%%shared:]`, is not reported, unlike an empty
+section in an implementation (see error_empty_section.t):
 
   $ ppx_eliom_server --intf empty_section.eliomi
   val x : int
