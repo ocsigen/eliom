@@ -43,6 +43,8 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (tyxml (and (>= 5.0) (< 6.0)))
   (ocsigenserver (and (>= 8.0) (< 9.0)))
   (reactiveData (>= 0.2.1))
+  ; Used by Eliom and in its interface (Re.re); ocsigenserver needs 1.11
+  (re (>= 1.11))
   base-bytes
   (ocsipersist (and (>= 3.1) (< 4.0)))
   (xml-light (>= "2.5"))
