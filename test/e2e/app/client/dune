@@ -16,8 +16,21 @@
 
 (executable
  (name e2e)
- (modes js)
+ (modes js wasm)
  (modules e2e)
  (preprocess
   (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
  (libraries eliom.client))
+
+; The client programs, as the application expects them: e2e.js, and
+; e2e.wasm.js with its assets, which keep their name. server.exe serves this
+; whole build directory, since a dune rule cannot simply copy the directory of
+; the assets.
+
+(rule
+ (copy e2e.bc.js e2e.js))
+
+(rule
+ (deps e2e.bc.wasm.assets)
+ (action
+  (copy e2e.bc.wasm.js e2e.wasm.js)))

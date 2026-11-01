@@ -1,12 +1,19 @@
 // Helpers of the browser tests
 "use strict";
+const { test, expect } = require("@playwright/test");
 
 // Waits until the client program has handled the document loaded in [page]
 // (not a page changed through an XHR, which keeps the flag of the previous
 // one): before, a link or a form is handled natively by the browser, and the
 // events of the page are not handled.
+// Checks that the client program matches the backend of the project
+// (js_of_ocaml or wasm_of_ocaml): a browser without the WebAssembly features that Eliom
+// needs would get the JavaScript one.
 async function ready(page) {
   await page.waitForFunction(() => window.e2eReady === true);
+  expect(await page.evaluate(() => window.e2eBackend)).toBe(
+    test.info().project.metadata.backend,
+  );
 }
 
 // Opens [path] in [page] and waits until the client program has handled it

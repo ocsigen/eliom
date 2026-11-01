@@ -30,10 +30,3 @@
   ocsipersist-sqlite.settings
   ocsigenserver.ext.staticmod
   e2e))
-
-; The client program, as the application expects it: e2e.js
-
-(subdir
- static
- (rule
-  (copy ../client/e2e.bc.js e2e.js)))
