@@ -154,8 +154,12 @@ let start instructions =
      services/test.ml relies on. Given to the host, as Ocsigen Server may give
      one by default, and as [~default_charset] of [start] only reaches the
      hosts since Ocsigen Server 8.1. *)
+  (* A Unix-domain socket has no port: requests get the port given here,
+     which absolute URLs show. With port 0, Ocsigen Server 8.0.0 writes port 0
+     there, and later versions the default port. The client tests give the
+     same port to their page (test/client/stub.js). *)
   Ocsigen.Server.start
-    ~ports:[`Unix socket_name, 0]
+    ~ports:[`Unix socket_name, 8080]
     ~command_pipe ~logdir:"log" ~debugmode:true
     [ Ocsigen.Server.host
         ~charset_assoc:(Ocsigen_http.Charset_mime.empty_charset_assoc ())
