@@ -2,6 +2,8 @@ name: Main workflow
 
 on:
   pull_request:
+    # ready_for_review adds the macOS job, which draft PRs skip
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - master
@@ -18,9 +20,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
+        # Draft PRs skip macOS: the organisation runs only 5 macOS jobs at
+        # a time.
+        os: ${{ fromJSON(github.event.pull_request.draft && '["ubuntu-latest"]' || '["macos-latest", "ubuntu-latest"]') }}
         ocaml-compiler:
           - 5
           - 4
