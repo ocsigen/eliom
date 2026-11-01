@@ -24,6 +24,10 @@ jobs:
         ocaml-compiler:
           - 5
           - 4
+        # OCaml 4 on Linux only: macOS-specific bugs show with OCaml 5.
+        exclude:
+          - os: macos-latest
+            ocaml-compiler: 4
 
     runs-on: ${{ matrix.os }}
 
