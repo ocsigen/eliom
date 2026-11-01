@@ -33,7 +33,17 @@ module Url = struct
   include Url_base
 
   let decode = Url.urldecode
-  let encode ?plus s = Url.urlencode ?with_plus:plus s
+  let encoded_space = Regexp.regexp_string "%20"
+
+  (* Encode slashes, + and spaces as the server does: the slashes, since a
+     slash in a segment of a path must not separate segments, + always, and
+     spaces as + with [~plus:true] (the default) or %20. [Url.urlencode] keeps
+     the slashes and writes spaces %20; its [?with_plus] tells whether + is
+     encoded. *)
+  let encode ?(plus = true) s =
+    let s = String.concat "%2F" (String.split_on_char '/' (Url.urlencode s)) in
+    if plus then Regexp.global_replace encoded_space s "+" else s
+
   let make_encoded_parameters = Url.encode_arguments
   let split_path = Url.path_of_path_string
   let ssl_re = Regexp.regexp "^(https?):\\/\\/"
