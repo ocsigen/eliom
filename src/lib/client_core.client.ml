@@ -673,15 +673,61 @@ end
 
 type content_ns = [`HTML5 | `SVG]
 
-let rec rebuild_node' ns elt =
+let svg_ns = Js.string "http://www.w3.org/2000/svg"
+
+(* [parse_html ns parent s] parses the raw HTML [s] (from [Unsafe.data]) as
+   the content of [parent], which gives the nodes the server would for markup
+   allowed in [parent]: [s] stays text in a [script] or a [style], and gives
+   SVG elements in an [svg].
+   Without a parent, [s] is parsed in a [template], which accepts any element,
+   or in an [svg]. A single node is returned as it is, several in a document
+   fragment. Scripts in [s] run when they are inserted in the document. *)
+let parse_html ns parent s =
+  let context =
+    match parent, ns with
+    | Some parent, _ -> parent
+    | None, `HTML5 ->
+        (Dom_html.document##(createElement (Js.string "template"))
+          :> Dom.node Js.t)
+    | None, `SVG ->
+        (Dom_html.document##(createElementNS svg_ns (Js.string "svg"))
+          :> Dom.node Js.t)
+  in
+  let range = Dom_html.document##createRange in
+  range##selectNodeContents context;
+  let fragment = range##(createContextualFragment (Js.string s)) in
+  match Js.Opt.to_option fragment##.firstChild with
+  | None ->
+      (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
+  | Some node when not (Js.Opt.test node##.nextSibling) -> node
+  | Some _ -> (fragment :> Dom.node Js.t)
+
+(* A document fragment is empty once inserted: Eliom cannot find its nodes
+   again to update them, or to manipulate them as a D or global element. In a
+   reactive list, they also shift the positions of the following children. *)
+let tracked what (node : Dom.node Js.t) =
+  (match node##.nodeType with
+  | Dom.DOCUMENT_FRAGMENT ->
+      Logs.warn ~src:section (fun fmt ->
+        fmt
+          "Raw HTML with several top-level nodes used as %s: updates of these nodes, or of the following children of a reactive list, are lost. Wrap it in an element."
+          what)
+  | _ -> ());
+  node
+
+let rec rebuild_node' ?parent ns elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
       node
   | Xml.ReactChildren (node, elts) ->
-      let dom = raw_rebuild_node ns node in
+      let dom = raw_rebuild_node ?parent ns node in
       Js_of_ocaml_tyxml.Tyxml_js.Util.update_children dom
-        (ReactiveData.RList.map (rebuild_node' ns) elts);
+        (ReactiveData.RList.map
+           (fun elt ->
+              tracked "a child of a reactive list"
+                (rebuild_node' ~parent:dom ns elt))
+           elts);
       Xml.set_dom_node elt dom;
       dom
   | Xml.ReactNode signal ->
@@ -689,7 +735,9 @@ let rec rebuild_node' ns elt =
         ReactState.start_signal (fun state ->
           React.S.map
             (fun elt' ->
-               let dom = rebuild_node' ns elt' in
+               let dom =
+                 tracked "a reactive node" (rebuild_node' ?parent ns elt')
+               in
                Xml.set_dom_node elt dom;
                ReactState.change_dom state dom)
             signal)
@@ -697,26 +745,32 @@ let rec rebuild_node' ns elt =
       Xml.set_dom_node elt dom; dom
   | Xml.TyXMLNode raw_elt -> (
     match Xml.get_node_id elt with
-    | Xml.NoId -> raw_rebuild_node ns raw_elt
+    | Xml.NoId -> raw_rebuild_node ?parent ns raw_elt
     | Xml.RequestId _ ->
         (* Do not look in request_nodes hashtbl: such elements have
          been bind while unwrapping nodes. *)
-        let node = raw_rebuild_node ns raw_elt in
+        let node =
+          tracked "a D element" (raw_rebuild_node ?parent ns raw_elt)
+        in
         Xml.set_dom_node elt node; node
     | Xml.ProcessId id ->
         let id = Js.string id in
         Js.Optdef.case (find_process_node id)
           (fun () ->
-             let node = raw_rebuild_node ns (Xml.content elt) in
+             let node =
+               tracked "a global element"
+                 (raw_rebuild_node ?parent ns (Xml.content elt))
+             in
              register_process_node id node;
              node)
           (fun n -> (n :> Dom.node Js.t)))
 
-and raw_rebuild_node ns = function
+and raw_rebuild_node ?parent ns = function
   | Xml.Empty | Xml.Comment _ ->
       (* FIXME *)
       (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
-  | Xml.EncodedPCDATA s | Xml.PCDATA s ->
+  | Xml.EncodedPCDATA s -> parse_html ns parent s
+  | Xml.PCDATA s ->
       (Dom_html.document##(createTextNode (Js.string s)) :> Dom.node Js.t)
   | Xml.Entity s ->
       let entity = Dom_html.decode_html_entities (Js.string ("&" ^ s ^ ";")) in
@@ -730,13 +784,13 @@ and raw_rebuild_node ns = function
       let node =
         match ns with
         | `HTML5 -> Dom_html.document##(createElement (Js.string name))
-        | `SVG ->
-            let svg_ns = "http://www.w3.org/2000/svg" in
-            Dom_html.document##(createElementNS (Js.string svg_ns)
-                                  (Js.string name))
+        | `SVG -> Dom_html.document##(createElementNS svg_ns (Js.string name))
       in
       List.iter (rebuild_rattrib node) attribs;
-      List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) children;
+      let parent = (node :> Dom.node Js.t) in
+      List.iter
+        (fun c -> Dom.appendChild node (rebuild_node' ~parent ns c))
+        children;
       (node :> Dom.node Js.t)
 
 (* [is_before_initial_load] tests whether it is executed before the

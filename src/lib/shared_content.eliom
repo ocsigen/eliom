@@ -159,8 +159,14 @@ module Xml = struct
     in
     let _ =
       [%client.unsafe
-        (let f = Client_core.rebuild_node' ~%ns in
-         let e = f ~%e and l = ReactiveData.RList.map f ~%l in
+        (let e = Client_core.rebuild_node' ~%ns ~%e in
+         let l =
+           ReactiveData.RList.map
+             (fun elt ->
+                Client_core.tracked "a child of a reactive list"
+                  (Client_core.rebuild_node' ~parent:e ~%ns elt))
+             ~%l
+         in
          Js_of_ocaml_tyxml.Tyxml_js.Util.update_children e l
          : unit)]
     in

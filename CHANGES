@@ -584,6 +584,12 @@
 ** Eliom_react.Up: sending an event from the client no longer fails with
    Failed_request 204 once the server has received it. Its service is an
    action, which answers without content.
+** Raw HTML (Html.F.Unsafe.data and D, Svg.F.Unsafe.data and D) built by
+   the client is parsed as the content of its parent element, which gives
+   the nodes of the server for well-formed markup. The client inserted it as
+   text before. BREAKING: on the client too, its markup is now interpreted
+   and its scripts run, so it must not contain unsanitized user input. As a
+   D node or in reactive content, it must give a single node.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
