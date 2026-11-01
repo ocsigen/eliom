@@ -52,6 +52,10 @@ jobs:
       # Published js_of_ocaml (6.3.2) caps at ocaml < 5.5; pin master for
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
+      # Published ocsigenserver (8.0.0) gives port 0 to the absolute URLs
+      # of requests on a Unix-domain socket, which the client tests compare
+      # with the client's; pin master until the next release.
+      - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
       - run: opam install . --deps-only --with-test -y
 
       - run: opam exec -- dune build -p eliom,eliom-compat
