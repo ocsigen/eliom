@@ -210,6 +210,10 @@
   contains any, unit, a file, raw POST data or non-localised parameters,
   or a list or a set that does not end the path. Such a service
   type-checked, then failed at each request.
+* BREAKING: the client-side modules Registration.Block5, Text and Streamlist
+  are removed, and so are those of Eliom_registration in eliom-compat. They
+  had no server-side counterpart, so shared code using them did not compile
+  on the server. Use Service.non_ocaml instead of their return type.
 * Session groups
 ** The sessions that are not in a session group are now counted together
    for the whole site, 1000000 by default, instead of 1000000 per sub

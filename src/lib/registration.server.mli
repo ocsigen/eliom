@@ -38,7 +38,7 @@ type 'a kind
         {- {!unknown_content}}
         {- {!ocaml_content}}} *)
 
-(** {3 Return types for {!type:Service.service} }
+(** {3 Return types for {!type:Service.t} }
 
     {4 Classical content} *)
 
@@ -48,26 +48,24 @@ type browser_content = [`Browser]
     content must be interpreted in the browser as stated by the
     content-type header. This is most common return type for an eliom
     service, see for example {!Html}, {!CssText}, {!File},
-    {!Redirection}. *)
+    {!module-Redirection}. *)
 
 type block_content
 (** The type [block_content] is to be used as a phantom type parameter
     for {!Registration.kind}. It means the returned content is a
-    subtree of an XML value. See for example {!Block5} or
-    {!Make_typed_xml_registration}. *)
+    subtree of an XML value. See for example {!Flow5}. *)
 
 type unknown_content
 (** The type [unknown_content] is to be used as a phantom type
     parameter for {!Registration.kind} when the content-type
-    can't be determined statically. See {!Text} or {!Any}. *)
+    can't be determined statically. See {!String} or {!Any}. *)
 
 (** {4 Application content} *)
 
 type 'a application_content = [`Appl of 'a]
-(** The type [application_content] is a refinement of {!appl_service}
-    to be used as a phantom type parameters for
-    {!Registration.kind}. The parameter ['a] is phantom type
-    that is unique for a given application. *)
+(** The type [application_content] is to be used as a phantom type
+    parameter for {!Registration.kind}. The parameter ['a] is a phantom
+    type that is unique for a given application. *)
 
 type 'a application_name
 (** Typed application name *)
@@ -75,9 +73,9 @@ type 'a application_name
 (** {4 OCaml content} *)
 
 type 'a ocaml_content
-(** The type [ocaml_content] is an synomyn for
-    {!Service.ocaml_service} to be used as a phantom type
-    parameters for {!Registration.kind}. See {!Ocaml}. *)
+(** The type [ocaml_content] is to be used as a phantom type parameter
+    for {!Registration.kind}, for the services that return OCaml values
+    ({!type:Service.ocaml}). See {!Ocaml}. *)
 
 (** {2 Using HTML with services } *)
 
@@ -158,7 +156,7 @@ module type APP = sig
   val application_name : string
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by
-      {!Appl_params.application_name}.
+      {!Registration_sigs.APP_PARAM.application_name}.
 
       {e Warning: do not mix up with the "application instance id",
       that is unique for each instance of the application on a
@@ -251,7 +249,7 @@ module Html_text :
 (** Eliom service registration for services that returns CSS. The page
     content is a [string] that must contains valid CSS and the content
     type is always [text/css]. The option is the optional
-    "Cache-policy: max-age" header value to be sent. *)
+    "Cache-Control: max-age" header value to be sent. *)
 module CssText :
   Registration_sigs.S_with_create
   with type page = string
@@ -275,7 +273,7 @@ module Action :
    and type options = [`Reload | `NoReload]
    and type result = browser_content kind
 
-(** Similar to {!Actions} with [`NoReload] option. *)
+(** Similar to {!Action} with [`NoReload] option. *)
 module Unit :
   Registration_sigs.S_with_create
   with type page = unit
@@ -336,7 +334,7 @@ module Redirection : sig
     -> ?headers:Ocsigen_http.Header.t
     -> _ page
     -> _ kind Lwt.t
-  (** More polymorphic version of {!Registration_sigs.send} *)
+  (** More polymorphic version of {!Registration_sigs.S.send} *)
 end
 
 (** Eliom service registration for services that returns a
@@ -346,7 +344,7 @@ end
 
     The default returned HTTP code is [302 Found]. You could use the
     optional parameter [~options] to change this value, see
-    {!Redirections} for a detailed description. *)
+    {!module-Redirection} for a detailed description. *)
 module String_redirection :
   Registration_sigs.S_with_create
   with type page = Lib.Url.uri
@@ -365,7 +363,7 @@ module String_redirection :
     contents. The value returned by service handlers is the name of
     the file to send. See the Eliom manual for more information on {{!//server/services/page-handlers.eliomfiles}how to
     send files with Eliom}.  The option is the optional
-    "Cache-policy: max-age" header value to be sent. *)
+    "Cache-Control: max-age" header value to be sent. *)
 module File : sig
   val check_file : string -> bool
   (** The function [check_file file] is true if [File.send file] would
@@ -437,9 +435,8 @@ val appl_self_redirect :
 
 (** Eliom service registration for services that returns "byte"-string
     contents. The page content is a pair [(raw_content,
-    content_type)]. See also {!Streamlist} for another kind of service
-    that returns "byte" contents. The option is the optional
-    "Cache-policy: max-age" header value to be sent. *)
+    content_type)]. The option is the optional "Cache-Control: max-age"
+    header value to be sent. *)
 module String :
   Registration_sigs.S_with_create
   with type page = string * string
@@ -542,9 +539,9 @@ val get_status : unit -> Cohttp.Code.status option
 (** {2 Unsafe cast of contents} *)
 
 val cast_unknown_content_kind : unknown_content kind -> 'a kind
-(** If you know that the content you generated using [Text.send] or
-    [Streamlist.send] is the same as some other kind, you can cast it
-    with [cast_unknown_content_kind] for use with [Any] module.*)
+(** If you know that the content you generated using [String.send] is the
+    same as some other kind, you can cast it with [cast_unknown_content_kind]
+    for use with [Any] module.*)
 
 val cast_http_result : Ocsigen.Response.t -> 'a kind
 (** [cast_http_result] should only be used to register new output
