@@ -89,7 +89,7 @@ This typically happens if authentication is badly implemented, or altogether mis
 {2 {{:http://en.wikipedia.org/wiki/HTTP_header_injection}Header injection}}
 - In general, do not let the user write text inside HTTP headers
 - Likewise, do not let the user write its own value in a Cookie, as it gives access to this header
-- Ocsigen Server writes the headers as the application gives them: a CR or LF in the value of a header ends it, and lets the user add other headers. Never put user-supplied text containing CR or LF in a header
+- Since Ocsigen Server 8.1, a response is replaced by a 500 error, and the error log names the header or the cookie, when a header name is not a token, when a header value or a cookie contains a control character other than tab (a CR or LF for example), when a cookie contains a [;], or when a cookie name contains a [=]: a client cannot add headers or cookie attributes through a value. Ocsigen Server 8.0 writes the headers as the application gives them, so that a CR or LF in a value lets the user add other headers
 
 
 {2 On-site request forgery}

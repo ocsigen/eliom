@@ -332,10 +332,17 @@ Secure sessions are using secure cookies, i.e., Ocsigen Server will
 ask the browsers to send the cookie only if the protocol is
 HTTPS. Thus it is not possible to access secure references and
 services if the user is using HTTP.
+Browsers also refuse a secure cookie set by a site served over HTTP
+(Chrome and Firefox make an exception for [localhost], Safari does not):
+do not use secure sessions on a site served over HTTP. (Ocsigen Server
+writes the [Secure] attribute since version 8.1: with Ocsigen Server 8.0,
+the browsers also send these cookies through HTTP, so that secure
+sessions are reachable through HTTP too.)
 
 The server does not check the protocol currently used,
 neither to send nor to receive the cookies, which means that
-it will work even if your server is using HTTP behind a local proxy.
+it will work even if your server is using HTTP behind a local proxy
+that serves HTTPS.
 
 {2:session_groups Session groups}
 
