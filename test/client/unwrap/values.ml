@@ -85,6 +85,19 @@ let cases =
   ; case "int64" Int64.max_int Int64.to_string
   ; case "int64 min" Int64.min_int Int64.to_string
   ; case "nativeint" 1n Nativeint.to_string
+  ; case "nativeint max 32 bits"
+      (Nativeint.of_int32 Int32.max_int)
+      Nativeint.to_string
+  ; case "nativeint min 32 bits"
+      (Nativeint.of_int32 Int32.min_int)
+      Nativeint.to_string
+  ; (* 64 bits on the server, 32 bits on the client *)
+    case "nativeint above 32 bits"
+      (Nativeint.shift_left 1n 32)
+      Nativeint.to_string
+  ; case "nativeint below 32 bits"
+      (Nativeint.pred (Nativeint.of_int32 Int32.min_int))
+      Nativeint.to_string
   ; (* Floats *)
     case "float" 1.5 show_float
   ; case "negative zero" (-0.) show_float
