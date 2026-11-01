@@ -1,6 +1,6 @@
 # Module `Registration.File`
 
-Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server/services/handlers.md#eliomfiles). The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server/services/handlers.md#eliomfiles). The option is the optional "Cache-Control: max-age" header value to be sent.
 
 ```ocaml
 val check_file : string -> bool

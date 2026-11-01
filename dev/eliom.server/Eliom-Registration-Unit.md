@@ -1,6 +1,6 @@
 # Module `Registration.Unit`
 
-Similar to `Actions` with ``NoReload` option.
+Similar to [`Action`](./Eliom-Registration-Action.md) with ``NoReload` option.
 
 ```ocaml
 type page = unit

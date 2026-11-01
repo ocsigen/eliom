@@ -1,6 +1,6 @@
 # Module `Registration.String`
 
-Eliom service registration for services that returns "byte"-string contents. The page content is a pair `(raw_content, content_type)`. See also `Streamlist` for another kind of service that returns "byte" contents. The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns "byte"-string contents. The page content is a pair `(raw_content, content_type)`. The option is the optional "Cache-Control: max-age" header value to be sent.
 
 ```ocaml
 type page = string * string

@@ -33,7 +33,7 @@ parameter wasm\_name Optional filename for the WebAssembly version. Useful for s
 ```ocaml
 val application_name : string
 ```
-Unique identifier for this application. Currently, it is just the application name as defined by `Appl_params.application_name`.
+Unique identifier for this application. Currently, it is just the application name as defined by [`Registration_sigs.APP_PARAM.application_name`](./Eliom-Registration_sigs-module-type-APP_PARAM.md#val-application_name).
 
 *Warning: do not mix up with the "application instance id", that is unique for each instance of the application on a client.*
 

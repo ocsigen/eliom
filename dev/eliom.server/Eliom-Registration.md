@@ -17,7 +17,7 @@ The type `kind` is an abstract type for the HTTP frame returned by a service. Th
 - [`unknown_content`](./#type-unknown_content)
 - [`ocaml_content`](./#type-ocaml_content)
 
-#### Return types for `Service.service`
+#### Return types for [`Service.t`](./Eliom-Service.md#type-t)
 
 ##### Classical content
 
@@ -31,12 +31,12 @@ The type `browser_content` is to be used as a phantom type parameter for [`Regis
 ```ocaml
 type block_content
 ```
-The type `block_content` is to be used as a phantom type parameter for [`Registration.kind`](./#type-kind). It means the returned content is a subtree of an XML value. See for example `Block5` or `Make_typed_xml_registration`.
+The type `block_content` is to be used as a phantom type parameter for [`Registration.kind`](./#type-kind). It means the returned content is a subtree of an XML value. See for example [`Flow5`](./Eliom-Registration-Flow5.md).
 
 ```ocaml
 type unknown_content
 ```
-The type `unknown_content` is to be used as a phantom type parameter for [`Registration.kind`](./#type-kind) when the content-type can't be determined statically. See `Text` or [`Any`](./Eliom-Registration-Any.md).
+The type `unknown_content` is to be used as a phantom type parameter for [`Registration.kind`](./#type-kind) when the content-type can't be determined statically. See [`String`](./Eliom-Registration-String.md) or [`Any`](./Eliom-Registration-Any.md).
 
 ##### Application content
 
@@ -45,7 +45,7 @@ type 'a application_content = [
   | `Appl of 'a
  ]
 ```
-The type `application_content` is a refinement of `appl_service` to be used as a phantom type parameters for [`Registration.kind`](./#type-kind). The parameter `'a` is phantom type that is unique for a given application.
+The type `application_content` is to be used as a phantom type parameter for [`Registration.kind`](./#type-kind). The parameter `'a` is a phantom type that is unique for a given application.
 
 ```ocaml
 type 'a application_name
@@ -57,7 +57,7 @@ Typed application name
 ```ocaml
 type 'a ocaml_content
 ```
-The type `ocaml_content` is an synomyn for `Service.ocaml_service` to be used as a phantom type parameters for [`Registration.kind`](./#type-kind). See [`Ocaml`](./Eliom-Registration-Ocaml.md).
+The type `ocaml_content` is to be used as a phantom type parameter for [`Registration.kind`](./#type-kind), for the services that return OCaml values ([`Service.ocaml`](./Eliom-Service.md#type-ocaml)). See [`Ocaml`](./Eliom-Registration-Ocaml.md).
 
 ### Using HTML with services
 
@@ -146,7 +146,7 @@ module CssText :
      and type return = Service.non_ocaml
      and type result = browser_content kind
 ```
-Eliom service registration for services that returns CSS. The page content is a `string` that must contains valid CSS and the content type is always `text/css`. The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns CSS. The page content is a `string` that must contains valid CSS and the content type is always `text/css`. The option is the optional "Cache-Control: max-age" header value to be sent.
 
 ### Other kinds of services
 
@@ -168,7 +168,7 @@ module Unit :
      and type return = Service.non_ocaml
      and type result = browser_content kind
 ```
-Similar to `Actions` with ``NoReload` option.
+Similar to [`Action`](./Eliom-Registration-Action.md) with ``NoReload` option.
 
 ```ocaml
 type _ redirection = 
@@ -212,7 +212,7 @@ Eliom service registration for services that returns a redirections towards a st
 ```ocaml
 module File : sig ... end
 ```
-Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server/services/handlers.md#eliomfiles). The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server/services/handlers.md#eliomfiles). The option is the optional "Cache-Control: max-age" header value to be sent.
 
 ```ocaml
 module File_ct : sig ... end
@@ -257,7 +257,7 @@ module String :
      and type return = Service.non_ocaml
      and type result = unknown_content kind
 ```
-Eliom service registration for services that returns "byte"-string contents. The page content is a pair `(raw_content, content_type)`. See also `Streamlist` for another kind of service that returns "byte" contents. The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns "byte"-string contents. The page content is a pair `(raw_content, content_type)`. The option is the optional "Cache-Control: max-age" header value to be sent.
 
 ### Customizing registration
 
@@ -308,7 +308,7 @@ raises [`Common.Request_information_not_available`](./Eliom-Common.md#exception-
 ```ocaml
 val cast_unknown_content_kind : unknown_content kind -> 'a kind
 ```
-If you know that the content you generated using `Text.send` or `Streamlist.send` is the same as some other kind, you can cast it with `cast_unknown_content_kind` for use with `Any` module.
+If you know that the content you generated using `String.send` is the same as some other kind, you can cast it with `cast_unknown_content_kind` for use with `Any` module.
 
 ```ocaml
 val cast_http_result : Ocsigen.Response.t -> 'a kind

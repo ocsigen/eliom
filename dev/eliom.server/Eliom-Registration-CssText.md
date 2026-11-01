@@ -1,6 +1,6 @@
 # Module `Registration.CssText`
 
-Eliom service registration for services that returns CSS. The page content is a `string` that must contains valid CSS and the content type is always `text/css`. The option is the optional "Cache-policy: max-age" header value to be sent.
+Eliom service registration for services that returns CSS. The page content is a `string` that must contains valid CSS and the content type is always `text/css`. The option is the optional "Cache-Control: max-age" header value to be sent.
 
 ```ocaml
 type page = string

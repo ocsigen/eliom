@@ -2,7 +2,7 @@
 
 Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about [Redirections outputs](./../server/services/handlers.md#redirections). The URL given must be an absolute URI.
 
-The default returned HTTP code is `302 Found`. You could use the optional parameter `~options` to change this value, see `Redirections` for a detailed description.
+The default returned HTTP code is `302 Found`. You could use the optional parameter `~options` to change this value, see [`Redirection`](./Eliom-Registration-Redirection.md) for a detailed description.
 
 ```ocaml
 type page = Lib.Url.uri

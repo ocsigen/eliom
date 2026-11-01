@@ -188,4 +188,4 @@ val send :
   _ page ->
   _ kind Lwt.t
 ```
-More polymorphic version of `Registration_sigs.send`
+More polymorphic version of [`Registration_sigs.S.send`](./Eliom-Registration_sigs-module-type-S.md#val-send)
