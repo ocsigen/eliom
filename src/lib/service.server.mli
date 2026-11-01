@@ -233,15 +233,26 @@ val unregister :
     documentation of those functions for a description of the [~scope]
     and [~secure] optional parameters. *)
 
+val allow_unregistered : (_, _, _, _, _, _, reg, _, _, _, _) t -> unit
+(** [allow_unregistered service] tells that [service], created during the
+    initialisation of a site, may be left unregistered at the end of the
+    initialisation: a service with a path does not prevent the server from
+    starting, and a non-attached coservice is not reported by a warning. The
+    service may still be registered, during the initialisation or later,
+    during requests. This is for a service registered for each request or
+    client process, or for a service that a library creates for a feature
+    that applications may not use. Attached coservices are never checked,
+    so it has no effect on them, nor outside the initialisation of a
+    site.
+
+    Services are checked by path, or by name for non-attached coservices:
+    if [service] is registered as well, another service with the same path
+    or name left unregistered is not reported either. *)
+
 val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 (** Returns whether it is an external service or not. *)
 
 (**/**)
-
-val registered_later : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
-(** [registered_later service] tells that [service], created during the
-    initialisation of a site, is registered later, during requests: it is not
-    reported as unregistered at the end of the initialisation. *)
 
 val pre_applied_parameters :
    (_, _, _, _, _, _, _, _, _, _, _) t

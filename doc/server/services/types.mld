@@ -453,7 +453,11 @@ order):
   appropriate error message will appear in the logs. This prevents
   broken links. A non-attached coservice that is not registered is only
   reported by a warning in the logs, since libraries create some that
-  applications may not use.
+  applications may not use. A service, with a path or not, that may be
+  left unregistered on purpose is marked with
+  {!Eliom.Service.allow_unregistered}: a service registered later,
+  during requests, or a service that a library creates for an optional
+  feature.
 - Services may be registered only during the server's initialization
   phase (while reading the site configuration) or while processing a
   request, because Eliom must know the information about the site. Be

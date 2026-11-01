@@ -70,6 +70,42 @@ let test_unregistered_non_attached () =
     ]
     logged
 
+let test_allow_unregistered () =
+  (* A library creates services for a feature that applications may not
+     use. *)
+  let (), logged =
+    warnings (fun () ->
+      Site.init ~site_dir:["s"] ~app:"allow-unregistered" (fun () ->
+        Service.allow_unregistered (service ["a"]);
+        Service.allow_unregistered (coservice "na")))
+  in
+  Alcotest.(check (list string)) "no warning" [] logged
+
+let test_allow_unregistered_registered () =
+  (* An application that uses the feature registers the services. *)
+  let (), logged =
+    warnings (fun () ->
+      Site.init ~site_dir:["s"] ~app:"allow-registered" (fun () ->
+        let s = service ["a"] and c = coservice "na" in
+        Service.allow_unregistered s;
+        Service.allow_unregistered c;
+        Site.register s;
+        Site.register c))
+  in
+  Alcotest.(check (list string)) "no warning" [] logged
+
+let test_allow_unregistered_attached_coservice () =
+  (* The fallback of an attached coservice is still checked. *)
+  match
+    Site.init ~site_dir:["s"] ~app:"allow-attached" (fun () ->
+      let fallback = service ["a"] in
+      Service.allow_unregistered
+        (Service.create_attached_get ~fallback ~get_params:Parameter.unit ()))
+  with
+  | () -> Alcotest.fail "unregistered fallback accepted"
+  | exception Eliom.Common.Eliom_there_are_unregistered_services (_, l, _) ->
+      Alcotest.(check (list (list string))) "services" [["a"]] l
+
 let test_buses () =
   (* The service of a bus of client processes is registered for each of them,
      during requests. *)
@@ -205,6 +241,11 @@ let suite =
     ; Alcotest.test_case "unregistered" `Quick test_unregistered
     ; Alcotest.test_case "unregistered non-attached coservice" `Quick
         test_unregistered_non_attached
+    ; Alcotest.test_case "allow unregistered" `Quick test_allow_unregistered
+    ; Alcotest.test_case "allow unregistered, then registered" `Quick
+        test_allow_unregistered_registered
+    ; Alcotest.test_case "allow unregistered attached coservice" `Quick
+        test_allow_unregistered_attached_coservice
     ; Alcotest.test_case "buses" `Quick test_buses
     ; Alcotest.test_case "registered twice" `Quick test_registered_twice
     ; Alcotest.test_case "duplicates" `Quick test_duplicates

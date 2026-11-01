@@ -168,8 +168,10 @@
   not registered then are reported by a warning in the logs. Services with
   a path still prevent the server from starting; non-attached coservices
   only warn, since libraries create some that applications may not use.
-  Service.registered_later tells that a service is registered later, during
-  requests, as the service of a bus of client processes is.
+  Service.allow_unregistered tells that a service may be left unregistered:
+  a service registered later, during requests, as the service of a bus of
+  client processes is, or a service that a library creates for a feature
+  that applications may not use.
 * Comet: Config.set_comet_timeout and the option <comettimeout value="20"/>
   set the time after which the server answers a Comet request waiting for
   data with no data. It was fixed to 20 s, still the default.

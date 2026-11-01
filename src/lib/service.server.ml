@@ -390,12 +390,20 @@ let unregister
         let table = !(State.get_session_service_table ~sp ?secure ~scope ()) in
         remove_service table service)
 
-let registered_later (type a) (service : (_, _, _, a, _, _, _, _, _, _, _) t) =
+let allow_unregistered
+      (type a)
+      (service : (_, _, _, a, _, _, reg, _, _, _, _) t)
+  =
   match Common.get_sp_option (), Common.global_register_allowed () with
   | None, Some current_site_data -> (
       let sitedata = current_site_data () in
       match info service with
-      | Attached attser -> Common.remove_unregistered sitedata (sub_path attser)
+      | Attached attser when service.kind = `Service ->
+          Common.remove_unregistered sitedata (sub_path attser)
+      | Attached _ ->
+          (* Attached coservices are not recorded: their path is the one of
+             their fallback, which must stay recorded. *)
+          ()
       | Nonattached naser ->
           Common.remove_unregistered_na sitedata (na_name naser))
   | _ -> ()
