@@ -14,6 +14,10 @@
 * PPX: the client pass reports a client value whose type is missing from the
   -server-cmo file like a missing injection ("You need to regenerate ..."),
   instead of failing with an exception.
+* PPX: a section without colon in an interface, [%%client val x : t], says
+  that it takes a signature ([%%client: ...]), instead of "Sections are only
+  allowed at toplevel". An empty [%%client] in an interface asks, as in an
+  implementation, whether [%%client.start] was meant.
 * Persistent storage: replace Stdlib.Marshal with Deriving_Json
 ** perssessgrp values (session-group keys) are now serialised with
    Deriving_Json instead of Stdlib.Marshal. The on-disk format

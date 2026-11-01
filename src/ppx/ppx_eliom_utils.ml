@@ -974,6 +974,10 @@ module Make (Pass : Pass) = struct
     let m = eliom_mapper context in
     f @@ m#signature_item sigi
 
+  let empty_section txt =
+    Printf.sprintf "Empty [%%%%%s] extension. Did you mean [%%%%%s.start] ?" txt
+      txt
+
   let toplevel_structure context structs =
     let rec f pstr =
       let loc = pstr.pstr_loc
@@ -1000,10 +1004,7 @@ module Make (Pass : Pass) = struct
           if strs = []
           then
             [ Str.extension ~loc @@ Location.Error.to_extension
-              @@ Location.Error.make ~loc ~sub:[]
-                   (Printf.sprintf
-                      "Empty [%%%%%s] extension. Did you mean [%%%%%s.start] ?"
-                      txt txt) ]
+              @@ Location.Error.make ~loc ~sub:[] (empty_section txt) ]
           else
             let c = Context.of_string txt in
             let l = List.concat_map (dispatch_str c) strs in
@@ -1040,6 +1041,18 @@ module Make (Pass : Pass) = struct
         when is_annotation txt ["shared"; "client"; "server"] ->
           let c = Context.of_string txt in
           List.concat_map (dispatch_sig c) sigs
+      | Psig_extension (({txt; _}, PStr strs), _)
+        when is_annotation txt ["shared"; "client"; "server"] ->
+          let msg =
+            if strs = []
+            then empty_section txt
+            else
+              Printf.sprintf
+                "In an interface, a section takes a signature: [%%%%%s: ...]."
+                txt
+          in
+          [ Sig.extension ~loc @@ Location.Error.to_extension
+            @@ Location.Error.make ~loc ~sub:[] msg ]
       | _ -> dispatch_sig !context psig
     in
     List.concat_map f sigs
