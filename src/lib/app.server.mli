@@ -51,6 +51,9 @@ val run :
     raises [Invalid_argument] otherwise). As the values of a configuration
     file, these maximum numbers are kept when the program calls a
     [State.set_default_max_*] function without [~override_configfile:true].
+    The other options that are not given take the defaults that the program
+    set with the functions of {!Config} (such as
+    {!Config.set_secure_cookies}), even after the site was created.
 
     As for a site of a configuration file, the services with a path created
     during the initialisation of the application must be registered by then:
@@ -62,4 +65,4 @@ val run :
     script that loads the WASM version of your client code if the browser
     supports WebAssembly, with automatic fallback to JavaScript otherwise.
     If not specified, the global default is used
-    (see {!Config.set_enable_wasm}), which is [false]. *)
+    (see {!Config.set_enable_wasm}), which is [false] by default. *)

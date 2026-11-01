@@ -279,6 +279,12 @@
 * Compatibility with the WebAssembly text parser of the next
   wasm_of_ocaml, which has no tuple types
 * Bug fixes
+** App.run: the options that it is not given (secure cookies, application
+   script, global data caching, HTML content type, ignored parameters,
+   omitpersistentstorage) take the defaults set with the functions of
+   Config. In a statically linked executable, the site of the default
+   application exists before the toplevel code of the modules runs, so these
+   functions had no effect on it, except Config.set_enable_wasm.
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
    relying on Ocsigen.Extensions.during_initialisation. Fixes a
