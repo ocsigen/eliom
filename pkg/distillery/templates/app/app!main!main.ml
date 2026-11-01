@@ -1,5 +1,7 @@
-(** This is the main file if you are using static linking without config file.
-*)
+(** This is the main file of your own executable, which links Ocsigen Server as
+    a library and needs no configuration file. README.md describes the other way
+    to run the application, with the ocsigenserver command and
+    %%%PROJECT_NAME%%%.conf. *)
 
 let logdir = "local/var/log/%%%PROJECT_NAME%%%"
 let dbfile = "local/var/data/%%%PROJECT_NAME%%%/ocsidb"

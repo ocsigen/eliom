@@ -1,8 +1,12 @@
-; To run the application locally:
+; To run the application locally, in your own executable:
 ;  dune build
 ;  dune exec %%%PROJECT_NAME%%%
+; or with the ocsigenserver command:
+;  dune build
+;  dune exec -- ocsigenserver -c %%%PROJECT_NAME%%%.conf
 ;
-; The initial 'dune build' is needed to make sure that static files are updated.
+; The initial 'dune build' is needed to update the generated files in local/
+; and, for the ocsigenserver command, the libraries that it loads.
 
 (subdir
  local/var/www/%%%PROJECT_NAME%%%
