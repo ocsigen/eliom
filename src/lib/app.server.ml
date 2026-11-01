@@ -27,24 +27,21 @@ let run
       conf_info
       site_dir
   =
-  let check name v = Common.check_limit ("App.run ~" ^ name) v in
-  let check_pair name = Option.iter (fun (v, _) -> check name v) in
-  check_pair "max_service_sessions_per_group" max_service_sessions_per_group;
-  check_pair "max_volatile_data_sessions_per_group"
+  let check name = Option.iter (Common.check_limit ("App.run ~" ^ name)) in
+  check "max_service_sessions_per_group" max_service_sessions_per_group;
+  check "max_volatile_data_sessions_per_group"
     max_volatile_data_sessions_per_group;
-  check_pair "max_service_tab_sessions_per_group"
-    max_service_tab_sessions_per_group;
-  check_pair "max_volatile_data_tab_sessions_per_group"
+  check "max_service_tab_sessions_per_group" max_service_tab_sessions_per_group;
+  check "max_volatile_data_tab_sessions_per_group"
     max_volatile_data_tab_sessions_per_group;
-  check_pair "max_anonymous_services_per_session"
-    max_anonymous_services_per_session;
-  Option.iter
-    (check "max_persistent_data_sessions_per_group")
+  check "max_anonymous_services_per_session" max_anonymous_services_per_session;
+  check "max_persistent_data_sessions_per_group"
     max_persistent_data_sessions_per_group;
-  Option.iter
-    (check "max_persistent_data_tab_sessions_per_group")
+  check "max_persistent_data_tab_sessions_per_group"
     max_persistent_data_tab_sessions_per_group;
   let sitedata = Mod_main.update_sitedata app vh site_dir conf_info in
+  (* The values of App.run are kept as those of a configuration file *)
+  let configured v = {Common.cf_value = v; cf_from_config = true} in
   (* customize sitedata according to optional parameters: *)
   Option.iter
     (fun v -> sitedata.Common.default_links_xhr#set ~override_tenable:true v)
@@ -68,38 +65,28 @@ let run
          sitedata level hierarchyname v)
     persistent_timeout;
   Option.iter
-    (fun v ->
-       sitedata.max_service_sessions_per_group <- Common.configured_of_pair v)
+    (fun v -> sitedata.max_service_sessions_per_group <- configured v)
     max_service_sessions_per_group;
   Option.iter
-    (fun v ->
-       sitedata.max_volatile_data_sessions_per_group <-
-         Common.configured_of_pair v)
+    (fun v -> sitedata.max_volatile_data_sessions_per_group <- configured v)
     max_volatile_data_sessions_per_group;
   Option.iter
     (fun v ->
-       sitedata.max_persistent_data_sessions_per_group <-
-         {cf_value = Some v; cf_from_config = true})
+       sitedata.max_persistent_data_sessions_per_group <- configured (Some v))
     max_persistent_data_sessions_per_group;
   Option.iter
-    (fun v ->
-       sitedata.max_service_tab_sessions_per_group <-
-         Common.configured_of_pair v)
+    (fun v -> sitedata.max_service_tab_sessions_per_group <- configured v)
     max_service_tab_sessions_per_group;
   Option.iter
-    (fun v ->
-       sitedata.max_volatile_data_tab_sessions_per_group <-
-         Common.configured_of_pair v)
+    (fun v -> sitedata.max_volatile_data_tab_sessions_per_group <- configured v)
     max_volatile_data_tab_sessions_per_group;
   Option.iter
     (fun v ->
        sitedata.max_persistent_data_tab_sessions_per_group <-
-         {cf_value = Some v; cf_from_config = true})
+         configured (Some v))
     max_persistent_data_tab_sessions_per_group;
   Option.iter
-    (fun v ->
-       sitedata.max_anonymous_services_per_session <-
-         Common.configured_of_pair v)
+    (fun v -> sitedata.max_anonymous_services_per_session <- configured v)
     max_anonymous_services_per_session;
   Option.iter (fun v -> sitedata.secure_cookies <- v) secure_cookies;
   Option.iter

@@ -160,7 +160,36 @@ let suffix_const (v : string) = TConst v
 let all_suffix (n : string) = TESuffix n
 let all_suffix_string (n : string) = TESuffixs n
 
+(* [check_suffix fn s] rejects the parameters that the suffix [s] given to
+   the function [fn] cannot contain: a service taking them would fail at
+   each request. A list or a set takes the segments up to the end of the
+   path, so nothing can follow it ([last] is false when something does). *)
+let check_suffix fn s =
+  let invalid msg = invalid_arg ("Eliom.Parameter." ^ fn ^ ": " ^ msg) in
+  let rec check : type a an. last:bool -> (a, an) params_type_ -> unit =
+   fun ~last -> function
+     | TProd (t1, t2) -> check ~last:false t1; check ~last t2
+     | TSum (t1, t2) -> check ~last t1; check ~last t2
+     | TOption (t, _) -> check ~last t
+     | TTypeFilter (t, _) -> check ~last t
+     | (TList _ | TSet _) when not last ->
+         invalid "a list or a set must end the path"
+     | TList (_, t) -> check ~last:false t
+     | TSet t -> check ~last:false t
+     | TAny -> invalid "it cannot contain Parameter.any (use all_suffix)"
+     | TUnit -> invalid "it cannot contain unit"
+     | TSuffix _ -> invalid "it cannot contain another suffix"
+     | TNLParams _ -> invalid "it cannot contain non-localised parameters"
+     | TFile _ -> invalid "it cannot contain a file"
+     | TRaw_post_data -> invalid "it cannot contain raw POST data"
+     | TAtom _ | TCoord _ | TUserType _ | TESuffix _ | TESuffixs _ | TESuffixu _
+     | TConst _ | TJson _ ->
+         ()
+  in
+  check ~last:true s
+
 let suffix ?(redirect_if_not_suffix = true) s =
+  check_suffix "suffix" s;
   TSuffix (redirect_if_not_suffix, s)
 
 let suffix_prod
@@ -169,6 +198,7 @@ let suffix_prod
       (t : ('a, [`WithoutSuffix], 'an) params_type) :
   ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
   =
+  check_suffix "suffix_prod" s;
   TProd (TSuffix (redirect_if_not_suffix, s), t)
 
 let ocaml (n : string) typ = TJson (n, Some typ)
@@ -613,10 +643,6 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         | _ ->
             let c, l = parse_suffix typ l in
             b :: c, l)
-    | TProd (TList _, _), _ ->
-        failwith "Lists or sets in suffixes must be last parameters"
-    | TProd (TSet _, _), _ ->
-        failwith "Lists or sets in suffixes must be last parameters"
     | TProd (t1, t2), l -> (
       match parse_suffix t1 l with
       | _, [] -> raise Common.Eliom_Wrong_parameter

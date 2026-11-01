@@ -271,15 +271,15 @@ let eliom_appl_answer_content_type = "application/x-eliom"
 (* If there is a client side process, we do an XHR with tab cookies *)
 let xhr_with_cookies s =
   if is_external s
-  then None
+  then No_xhr
   else
     match s.send_appl_content with
-    | XAlways -> Some None
+    | XAlways | XSame_appl (_, None) -> Xhr
     | XNever ->
-        None
+        No_xhr
         (* actually this will be tested again later in
               get_onload_form_creators *)
-    | XSame_appl (_, tmpl) -> Some tmpl
+    | XSame_appl (_, Some tmpl) -> Xhr_template tmpl
 
 (* Some an = current_page_appl_name *)
 (* for now we do not know the current_page_appl_name.  We will know it
