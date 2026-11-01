@@ -3,7 +3,9 @@
 // the test application. The load event never fires, so the code that runs at
 // load is not tested here.
 "use strict";
-const url = new URL("http://eliom-test/page");
+// The port given to the socket of the test server
+// (test/server/lib/server_harness.ml).
+const url = new URL("http://eliom-test:8080/page");
 globalThis.location = {
   href: url.href,
   protocol: url.protocol,
