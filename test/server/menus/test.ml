@@ -2,6 +2,7 @@
    the current page of a menu is found from the URL of the request. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
 
 (* The menus of a page, in the order of server.ml *)
@@ -21,11 +22,6 @@ let menus b url =
     ->
       {menu; menu_of_b; depth_first; whole_tree; breadth_first; structure_links}
   | _ -> Alcotest.failf "%s: unexpected answer %S" url r.body
-
-(* [case server name f] is a test that runs [f b] with a new browser [b]. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (Browser.create server)))
 
 let check = Alcotest.(check string)
 

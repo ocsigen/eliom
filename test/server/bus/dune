@@ -7,6 +7,7 @@
   eliom.server
   ocsipersist-sqlite
   eliom_test_server
+  eliom_test_services
   eliom_test_client
   lwt_react))
 

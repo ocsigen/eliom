@@ -3,23 +3,10 @@
    accessed, so timeouts of 1 s are enough. *)
 
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
 
-let text b url =
-  let+ r = Browser.get b url in
-  if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
-  r.body
-
-let check msg expected b url =
-  let+ body = text b url in
-  Alcotest.(check string) msg expected body
-
 let sleep = Lwt_unix.sleep
-
-(* [case server name f] is a test that runs [f b] with a new browser [b]. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (Browser.create server)))
 
 let states server =
   let case = case server in

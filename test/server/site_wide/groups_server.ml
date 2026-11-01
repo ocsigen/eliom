@@ -3,10 +3,10 @@
    session is opened without a group. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 module V = Reference.Volatile
 
-let text, get, register = Services.(text, get, register)
 let session_scope = Common.default_session_scope
 let group_scope = (Common.default_group_scope :> Common.user_scope)
 
@@ -14,10 +14,10 @@ let group_scope = (Common.default_group_scope :> Common.user_scope)
    its session, and sets the limit of groups *)
 
 let fallback = get ["fallback"] P.unit
-let () = register fallback (fun () () -> text "fallback")
+let () = string fallback (fun () () -> text "fallback")
 
 let () =
-  register
+  string
     (get ["service"; "join"] P.(string "name"))
     (fun name () ->
        State.set_service_session_group ~scope:session_scope name;
@@ -29,7 +29,7 @@ let () =
        text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
 
 let () =
-  register
+  string
     (get ["service"; "max_groups"] P.(int "n"))
     (fun n () ->
        State.set_max_service_states_in_parent ~scope:group_scope n;
@@ -39,7 +39,7 @@ let () =
    and sets the limit of groups *)
 
 let () =
-  register
+  string
     (get ["data"; "join"] P.(string "name" ** string "v"))
     (fun (name, v) () ->
        State.set_volatile_data_session_group ~scope:session_scope name;
@@ -47,7 +47,7 @@ let () =
        text "joined")
 
 let () =
-  register
+  string
     (get ["data"; "max_groups"] P.(int "n"))
     (fun n () ->
        State.set_max_volatile_data_states_in_parent ~scope:group_scope n;

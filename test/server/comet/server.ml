@@ -3,17 +3,12 @@
    (Eliom_test_client.Comet_info). *)
 
 open Eliom
+open Eliom_test_services
 open Lwt.Syntax
 module P = Parameter
 module V = Reference.Volatile
 module Info = Eliom_test_client.Comet_info
 
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 let tab_scope = Common.default_process_scope
 
 (* Requests waiting for data are answered after 1 s. *)

@@ -1,16 +1,6 @@
 open Eliom_test_server
+open Helpers
 open Lwt.Syntax
-
-let check_response ?status ?body msg (r : Browser.response) =
-  Option.iter
-    (fun s -> Alcotest.(check int) (msg ^ ": status") s r.status)
-    status;
-  Option.iter (fun b -> Alcotest.(check string) (msg ^ ": body") b r.body) body
-
-(* [case server name f] is a test that runs [f b] with a new browser [b]. *)
-let case ?(speed = `Quick) server name f =
-  Alcotest.test_case name speed (fun () ->
-    Lwt_main.run (f (Browser.create server)))
 
 (* [link b target] is the URL of the coservice [target] and, for a POST
    coservice, its POST parameters, as given by the service /link of the

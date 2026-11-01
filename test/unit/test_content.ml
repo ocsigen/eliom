@@ -1,16 +1,10 @@
 module Html = Eliom.Content.Html
 
+let contains = Eliom_test_server.Helpers.contains
 let print elt = Format.asprintf "%a" (Html.Printer.pp_elt ()) elt
 
 let print_doc doc =
   Format.asprintf "%a" (Eliom.Content_core.Html.Printer.pp ()) doc
-
-let contains s sub =
-  let n = String.length sub in
-  let rec loop i =
-    i + n <= String.length s && (String.sub s i n = sub || loop (i + 1))
-  in
-  loop 0
 
 let check_contains msg s sub =
   if not (contains s sub) then Alcotest.failf "%s: %S not in %S" msg sub s

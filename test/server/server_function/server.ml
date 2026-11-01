@@ -2,15 +2,9 @@
    the test as the client-side program gets them. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 module Info = Eliom_test_client.Service_info
-
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 
 (* [info path f] registers the service /path, whose answer is the service of
    the server function [f] *)

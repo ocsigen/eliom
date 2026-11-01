@@ -1,17 +1,5 @@
 open Eliom_test_server
-
-let contains s sub =
-  let n = String.length sub in
-  let rec loop i =
-    i + n <= String.length s && (String.sub s i n = sub || loop (i + 1))
-  in
-  loop 0
-
-let check_response ?status ?body msg (r : Browser.response) =
-  Option.iter
-    (fun s -> Alcotest.(check int) (msg ^ ": status") s r.status)
-    status;
-  Option.iter (fun b -> Alcotest.(check string) (msg ^ ": body") b r.body) body
+open Helpers
 
 let check_header msg name expected r =
   Alcotest.(check (option string)) msg expected (Browser.header r name)
@@ -28,11 +16,6 @@ let content_type r =
   Option.map
     (fun ct -> List.hd (String.split_on_char ';' ct))
     (Browser.header r "content-type")
-
-(* [case server name f] is a test that runs [f b] with a new browser [b]. *)
-let case server name f =
-  Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (Browser.create server)))
 
 open Lwt.Syntax
 

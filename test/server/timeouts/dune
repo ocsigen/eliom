@@ -3,7 +3,12 @@
  (modules server)
  (preprocess
   (pps js_of_ocaml-ppx_deriving_json))
- (libraries eliom.server ocsipersist-sqlite cohttp eliom_test_server))
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  cohttp
+  eliom_test_server
+  eliom_test_services))
 
 (test
  (name test)

@@ -2,15 +2,9 @@
    sending OCaml values, and pages of an application. *)
 
 open Eliom
+open Eliom_test_services
 module P = Parameter
 module V = Reference.Volatile
-
-let text s = Lwt.return (s, "text/plain")
-
-let get path params =
-  Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
-
-let string service f = Registration.String.register ~service f
 
 (* Actions: each sets the value of the session to its name. The pages show
    this value. *)
