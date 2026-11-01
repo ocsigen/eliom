@@ -1493,9 +1493,8 @@ module Ext = struct
   let set_volatile_data_cookie_timeout ~cookie:(_, data_cookie) t =
     data_cookie.Common.Data_cookie.timeout := Common.timeout_of_option t
 
-  let set_persistent_data_cookie_timeout ~cookie:(c, cookie) t =
-    let ti = Common.timeout_of_option t in
-    Mod_cookies.Persistent_cookies.add c {cookie with Mod_cookies.timeout = ti}
+  let set_persistent_data_cookie_timeout ~cookie:(c, _) t =
+    Mod_cookies.Persistent_cookies.set_timeout c (Common.timeout_of_option t)
 
   let get_service_cookie_timeout ~cookie:(_, cookie) =
     !(cookie.Common.Service_cookie.timeout)
@@ -1512,13 +1511,8 @@ module Ext = struct
   let unset_volatile_data_cookie_timeout ~cookie:(_cookie, data_cookie) =
     data_cookie.Common.Data_cookie.timeout := TGlobal
 
-  let unset_persistent_data_cookie_timeout ~cookie:(c, cookie) =
-    let* () =
-      Mod_cookies.Persistent_cookies.Cookies.add c
-        {cookie with Mod_cookies.timeout = TGlobal}
-    in
-    let {Mod_cookies.expiry; _} = cookie in
-    Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie expiry c
+  let unset_persistent_data_cookie_timeout ~cookie:(c, _) =
+    Mod_cookies.Persistent_cookies.set_timeout c TGlobal
 
   let get_session_group_list () =
     let sitedata = Request_info.find_sitedata "get_session_group_list" in
