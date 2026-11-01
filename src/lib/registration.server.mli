@@ -249,7 +249,7 @@ module Html_text :
 (** Eliom service registration for services that returns CSS. The page
     content is a [string] that must contains valid CSS and the content
     type is always [text/css]. The option is the optional
-    "Cache-policy: max-age" header value to be sent. *)
+    "Cache-Control: max-age" header value to be sent. *)
 module CssText :
   Registration_sigs.S_with_create
   with type page = string
@@ -363,7 +363,7 @@ module String_redirection :
     contents. The value returned by service handlers is the name of
     the file to send. See the Eliom manual for more information on {{!//server/services/page-handlers.eliomfiles}how to
     send files with Eliom}.  The option is the optional
-    "Cache-policy: max-age" header value to be sent. *)
+    "Cache-Control: max-age" header value to be sent. *)
 module File : sig
   val check_file : string -> bool
   (** The function [check_file file] is true if [File.send file] would
@@ -435,7 +435,7 @@ val appl_self_redirect :
 
 (** Eliom service registration for services that returns "byte"-string
     contents. The page content is a pair [(raw_content,
-    content_type)]. The option is the optional "Cache-policy: max-age"
+    content_type)]. The option is the optional "Cache-Control: max-age"
     header value to be sent. *)
 module String :
   Registration_sigs.S_with_create
