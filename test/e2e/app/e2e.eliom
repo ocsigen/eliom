@@ -353,3 +353,72 @@ let () =
       :: List.map
            (fun (id, f) -> p [action id id f; txt " "; result id])
            actions))
+
+(* Raw HTML (Unsafe.data) gives the same nodes whether the server or the
+   client builds the page *)
+
+[%%shared.start]
+
+(* Raw HTML in a paragraph, with several nodes, as a D node, in a table, in
+   SVG, in a script, where it stays text, and with a script, which runs *)
+let raw_html () =
+  [ p [Unsafe.data "<b>bold</b>"]
+  ; p [Unsafe.data "a <i>b</i> c"]
+  ; p [Eliom.Content.Html.D.Unsafe.data "<b>d</b>"]
+  ; tablex [tbody [Unsafe.data "<tr><td>cell</td></tr>"]]
+  ; svg [Eliom.Content.Svg.F.Unsafe.data "<circle r=\"1\"></circle>"]
+  ; script (Unsafe.data "/* <b>not an element</b> */")
+  ; p
+      [ Unsafe.data
+          "<script>window.e2eRawScripts = (window.e2eRawScripts || 0) + 1</script>"
+      ] ]
+
+[%%server.start]
+
+let () =
+  App.register ~service:(get ["raw-html"]) (fun () () ->
+    let open Eliom.Content.Html in
+    let client_raw = D.div ~a:[a_id "client-raw"] []
+    and client_top = D.p ~a:[a_id "client-top"] []
+    and client_rows = D.tbody []
+    and client_injected = D.div ~a:[a_id "client-injected"] []
+    and client_d = D.p ~a:[a_id "client-d"] []
+    and client_react = D.p ~a:[a_id "client-react"] [] in
+    (* A node of the server, rebuilt by the client *)
+    let injected = p [Unsafe.data "<b>injected</b>"] in
+    let build =
+      button
+        ~a:
+          [ a_id "build"
+          ; a_onclick
+              [%client
+                fun _ ->
+                  let open Eliom.Content.Html in
+                  Manip.appendChildren ~%client_raw (raw_html ());
+                  (* Raw HTML without a parent element *)
+                  Manip.appendChild ~%client_top
+                    (F.Unsafe.data "<b>top</b> <i>two</i>");
+                  Manip.appendChild ~%client_rows
+                    (F.Unsafe.data "<tr><td>row</td></tr>");
+                  Manip.appendChild ~%client_injected ~%injected;
+                  (* A D node of raw HTML is the element it gives, which Manip
+                     removes *)
+                  let d = D.Unsafe.data "<b>removed</b>" in
+                  Manip.appendChild ~%client_d d;
+                  Manip.removeSelf d;
+                  (* Raw HTML as a reactive node *)
+                  let s, set = React.S.create "<b>0</b>" in
+                  Manip.appendChild ~%client_react
+                    (R.node (React.S.map F.Unsafe.data s));
+                  set "<b>1</b>"] ]
+        [txt "build"]
+    in
+    page "raw-html"
+      [ div ~a:[a_id "server-raw"] (raw_html ())
+      ; build
+      ; client_raw
+      ; client_top
+      ; tablex ~a:[a_id "client-table"] [client_rows]
+      ; client_injected
+      ; client_d
+      ; client_react ])
