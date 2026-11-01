@@ -22,6 +22,11 @@ val update :
 `update cookie ~expiry ~timeout ?session_group ()` changes the expiration date and the timeout of `cookie`, if it still exists, and its session group if `?session_group` is given: the group may have been changed meanwhile by another request of the session.
 
 ```ocaml
+val set_timeout : string -> Common.timeout -> unit Lwt.t
+```
+`set_timeout cookie timeout` changes the timeout of `cookie`, if it still exists. Its expiration date is computed again at its next request.
+
+```ocaml
 val garbage_collect : 
   section:Logs.src ->
   (Cookies.key -> unit Lwt.t) ->
