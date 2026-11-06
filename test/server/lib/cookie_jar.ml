@@ -48,8 +48,8 @@ let parse_date s =
     Scanf.sscanf s " %_s %d %s %d %d:%d:%d GMT" (fun d mon y h mi sec ->
       Option.map
         (fun m ->
-           float_of_int
-             ((days_from_civil y m d * 86400) + (h * 3600) + (mi * 60) + sec))
+           (float_of_int (days_from_civil y m d) *. 86400.)
+           +. float_of_int ((h * 3600) + (mi * 60) + sec))
         (month_index mon))
   with
   | date -> date
