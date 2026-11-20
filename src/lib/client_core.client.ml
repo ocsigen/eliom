@@ -420,7 +420,7 @@ let reify_caml_event name node ce =
           ) )
   | Xml.CE_call_service
       (Some (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr)
-        ) ->
+      ) ->
       ( name
       , `Other
           (fun ev ->
@@ -720,11 +720,11 @@ let parse_html ns parent s =
     | None, `HTML5 ->
         ( Dom_html.document##(createElement (Js.string "template"))
           :> Dom.node Js.t
-          )
+        )
     | None, `SVG ->
         ( Dom_html.document##(createElementNS svg_ns (Js.string "svg"))
           :> Dom.node Js.t
-          )
+        )
   in
   let range = Dom_html.document##createRange in
   range##selectNodeContents context;

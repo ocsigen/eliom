@@ -102,7 +102,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
   let post_params =
     ( Parameter.ocaml "bus_write" typ_list
       : ('a, 'aa, 'aaa) Parameter.params_type
-      )
+    )
   in
   let distant_write =
     Service.create ?name

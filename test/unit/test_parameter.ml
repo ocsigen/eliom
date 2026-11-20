@@ -53,7 +53,7 @@ let binsum a b =
     (fun fmt -> function
       | Inj1 x -> Format.fprintf fmt "Inj1 %a" (Alcotest.pp a) x
       | Inj2 y -> Format.fprintf fmt "Inj2 %a" (Alcotest.pp b) y
-      )
+    )
     (fun x y ->
       match x, y with
       | Inj1 x, Inj1 y -> Alcotest.equal a x y

@@ -159,7 +159,7 @@ end = struct
     ignore
       ( Lwt.with_value Common.sp_key None @@ fun () -> Lwt_stream.iter_s f stream
         : unit Lwt.t
-        )
+      )
 
   let make_name name = "stateless:" ^ name
   let chan_id_of_string name = Comet_base.chan_id_of_string (make_name name)

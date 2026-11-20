@@ -480,7 +480,7 @@ let _ =
         )
         Js._true
       : Dom_html.event_listener_id
-      )
+    )
 
 let getDocumentScroll () = !current_position
 

@@ -204,7 +204,7 @@ let update_cookie_table ?(in_local_storage = false) host cookies =
                 (Ocsigen_cookie_map.Poly.add ~path name (exp, value, secure)
                    (get_table ~in_local_storage host)
                 )
-          )
+        )
         table
     )
     cookies

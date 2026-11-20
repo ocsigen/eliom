@@ -433,7 +433,7 @@ let track_image_button_clicks () =
     ( Dom_html.addEventListener Dom_html.document Dom_html.Event.click
         (Dom_html.handler record) Js._true
       : Dom_html.event_listener_id
-      )
+    )
 
 (* The point that [image] sends when it submits a form. The click is
    forgotten once used, so that a later submission without a click sends

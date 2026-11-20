@@ -131,7 +131,7 @@ let cases =
   ; case "option" (Some "x") (function
       | None -> "None"
       | Some s -> Printf.sprintf "Some %S" s
-      )
+    )
   ; case "variants"
       [Constant; Other_constant; Args (1, "a"); Record {i = 2; s = "b"; f = 3.}]
       (show_list show_variant)
@@ -164,7 +164,7 @@ let cases =
         | `A -> "`A"
         | `B n -> Printf.sprintf "`B %d" n
         | `C (s, f) -> Printf.sprintf "`C (%S, %h)" s f
-        ))
+      ))
   ; (* Sharing and cycles *)
     (let l = [1; 2] in
      case "sharing" (l, l) (fun (a, b) ->

@@ -22,7 +22,7 @@ let of_up up =
         )
         Eliom.Service.t
         * _
-      )
+    )
   in
   Service_info.of_service service
 

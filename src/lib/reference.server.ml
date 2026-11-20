@@ -372,7 +372,7 @@ let unset (type a) ({kind = table; _} as eref) =
       let module T =
         ( val t
             : Common.Ocsipersist.TABLE with type key = string and type value = a
-          )
+        )
       in
       T.remove (get_site_id ())
   | _ -> Lwt.return (Volatile.unset eref)

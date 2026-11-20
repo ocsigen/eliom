@@ -149,7 +149,7 @@ let version = function
         (List.map l ~f:(function
           | Int i -> i
           | _ -> raise (Invalid Location.none)
-          ))
+        ))
   | Bool _ | Int _ | String _ -> raise (Invalid Location.none)
 
 let keep loc (attrs : attributes) =
@@ -157,7 +157,7 @@ let keep loc (attrs : attributes) =
     List.filter attrs ~f:(function
       | {attr_name = {txt = "if"; _}; _} -> true
       | _ -> false
-      )
+    )
   in
   match ifs with
   | [] -> true

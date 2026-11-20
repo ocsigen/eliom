@@ -881,7 +881,7 @@ let get_persistent_data (type a) ~(table : a persistent_table) () =
       let module T =
         ( val table
             : Common.Ocsipersist.TABLE with type key = string and type value = a
-          )
+        )
       in
       let* v = T.find key in
       Lwt.return (Data v)
@@ -910,7 +910,7 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
       let module T =
         ( val table
             : Common.Ocsipersist.TABLE with type key = string and type value = a
-          )
+        )
       in
       let* () = T.remove key in
       close_persistent_state_if_empty ~scope ~secure ()
@@ -1162,7 +1162,7 @@ module Ext = struct
           ; state_id = Common.(Hashed_cookies.to_string cookie.dc_hvalue)
           }
           : ('a, 'b) state
-          )
+        )
 
   let current_persistent_data_state
       ?secure ?(scope = (Common.default_session_scope :> Common.user_scope)) ()
@@ -1323,7 +1323,7 @@ module Ext = struct
       f a
         ( {state_scope = sub_states_scope; state_kind = k; state_id = v}
           : (_, 'k) state
-          )
+        )
     in
     sitedata, sub_states_level, id, f
 
@@ -1416,7 +1416,7 @@ module Ext = struct
       let module T =
         ( val t
             : Common.Ocsipersist.TABLE with type key = string and type value = a
-          )
+        )
       in
       T.find cookie
 
@@ -1436,7 +1436,7 @@ module Ext = struct
       let module T =
         ( val t
             : Common.Ocsipersist.TABLE with type key = string and type value = a
-          )
+        )
       in
       T.add cookie value
 
@@ -1454,7 +1454,7 @@ module Ext = struct
       let module T =
         ( val t
             : Common.Ocsipersist.TABLE with type key = string and type value = a
-          )
+        )
       in
       T.remove cookie
   end

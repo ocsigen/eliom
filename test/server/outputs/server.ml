@@ -165,7 +165,7 @@ let () =
     | Boom -> Test_app.send (error_page "error page")
     | Common.Eliom_404 -> Test_app.send ~code:404 (error_page "not found")
     | e -> Lwt.fail e
-    )
+  )
 
 (* Links to the actions *)
 

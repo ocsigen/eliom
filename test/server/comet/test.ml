@@ -18,7 +18,7 @@ let message =
       | C.Data s -> Format.fprintf fmt "Data %S" s
       | C.Full -> Format.fprintf fmt "Full"
       | C.Closed -> Format.fprintf fmt "Closed"
-      )
+    )
     ( = )
 
 (* [check msg expected messages] checks the messages of one channel. *)

@@ -488,7 +488,7 @@ end = struct
               | chan_id, Ecb.Closed | chan_id, Ecb.Full ->
                   stop_waiting hd chan_id;
                   Lib.String.Table.remove chan_id table
-              )
+            )
             !r message
         in
         r := table

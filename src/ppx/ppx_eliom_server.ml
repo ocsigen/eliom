@@ -225,7 +225,7 @@ module Pass = struct
             ( [%e eliom_expr ~loc "Syntax.client_value"]
                 ~pos:[%e position loc] [%e str num] [%e e]
               : [%t eliom_type ~loc "Client_value.t" [typ]]
-              )]]]
+            )]]]
 
   let escape_inject
       ~loc ?ident ~(context : Context.escape_inject) ~id ~unsafe expr =

@@ -18,7 +18,7 @@ let of_server_function server_function =
   let service, _ =
     ( Page.receive server_function
       : (_, _) Eliom.Client_base.server_function_service * _
-      )
+    )
   in
   of_service service
 

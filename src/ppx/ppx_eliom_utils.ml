@@ -431,7 +431,7 @@ module Cmo = struct
             acc lst
       | ((Otyp_variant (_, Ovar_fields lst, _, _))
          [@if ocaml_version < (5, 1, 0)]
-         ) ->
+        ) ->
           List.fold_left
             (fun acc (_, _, tyl) -> List.fold_left go acc tyl)
             acc lst
@@ -491,7 +491,7 @@ module Cmo = struct
             (match row with Orow_closed -> Closed | _ -> Open)
       | ((Otyp_object {fields; open_row})
          [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 5, 0)]
-         ) ->
+        ) ->
           let fields =
             List.map
               (fun (label, ty) ->
@@ -533,21 +533,21 @@ module Cmo = struct
           else type_of_out_type ty
       | ((Otyp_variant (Ovar_typ ty, closed, tags))
          [@if ocaml_version >= (5, 1, 0)]
-         ) ->
+        ) ->
           Typ.variant ~loc
             [Rf.mk ~loc (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (_, Ovar_typ ty, closed, tags))
          [@if ocaml_version < (5, 1, 0)]
-         ) ->
+        ) ->
           Typ.variant ~loc
             [Rf.mk ~loc (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (Ovar_fields lst, closed, tags))
          [@if ocaml_version >= (5, 1, 0)]
-         ) ->
+        ) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
@@ -559,7 +559,7 @@ module Cmo = struct
           Typ.variant ~loc row_fields (if closed then Closed else Open) tags
       | ((Otyp_variant (_, Ovar_fields lst, closed, tags))
          [@if ocaml_version < (5, 1, 0)]
-         ) ->
+        ) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->

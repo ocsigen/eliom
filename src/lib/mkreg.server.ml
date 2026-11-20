@@ -304,7 +304,7 @@ let register_aux
                                            , 'return
                                            )
                                            S.t
-                                        )
+                                      )
                                     g
                                 in
                                 Lwt.fail (Common.Do_redirection redir_uri)

@@ -283,7 +283,7 @@ module Pass = struct
           ( [%e eliom_expr ~loc "Client_core.Syntax_helpers.get_injection"]
               ?ident:[%e ident] ~pos:[%e position loc] [%e es]
             : [%t typ]
-            )]
+          )]
 
   let shared_sig item = [item]
   let server_sig _ = []

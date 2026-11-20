@@ -958,7 +958,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
          -> ?wasm_name:_
          -> _
          -> [> `Script] Content.Html.elt
-      )
+    )
 
   let js_only_application_script ?defer ?async () =
     let {Common.defer = defer'; async = async'} =
@@ -989,7 +989,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     ( application_script
       : ?defer:_ -> ?async:_ -> _ -> [`Script] Content.Html.elt
       :> ?defer:_ -> ?async:_ -> _ -> [> `Script] Content.Html.elt
-      )
+    )
 
   let is_eliom_appl_script elt =
     Content.Html.Id.have_id eliom_appl_script_id elt
