@@ -7,10 +7,12 @@ let usage () =
     (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n%!";
   Printf.eprintf
-    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
+    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories \
+     (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
-    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, \
+     lwt, js_of_ocaml, tyxml)\n";
   Printf.eprintf
     "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf

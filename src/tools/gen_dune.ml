@@ -53,7 +53,14 @@ let copy_interface ~mli_only nm extension =
 
 let client_eliom_rule nm =
   pf
-    "(subdir Eliom\n\ (rule (target %s.ml)\n\  (deps ../../%s.eliom (file ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
+    "(subdir Eliom\n\
+    \ (rule (target %s.ml)\n\
+    \  (deps ../../%s.eliom (file \
+     ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\
+    \  (action\n\
+    \    (with-stdout-to %%{target}\n\
+    \      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo \
+     server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
     nm nm
     (String.capitalize_ascii nm)
     (String.capitalize_ascii nm)
@@ -61,12 +68,22 @@ let client_eliom_rule nm =
 
 let server_eliom_rule nm =
   pf
-    "(subdir Eliom\n\ (rule (target %s.ml) (deps ../../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl %s.eliom))))))\n"
+    "(subdir Eliom\n\
+    \ (rule (target %s.ml) (deps ../../%s.eliom)\n\
+    \  (action\n\
+    \    (with-stdout-to %%{target}\n\
+    \      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl \
+     %s.eliom))))))\n"
     nm nm nm
 
 let eliomi_rule ~side nm =
   pf
-    "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_%s --as-pp -internal --intf %s.eliomi))))))\n"
+    "(subdir Eliom\n\
+    \ (rule (target %s.mli) (deps ../../%s.eliomi)\n\
+    \  (action\n\
+    \    (with-stdout-to %%{target}\n\
+    \      (chdir ../.. (run ppx_eliom_%s --as-pp -internal --intf \
+     %s.eliomi))))))\n"
     nm nm side nm
 
 (* Print the rules for file [nm] on the given side ("client" or "server") *)

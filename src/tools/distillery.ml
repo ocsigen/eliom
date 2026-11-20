@@ -37,7 +37,14 @@ let pp_list () l =
 
 let gen_usage_msg l =
   Printf.sprintf
-    "Welcome to the Eliom distillery!\n\nThis program generates the scaffold for your Eliom application\nfrom a template.\nAvailable templates: %a.\n\nCall it like this\n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\n\  $ %s -dir \nwhere"
+    "Welcome to the Eliom distillery!\n\n\
+     This program generates the scaffold for your Eliom application\n\
+     from a template.\n\
+     Available templates: %a.\n\n\
+     Call it like this\n\
+    \  $ %s -name <name> [-template <template>] [-target-directory <dest>]\n\
+    \  $ %s -dir \n\
+     where"
     pp_list l
     (Filename.basename Sys.argv.(0))
     (Filename.basename Sys.argv.(0))
@@ -321,8 +328,8 @@ let main () =
       align
         [ ( "-dir"
           , Set dir
-          , " Display the template directories (set through $ELIOM_DISTILLERY_PATH)"
-          )
+          , " Display the template directories (set through \
+             $ELIOM_DISTILLERY_PATH)" )
         ; ( "-y"
           , Set without_asking
           , " Create the project directory without confirmation." )
@@ -337,8 +344,8 @@ let main () =
           , " List all available templates" )
         ; ( "-target-directory"
           , String (fun s -> dest_dir := Some s)
-          , "<dir> Generate the project in directory <dir> (the project's name by default)"
-          )
+          , "<dir> Generate the project in directory <dir> (the project's name \
+             by default)" )
         ]
     )
   in

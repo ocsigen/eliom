@@ -40,7 +40,9 @@ let get_set_js_serverside_value r name =
             (fun () ->
               failwith
                 (name
-               ^ " not defined. A client Eliom application must either be sent by an Eliom server application or you must call Client.init_client_app."
+               ^ " not defined. A client Eliom application must either be sent \
+                  by an Eliom server application or you must call \
+                  Client.init_client_app."
                 )
             )
             (fun var ->

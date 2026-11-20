@@ -926,7 +926,19 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     in
     let script_content =
       Printf.sprintf
-        "(function() {\n\  var script = document.createElement('script');\n\  script.defer = %s;\n\  script.async = %s;\n\  \n\  if (window?.WebAssembly?.JSTag) {\n\    script.src = '%s';\n\  } else {\n\    script.src = '%s';\n\  }\n\  \n\  document.head.appendChild(script);\n})();"
+        "(function() {\n\
+        \  var script = document.createElement('script');\n\
+        \  script.defer = %s;\n\
+        \  script.async = %s;\n\
+        \  \n\
+        \  if (window?.WebAssembly?.JSTag) {\n\
+        \    script.src = '%s';\n\
+        \  } else {\n\
+        \    script.src = '%s';\n\
+        \  }\n\
+        \  \n\
+        \  document.head.appendChild(script);\n\
+         })();"
         defer_str async_str wasm_uri js_uri
     in
     Content.Html.Id.create_named_elt ~id:eliom_appl_script_id
@@ -987,7 +999,11 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
   let make_eliom_appl_data_script ~sp =
     let script =
       Printf.sprintf
-        "var __eliom_appl_sitedata = \'%s\';\nvar __eliom_appl_process_info = \'%s\'\nvar __eliom_request_data;\nvar __eliom_request_cookies;\nvar __eliom_request_template;\n"
+        "var __eliom_appl_sitedata = \'%s\';\n\
+         var __eliom_appl_process_info = \'%s\'\n\
+         var __eliom_request_data;\n\
+         var __eliom_request_cookies;\n\
+         var __eliom_request_template;\n"
         (Lib.jsmarshal (Mod_cli.client_sitedata sp))
         (Lib.jsmarshal sp.Common.sp_client_process_info)
     in
@@ -1034,7 +1050,9 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     let* template = Reference.get request_template in
     let script =
       Printf.sprintf
-        "__eliom_request_data = \'%s\';\n__eliom_request_cookies = \'%s\';\n__eliom_request_template = \'%s\';"
+        "__eliom_request_data = \'%s\';\n\
+         __eliom_request_cookies = \'%s\';\n\
+         __eliom_request_template = \'%s\';"
         (Lib.jsmarshal eliom_data)
         (Lib.jsmarshal tab_cookies)
         (Lib.jsmarshal (template : string option))

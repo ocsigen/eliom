@@ -713,7 +713,8 @@ let set_max_in_parent name ~scope session_group set_max =
   | `Session _, {Common.sg_group = Common.No_group; _} ->
       Logs.warn ~src:eliom_logs_src (fun fmt ->
           fmt
-            "State.%s: the session is not in a session group, the limit is not changed"
+            "State.%s: the session is not in a session group, the limit is not \
+             changed"
             name
       )
   | _ -> set_max ()

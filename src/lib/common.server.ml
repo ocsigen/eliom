@@ -194,7 +194,8 @@ let decode_perssessgrp a =
          letting the Deriving_Json failure escape and 500 every request. *)
       Logs.info ~src:eliom_logs_src (fun fmt ->
           fmt
-            "Unreadable persistent session group (pre-13 or corrupt), session expired: %s"
+            "Unreadable persistent session group (pre-13 or corrupt), session \
+             expired: %s"
             msg
       );
       raise Eliom_Session_expired
@@ -1553,7 +1554,9 @@ module To_and_of_shared = struct
     | {client = Some tao; _} -> tao
     | {client = None; _} ->
         failwith
-          "Cannot wrap user type parameter.\nUse the ?client_to_and_of parameter of Parameter.user_type\nor (Parameter.all_suffix_user)"
+          "Cannot wrap user type parameter.\n\
+           Use the ?client_to_and_of parameter of Parameter.user_type\n\
+           or (Parameter.all_suffix_user)"
 
   let to_string {server = {to_string; _}; _} = to_string
   let of_string {server = {of_string; _}; _} = of_string

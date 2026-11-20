@@ -220,7 +220,8 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                     *)
                     Logs.info ~src:section (fun fmt ->
                         fmt
-                          "Link to old. Trying without GET state parameters and POST parameters:"
+                          "Link to old. Trying without GET state parameters \
+                           and POST parameters:"
                     );
                     Polytables.set
                       ~table:(Ocsigen.Request.request_cache ri.request_info)
@@ -399,7 +400,8 @@ let make_naservice
             | (table, group) :: l -> (
                 Logs.info ~src:section (fun fmt ->
                     fmt
-                      "Looking for a non attached service in the table of a session group:"
+                      "Looking for a non attached service in the table of a \
+                       session group:"
                 );
                 try Lwt.return (find_naservice now table key, table, Some group)
                 with Not_found -> g l
@@ -426,7 +428,8 @@ let make_naservice
           (*VVV (Some, Some) or (_, Some)? *)
           Logs.info ~src:section (fun fmt ->
               fmt
-                "Link too old to a non-attached POST coservice. Try without POST parameters:"
+                "Link too old to a non-attached POST coservice. Try without \
+                 POST parameters:"
           );
           Polytables.set
             ~table:(Ocsigen.Request.request_cache ri.request_info)

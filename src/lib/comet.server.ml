@@ -71,7 +71,8 @@ let fallback_global_service =
     ~path:(Service.Path comet_global_path) (fun () () ->
       Lwt.return
         (error_msg
-           "request with no post parameters, or there isn't any registered site comet channel"
+           "request with no post parameters, or there isn't any registered \
+            site comet channel"
         )
   )
 
@@ -178,7 +179,8 @@ end = struct
     | Some _ ->
         failwith
           (Printf.sprintf
-             "can't create channel %s: a channel with the same name already exists"
+             "can't create channel %s: a channel with the same name already \
+              exists"
              name
           )
     | None ->
@@ -267,7 +269,8 @@ end = struct
     | Comet_base.Stateful _ ->
         Lwt.return
           (error_msg
-             "attempting to request data on stateless service with a stateful request"
+             "attempting to request data on stateless service with a stateful \
+              request"
           )
     | Comet_base.Stateless requests ->
         let requests = List.map get_channel (Array.to_list requests) in
@@ -551,7 +554,8 @@ end = struct
       | Comet_base.Stateless _ ->
           Lwt.return
             (error_msg
-               "attempting to request data on stateful service with a stateless request"
+               "attempting to request data on stateful service with a \
+                stateless request"
             )
       | Comet_base.Stateful (Comet_base.Request_data number) ->
           Logs.info ~src:section (fun fmt -> fmt "received request %i" number);

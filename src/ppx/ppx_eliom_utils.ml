@@ -667,8 +667,8 @@ let driver_args =
     , " Use short module names (for compiling Eliom itself)." )
   ; ( "-internal-prefix"
     , Arg.String (fun s -> internal_prefix := s)
-    , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling wrapped libraries that depend on Eliom)."
-    )
+    , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling \
+       wrapped libraries that depend on Eliom)." )
   ]
 
 let () =

@@ -169,7 +169,8 @@ let do_next_server_section_data ~compilation_unit_id =
         Array.iter Client_value_registry.initialize l
     | [] ->
         raise_error ~section
-          "Queue of client value data for compilation unit %s is empty (is it linked on the server?)"
+          "Queue of client value data for compilation unit %s is empty (is it \
+           linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
 (* Client-only compilation unit *)
@@ -187,7 +188,8 @@ let do_next_client_section_data ~compilation_unit_id =
         Array.iter (fun i -> Injection.initialize ~compilation_unit_id i) l
     | [] ->
         raise_error ~section
-          "Queue of injection data for compilation unit %s is empty (is it linked on the server?)"
+          "Queue of injection data for compilation unit %s is empty (is it \
+           linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
 (* Client-only compilation unit *)
@@ -381,7 +383,8 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     then
       Logs.warn ~src:section (fun fmt ->
           fmt
-            "the formaction, formmethod, formenctype and formtarget attributes of a button are ignored in a client application"
+            "the formaction, formmethod, formenctype and formtarget attributes \
+             of a button are ignored in a client application"
       );
     Lwt.async @@ fun () ->
     let* b = client_form_handler ev in
@@ -739,7 +742,9 @@ let tracked what (node : Dom.node Js.t) =
   | Dom.DOCUMENT_FRAGMENT ->
       Logs.warn ~src:section (fun fmt ->
           fmt
-            "Raw HTML with several top-level nodes used as %s: updates of these nodes, or of the following children of a reactive list, are lost. Wrap it in an element."
+            "Raw HTML with several top-level nodes used as %s: updates of \
+             these nodes, or of the following children of a reactive list, are \
+             lost. Wrap it in an element."
             what
       )
   | _ -> ()

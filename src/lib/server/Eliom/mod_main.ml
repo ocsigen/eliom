@@ -91,7 +91,8 @@ let removed_options =
   and masks tag =
     ( tag
     , Printf.sprintf
-        "Eliom: <%s> is removed: the anonymous coservices of the global table are now limited for the whole site (<maxanonymouscoservicespersite>)"
+        "Eliom: <%s> is removed: the anonymous coservices of the global table \
+         are now limited for the whole site (<maxanonymouscoservicespersite>)"
         tag )
   in
   [ renamed "maxvolatilesessionspersubnet" "maxvolatilesessionswithoutgroup"
@@ -423,7 +424,8 @@ let parse_eliom_option
           raise
             (Error_in_config_file
                (Printf.sprintf
-                  "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+                  "Eliom: Wrong attribute value for %s tag: the maximum must \
+                   be positive"
                   tag
                )
             );
@@ -571,7 +573,8 @@ let parse_eliom_option
         | _ ->
             raise
               (Error_in_config_file
-                 "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements"
+                 "Eliom: <omitpersistentstorage> only accepts <header \
+                  HEADER-NAME=\"REGEXP\"/> elements"
               )
       in
       let rules = List.map parse_rule tags in
@@ -752,13 +755,18 @@ let handle_init_exn = function
             ^ ". "
         )
       ^ Common.describe_unregistered_na l2
-      ^ "\nPlease correct your modules and make sure you have linked in all the modules..."
+      ^ "\n\
+         Please correct your modules and make sure you have linked in all the \
+         modules..."
   | Common.Site_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f
-      ^ "\". Must be used only during site initialisation phase (or, sometimes, also during request)."
+      ^ "\". Must be used only during site initialisation phase (or, \
+         sometimes, also during request)."
   | Common.Request_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f
-      ^ "\". It needs the current request, so it cannot be used during the site initialisation phase (for instance, register session services during a request)."
+      ^ "\". It needs the current request, so it cannot be used during the \
+         site initialisation phase (for instance, register session services \
+         during a request)."
   | Common.Eliom_page_erasing s ->
       "Eliom: You cannot create a page or directory here. " ^ s
       ^ " already exists. Please correct your modules."
@@ -1102,7 +1110,8 @@ let parse_config _ hostpattern conf_info site_dir =
         then
           raise
             (Error_in_config_file
-               "Eliom extensions cannot be loaded using <eliom>. Use <eliommodule> instead."
+               "Eliom extensions cannot be loaded using <eliom>. Use \
+                <eliommodule> instead."
             );
         (* We must generate the page only if it is the first <eliom> tag
            for that site: *)
@@ -1116,7 +1125,11 @@ let parse_config _ hostpattern conf_info site_dir =
           then
             Logs.warn ~src:eliom_logs_src (fun fmt ->
                 fmt
-                  "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site."
+                  "Tag <eliom> used several times in the same site: will run \
+                   Eliom only the first time. Prefer <eliommodule> to load a \
+                   module, and <eliom/> without attribute only once at the \
+                   position you want to generate your Eliom pages for this \
+                   site."
             );
           eliommodulewarningdisplayed := true;
           gen_nothing ()

@@ -703,7 +703,8 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TJson (_, None), _ :: _ -> assert false (* client side only *)
     | TAny, _ ->
         failwith
-          "It is not possible to use any in suffix. May be try with all_suffix ?"
+          "It is not possible to use any in suffix. May be try with all_suffix \
+           ?"
     | TFile _, _ -> assert false
     | TRaw_post_data, _ -> assert false
     | TUnit, _ -> failwith "It is not possible to use TUnit in suffix."

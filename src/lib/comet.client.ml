@@ -186,7 +186,8 @@ let handle_exn, set_handle_exn_function =
   let r =
     ref (fun ?exn () ->
         let s =
-          "Unknown exception during comet. Customize this with Comet.set_handle_exn_function. "
+          "Unknown exception during comet. Customize this with \
+           Comet.set_handle_exn_function. "
         in
         match exn with
         | Some exn -> raise_error ~section ~exn "%s" s
@@ -437,7 +438,8 @@ end = struct
             | _chan_id, Ecb.Closed ->
                 Logs.warn ~src:section (fun fmt ->
                     fmt
-                      "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
+                      "update_stateful_state: received Closed: should not \
+                       happen, this is an eliom bug, please report it"
                 )
             | chan_id, Ecb.Full -> stop_waiting hd chan_id
             )

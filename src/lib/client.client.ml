@@ -107,7 +107,9 @@ let check_global_data global_data =
   | l ->
       Printf.ksprintf
         (fun s -> Console.console##(error (Js.string s)))
-        "Code generating the following client values is not linked on the client:\n%s"
+        "Code generating the following client values is not linked on the \
+         client:\n\
+         %s"
         (String.concat "\n"
            (List.rev_map
               (fun (compilation_unit_id, {Runtime.closure_id; value; _}) ->
@@ -131,7 +133,8 @@ let check_global_data global_data =
   | l ->
       Printf.ksprintf
         (fun s -> Console.console##(error (Js.string s)))
-        "Code containing the following injections is not linked on the client:\n%s"
+        "Code containing the following injections is not linked on the client:\n\
+         %s"
         (String.concat "\n"
            (List.rev_map
               (fun d ->
@@ -180,7 +183,8 @@ let load_data_script page =
         | "script" -> Js.Unsafe.coerce data_script
         | t ->
             raise_error ~section
-              "Unable to find Eliom application data (script element expected, found %s element)"
+              "Unable to find Eliom application data (script element expected, \
+               found %s element)"
               t
       )
     | _ -> raise_error ~section "Unable to find Eliom application data."
@@ -1113,7 +1117,8 @@ and change_page :
         | Some f when not ignore_client_fun ->
             Logs.debug ~src:section_page (fun fmt ->
                 fmt
-                  "change page: client_fun service is Some and (not ignore_client_fun)"
+                  "change page: client_fun service is Some and (not \
+                   ignore_client_fun)"
             );
             (* The service has a client side implementation.
               We do not make the request *)

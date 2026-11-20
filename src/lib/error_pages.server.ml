@@ -48,12 +48,14 @@ let page_bad_param after_action gl pl =
                then
                  p
                    [ txt
-                       "An action occurred successfully. But Eliom was unable to find the service for displaying the page."
+                       "An action occurred successfully. But Eliom was unable \
+                        to find the service for displaying the page."
                    ]
                else
                  p
                    [ txt
-                       "Eliom was unable to find a service matching these parameters."
+                       "Eliom was unable to find a service matching these \
+                        parameters."
                    ]
              )
            ; ( match gl with

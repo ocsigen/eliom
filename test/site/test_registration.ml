@@ -74,7 +74,8 @@ let test_unregistered_non_attached () =
   in
   Alcotest.(check (list string))
     "warning"
-    [ "In site /s - The non-attached GET service \"unused\" has not been registered."
+    [ "In site /s - The non-attached GET service \"unused\" has not been \
+       registered."
     ]
     logged
 

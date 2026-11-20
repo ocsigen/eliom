@@ -8,7 +8,8 @@ let usage () =
   Printf.eprintf "SPECIFIC OPTIONS:\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
-    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, \
+     lwt, js_of_ocaml, tyxml)\n";
   if !kind <> `Client
   then
     Printf.eprintf
@@ -17,7 +18,8 @@ let usage () =
     "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
     (if !kind = `Client then default_client_dir else default_server_dir);
   Printf.eprintf
-    "  -type-dir <dir>\tThe directory to read server type files from (default %S)\n"
+    "  -type-dir <dir>\tThe directory to read server type files from (default \
+     %S)\n"
     default_type_dir;
   Printf.eprintf
     "  -server-types-ext <ext> The extension for server type files (default %S)\n"

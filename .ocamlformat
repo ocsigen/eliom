@@ -5,7 +5,6 @@ break-fun-decl = smart
 break-fun-sig = smart
 break-sequences = false
 break-separators = before
-break-string-literals = never
 cases-matching-exp-indent = compact
 dock-collection-brackets = false
 parens-tuple = multi-line-only

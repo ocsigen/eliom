@@ -140,7 +140,8 @@ let test_limits () =
           let msg = Printf.sprintf "%s=%d" tag v
           and expected =
             Printf.sprintf
-              "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+              "Eliom: Wrong attribute value for %s tag: the maximum must be \
+               positive"
               tag
           and option = Printf.sprintf {|<%s value="%d"/>|} tag v in
           check_error msg expected option;
@@ -168,7 +169,8 @@ let test_renamed () =
   and removed tag =
     ( tag
     , Printf.sprintf
-        "Eliom: <%s> is removed: the anonymous coservices of the global table are now limited for the whole site (<maxanonymouscoservicespersite>)"
+        "Eliom: <%s> is removed: the anonymous coservices of the global table \
+         are now limited for the whole site (<maxanonymouscoservicespersite>)"
         tag )
   in
   let sessions = renamed "the sessions without a group of the whole site" in
@@ -277,7 +279,8 @@ let test_omit_persistent_storage () =
   | _ -> Alcotest.fail "rules not recorded"
   );
   check_error "wrong rule"
-    "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements"
+    "Eliom: <omitpersistentstorage> only accepts <header \
+     HEADER-NAME=\"REGEXP\"/> elements"
     {|<omitpersistentstorage><cookie name="x"/></omitpersistentstorage>|}
 
 let test_timeout_errors () =

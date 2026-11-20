@@ -350,7 +350,8 @@ let send
               | None -> redirect_get url
               | _ ->
                   raise_error ~section
-                    "can't silently redirect a Post request to non application content"
+                    "can't silently redirect a Post request to non application \
+                     content"
               );
               Lwt.fail Program_terminated
           | Some appl_name ->
@@ -363,7 +364,8 @@ let send
               else (
                 Logs.warn ~src:section (fun fmt ->
                     fmt
-                      "received content for application %S when running application %s"
+                      "received content for application %S when running \
+                       application %s"
                       appl_name current_appl_name
                 );
                 Lwt.fail (Failed_request code)

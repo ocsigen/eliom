@@ -36,7 +36,8 @@ module Down = struct
     let r =
       ref (fun ?exn () ->
           let s =
-            "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
+            "Exception during comet with react. Customize this with \
+             Eliom_react.set_handle_react_exn_function. "
           in
           Logs.msg ~src:section Logs.Debug (fun fmt ->
               fmt "%s%a" s pp_exn_option exn

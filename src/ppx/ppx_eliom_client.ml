@@ -209,7 +209,8 @@ module Pass = struct
       match find_fragment loc id with
       | {ptyp_desc = Ptyp_var _; _} when not unsafe ->
           Location.raise_errorf ~loc
-            "The types of client values must be monomorphic from its usage or from its type annotation"
+            "The types of client values must be monomorphic from its usage or \
+             from its type annotation"
       | _ -> ()
     )
     );
@@ -243,7 +244,8 @@ module Pass = struct
         | {ptyp_desc = Ptyp_var _; ptyp_loc = loc; _} ->
             let attr =
               attribute_of_warning loc
-                "The type of this injected value contains a type variable that could be wrongly inferred."
+                "The type of this injected value contains a type variable that \
+                 could be wrongly inferred."
             in
             { typ with
               ptyp_attributes = attr :: typ.ptyp_attributes

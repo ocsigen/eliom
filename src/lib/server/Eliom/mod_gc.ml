@@ -294,7 +294,8 @@ let collect_data_sessions sitedata =
               then
                 Logs.err ~src:section (fun fmt ->
                     fmt
-                      "Eliom: Group of the sessions without a group has scope different from `Session. Please report the problem."
+                      "Eliom: Group of the sessions without a group has scope \
+                       different from `Session. Please report the problem."
                 );
               Mod_sessiongroups.Data.remove session_group_node;
               (* See also the finalisers in Mod_sessiongroups

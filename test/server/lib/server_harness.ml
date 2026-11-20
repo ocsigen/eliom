@@ -85,7 +85,8 @@ let stop pid dir =
         )
     | exception Unix.Unix_error (e, _, _) ->
         Printf.eprintf
-          "Cannot send the shutdown command to the test server (%s): killing it.\n%!"
+          "Cannot send the shutdown command to the test server (%s): killing it.\n\
+           %!"
           (Unix.error_message e);
         kill pid
 

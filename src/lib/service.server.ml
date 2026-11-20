@@ -250,7 +250,8 @@ let attach :
   let fallbackkind = attached_info fallback in
   let open Common in
   let error_msg =
-    "attach is not implemented for this kind of service. Please report a bug if you need this."
+    "attach is not implemented for this kind of service. Please report a bug \
+     if you need this."
   in
   let get_name =
     match na_name with
@@ -395,7 +396,8 @@ let unregister
     | None ->
         raise
           (failwith
-             "Unregistering service for non global scope must be done during a request"
+             "Unregistering service for non global scope must be done during a \
+              request"
           )
     | Some sp ->
         let table = !(State.get_session_service_table ~sp ?secure ~scope ()) in

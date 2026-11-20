@@ -241,4 +241,5 @@ let get_cookies_to_send ?(in_local_storage = false) host https path =
 
 let make_new_session_id () =
   failwith
-    "Cannot define anonymous coservices on client side. Ask their values to the server."
+    "Cannot define anonymous coservices on client side. Ask their values to \
+     the server."

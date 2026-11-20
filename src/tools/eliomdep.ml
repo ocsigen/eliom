@@ -7,16 +7,19 @@ let usage () =
     (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n%!";
   Printf.eprintf
-    "  -dir <dir>\t\tThe default directory for generated files (default %S or %S)\n"
+    "  -dir <dir>\t\tThe default directory for generated files (default %S or \
+     %S)\n"
     default_client_dir default_server_dir;
   Printf.eprintf
     "  -type-dir <dir>\tThe directory for generated type_mli files (default %S)\n"
     default_type_dir;
   Printf.eprintf
-    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
+    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories \
+     (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
-    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, \
+     lwt, js_of_ocaml, tyxml)\n";
   Printf.eprintf
     "  -ppopt <opt>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -ppx";
