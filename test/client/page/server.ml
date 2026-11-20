@@ -34,7 +34,7 @@ let services = main, root, page, deep, suffix, non_attached, attached, external_
 
 let register service =
   Registration.String.register ~service (fun _ _ ->
-    Lwt.return ("", "text/plain")
+      Lwt.return ("", "text/plain")
   )
 
 let () =
@@ -51,32 +51,32 @@ let set_cookie ?path ?exp ?secure name =
 
 let () =
   Client_test.register ~service:page (fun () () ->
-    let now = Unix.gettimeofday () in
-    set_cookie "plain";
-    set_cookie ~secure:true "secure";
-    set_cookie ~path:["other"] "other_path";
-    set_cookie ~exp:(now -. 10.) "expired";
-    set_cookie ~exp:(now +. 3600.) "expires_later";
-    let urls =
-      List.map (fun (_, url) -> Js_literal.string url) (Urls.cases services)
-    in
-    Lwt.return
-      Content.Html.F.(
-        html
-          (head
-             (title (txt "page"))
-             [ script
-                 (cdata_script
-                    (Printf.sprintf
-                       "var services = '%s';\nvar server_urls = [%s];"
-                       (Lib.jsmarshal (Wrap.wrap services))
-                       (String.concat ", " urls)
-                    )
-                 )
-             ]
-          )
-          (body [])
-      )
+      let now = Unix.gettimeofday () in
+      set_cookie "plain";
+      set_cookie ~secure:true "secure";
+      set_cookie ~path:["other"] "other_path";
+      set_cookie ~exp:(now -. 10.) "expired";
+      set_cookie ~exp:(now +. 3600.) "expires_later";
+      let urls =
+        List.map (fun (_, url) -> Js_literal.string url) (Urls.cases services)
+      in
+      Lwt.return
+        Content.Html.F.(
+          html
+            (head
+               (title (txt "page"))
+               [ script
+                   (cdata_script
+                      (Printf.sprintf
+                         "var services = '%s';\nvar server_urls = [%s];"
+                         (Lib.jsmarshal (Wrap.wrap services))
+                         (String.concat ", " urls)
+                      )
+                   )
+               ]
+            )
+            (body [])
+        )
   )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

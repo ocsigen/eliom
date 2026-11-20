@@ -121,10 +121,10 @@ module Configuration = struct
 
   let set_always_active conf v =
     set_fun conf (fun c ->
-      { c with
-        time_between_request_unfocused =
-          (if v then Some [always_active] else None)
-      }
+        { c with
+          time_between_request_unfocused =
+            (if v then Some [always_active] else None)
+        }
     )
 
   let set_timeout conf v =
@@ -138,7 +138,7 @@ module Configuration = struct
 
   let set_time_between_requests_when_idle conf (slope, offset, cap) =
     set_fun conf (fun c ->
-      {c with time_between_request_unfocused = Some [{slope; offset; cap}]}
+        {c with time_between_request_unfocused = Some [{slope; offset; cap}]}
     )
 
   let sleep_before_next_request focused is_idle active_waiter =
@@ -185,14 +185,14 @@ let handle_exn, set_handle_exn_function =
   let closed = ref false in
   let r =
     ref (fun ?exn () ->
-      let s =
-        "Unknown exception during comet. Customize this with Comet.set_handle_exn_function. "
-      in
-      match exn with
-      | Some exn -> raise_error ~section ~exn "%s" s
-      | None ->
-          Logs.debug ~src:section (fun fmt -> fmt "%s" s);
-          Lwt.return_unit
+        let s =
+          "Unknown exception during comet. Customize this with Comet.set_handle_exn_function. "
+        in
+        match exn with
+        | Some exn -> raise_error ~section ~exn "%s" s
+        | None ->
+            Logs.debug ~src:section (fun fmt -> fmt "%s" s);
+            Lwt.return_unit
     )
   in
   ( (fun ?exn () ->
@@ -436,8 +436,8 @@ end = struct
             | _chan_id, Ecb.Data _ -> ()
             | _chan_id, Ecb.Closed ->
                 Logs.warn ~src:section (fun fmt ->
-                  fmt
-                    "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
+                    fmt
+                      "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
                 )
             | chan_id, Ecb.Full -> stop_waiting hd chan_id
             )
@@ -518,7 +518,7 @@ end = struct
 
   let add_no_index =
     List.map (fun (chan, m) ->
-      {msg_chan_id = chan; msg_index = None; msg_data = m}
+        {msg_chan_id = chan; msg_index = None; msg_data = m}
     )
 
   let update_activity ?(timeout = false) hd =
@@ -571,7 +571,7 @@ end = struct
                 aux 0
             | exn ->
                 Logs.warn ~src:section (fun fmt ->
-                  fmt "connection failure@\n%s" (Printexc.to_string exn)
+                    fmt "connection failure@\n%s" (Printexc.to_string exn)
                 );
                 let* () = handle_exn ~exn () in
                 Lwt.fail exn
@@ -588,7 +588,7 @@ end = struct
          )
          (fun exn ->
            Logs.warn ~src:section (fun fmt ->
-             fmt "request failed@\n%s" (Printexc.to_string exn)
+               fmt "request failed@\n%s" (Printexc.to_string exn)
            );
            Lwt.return ""
          )
@@ -611,7 +611,7 @@ end = struct
               !map
       with Not_found ->
         Logs.info ~src:section (fun fmt ->
-          fmt "trying to close a non existent channel: %s" chan_id
+            fmt "trying to close a non existent channel: %s" chan_id
         )
     )
 
@@ -679,10 +679,10 @@ type 'a handler =
 let handler_stream hd =
   Lwt_stream.flatten
     (Lwt_stream.from (fun () ->
-       Lwt.try_bind
-         (fun () -> Service_handler.wait_data hd)
-         (fun s -> Lwt.return_some s)
-         (fun _ -> Lwt.return_none)
+         Lwt.try_bind
+           (fun () -> Service_handler.wait_data hd)
+           (fun s -> Lwt.return_some s)
+           (fun _ -> Lwt.return_none)
      )
     )
 
@@ -797,7 +797,7 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let protect_and_close t =
     let t' = Lwt.protected t in
     Lwt.on_cancel t' (fun () ->
-      Service_handler.close hd.hd_service_handler chan_id
+        Service_handler.close hd.hd_service_handler chan_id
     );
     t'
   in
@@ -845,7 +845,7 @@ let is_active () =
     max active (fun () -> Service_handler.is_active hd.hd_service_handler)
   in
   max (Hashtbl.fold f stateless_handler_table `Active) (fun () ->
-    Hashtbl.fold f stateful_handler_table `Active
+      Hashtbl.fold f stateful_handler_table `Active
   )
 
 module Channel = struct

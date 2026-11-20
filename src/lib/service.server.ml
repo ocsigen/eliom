@@ -246,39 +246,39 @@ let attach :
     -> unit
     -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t =
  fun ~fallback ~service () ->
-   let {na_name; _} = non_attached_info service in
-   let fallbackkind = attached_info fallback in
-   let open Common in
-   let error_msg =
-     "attach is not implemented for this kind of service. Please report a bug if you need this."
-   in
-   let get_name =
-     match na_name with
-     | SNa_get_ s -> SAtt_na_named s
-     | SNa_get' s -> SAtt_na_anon s
-     | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
-     | SNa_post_ _ -> fallbackkind.get_name (*VVV check *)
-     | SNa_post' _ -> fallbackkind.get_name (*VVV check *)
-     | SNa_post_csrf_safe _ -> fallbackkind.get_name (*VVV check *)
-     | _ -> failwith error_msg
-   (*VVV Do we want to make possible to attach POST na coservices
+  let {na_name; _} = non_attached_info service in
+  let fallbackkind = attached_info fallback in
+  let open Common in
+  let error_msg =
+    "attach is not implemented for this kind of service. Please report a bug if you need this."
+  in
+  let get_name =
+    match na_name with
+    | SNa_get_ s -> SAtt_na_named s
+    | SNa_get' s -> SAtt_na_anon s
+    | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
+    | SNa_post_ _ -> fallbackkind.get_name (*VVV check *)
+    | SNa_post' _ -> fallbackkind.get_name (*VVV check *)
+    | SNa_post_csrf_safe _ -> fallbackkind.get_name (*VVV check *)
+    | _ -> failwith error_msg
+  (*VVV Do we want to make possible to attach POST na coservices
           on GET attached coservices? *)
-   and post_name =
-     match na_name with
-     | SNa_get_ _ -> SAtt_no
-     | SNa_get' _ -> SAtt_no
-     | SNa_get_csrf_safe _ -> SAtt_no
-     | SNa_post_ s -> SAtt_na_named s
-     | SNa_post' s -> SAtt_na_anon s
-     | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
-     | _ -> failwith error_msg
-   in
-   { service with
-     service_mark = service_mark ()
-   ; kind = `AttachedCoservice
-   ; pre_applied_parameters = fallback.pre_applied_parameters
-   ; info = Attached {fallbackkind with get_name; post_name}
-   }
+  and post_name =
+    match na_name with
+    | SNa_get_ _ -> SAtt_no
+    | SNa_get' _ -> SAtt_no
+    | SNa_get_csrf_safe _ -> SAtt_no
+    | SNa_post_ s -> SAtt_na_named s
+    | SNa_post' s -> SAtt_na_anon s
+    | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
+    | _ -> failwith error_msg
+  in
+  { service with
+    service_mark = service_mark ()
+  ; kind = `AttachedCoservice
+  ; pre_applied_parameters = fallback.pre_applied_parameters
+  ; info = Attached {fallbackkind with get_name; post_name}
+  }
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 

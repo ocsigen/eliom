@@ -10,7 +10,7 @@ module Form = F.Form
 (* [page path content] registers the page [path], whose body is [content ()] *)
 let page path content =
   Registration.Html.register ~service:(get [path] P.unit) (fun () () ->
-    Lwt.return F.(html (head (title (txt path)) []) (body (content ())))
+      Lwt.return F.(html (head (title (txt path)) []) (body (content ())))
   )
 
 let opt = Option.value ~default:"none"
@@ -22,19 +22,19 @@ let simple =
 
 let () =
   string simple (fun (i, (s, (o, b))) () ->
-    text (Printf.sprintf "i=%d s=%s o=%s b=%b" i s (opt o) b)
+      text (Printf.sprintf "i=%d s=%s o=%s b=%b" i s (opt o) b)
   )
 
 let () =
   page "simple_form" (fun () ->
-    [ Form.get_form ~service:simple (fun (i, (s, (o, b))) ->
-        [ Form.input ~input_type:`Text ~name:i ~value:3 Form.int
-        ; Form.input ~input_type:`Text ~name:s ~value:"a b&c" Form.string
-        ; Form.input ~input_type:`Text ~name:o Form.string
-        ; Form.bool_checkbox_one ~checked:true ~name:b ()
-        ]
-      )
-    ]
+      [ Form.get_form ~service:simple (fun (i, (s, (o, b))) ->
+            [ Form.input ~input_type:`Text ~name:i ~value:3 Form.int
+            ; Form.input ~input_type:`Text ~name:s ~value:"a b&c" Form.string
+            ; Form.input ~input_type:`Text ~name:o Form.string
+            ; Form.bool_checkbox_one ~checked:true ~name:b ()
+            ]
+        )
+      ]
   )
 
 (* A text area, a select, radio buttons and a set of checkboxes, in a POST
@@ -52,29 +52,29 @@ let choices =
 
 let () =
   string choices (fun () (t, (sel, (r, c))) ->
-    text
-      (Printf.sprintf "t=%s sel=%s r=%s c=%s" t sel (opt r)
-         (String.concat "," (List.sort compare c))
-      )
+      text
+        (Printf.sprintf "t=%s sel=%s r=%s c=%s" t sel (opt r)
+           (String.concat "," (List.sort compare c))
+        )
   )
 
 let () =
   page "choices_form" (fun () ->
-    [ Form.post_form ~service:choices
-        (fun (t, (sel, (r, c))) ->
-          [ Form.textarea ~name:t ~value:"one\ntwo <&>" ()
-          ; Form.select ~name:sel Form.string
-              (Form.Option ([], "a", None, false))
-              [Form.Option ([], "b", None, true)]
-          ; Form.radio ~name:r ~value:"x" Form.string
-          ; Form.radio ~checked:true ~name:r ~value:"y" Form.string
-          ; Form.checkbox ~checked:true ~name:c ~value:"p" Form.string
-          ; Form.checkbox ~checked:true ~name:c ~value:"q" Form.string
-          ; Form.checkbox ~name:c ~value:"s" Form.string
-          ]
-        )
-        ()
-    ]
+      [ Form.post_form ~service:choices
+          (fun (t, (sel, (r, c))) ->
+            [ Form.textarea ~name:t ~value:"one\ntwo <&>" ()
+            ; Form.select ~name:sel Form.string
+                (Form.Option ([], "a", None, false))
+                [Form.Option ([], "b", None, true)]
+            ; Form.radio ~name:r ~value:"x" Form.string
+            ; Form.radio ~checked:true ~name:r ~value:"y" Form.string
+            ; Form.checkbox ~checked:true ~name:c ~value:"p" Form.string
+            ; Form.checkbox ~checked:true ~name:c ~value:"q" Form.string
+            ; Form.checkbox ~name:c ~value:"s" Form.string
+            ]
+          )
+          ()
+      ]
   )
 
 (* A list *)
@@ -84,14 +84,15 @@ let () = string list (fun l () -> text (String.concat "," l))
 
 let () =
   page "list_form" (fun () ->
-    [ Form.get_form ~service:list (fun names ->
-        names.P.it
-          (fun name v fields ->
-            Form.input ~input_type:`Text ~name ~value:v Form.string :: fields
-          )
-          ["u"; "v"; "w"] []
-      )
-    ]
+      [ Form.get_form ~service:list (fun names ->
+            names.P.it
+              (fun name v fields ->
+                Form.input ~input_type:`Text ~name ~value:v Form.string
+                :: fields
+              )
+              ["u"; "v"; "w"] []
+        )
+      ]
   )
 
 (* Coservices *)
@@ -126,21 +127,21 @@ let field name = [Form.input ~input_type:`Text ~name ~value:"z" Form.string]
 
 let () =
   page "coservice_forms" (fun () ->
-    [ Form.post_form ~service:attached field ()
-    ; Form.get_form ~service:na_get field
-    ; Form.post_form ~service:na_post field ()
-    ; Form.post_form ~service:csrf field ()
-    ]
+      [ Form.post_form ~service:attached field ()
+      ; Form.get_form ~service:na_get field
+      ; Form.post_form ~service:na_post field ()
+      ; Form.post_form ~service:csrf field ()
+      ]
   )
 
 (* A form whose action has a fragment *)
 
 let () =
   page "fragment_form" (fun () ->
-    [ Form.get_form ~service:simple ~fragment:"f r" (fun (i, _) ->
-        [Form.input ~input_type:`Text ~name:i ~value:3 Form.int]
-      )
-    ]
+      [ Form.get_form ~service:simple ~fragment:"f r" (fun (i, _) ->
+            [Form.input ~input_type:`Text ~name:i ~value:3 Form.int]
+        )
+      ]
   )
 
 (* A suffix *)
@@ -150,10 +151,10 @@ let () = string suffix (fun s () -> text ("suffix " ^ s))
 
 let () =
   page "suffix_form" (fun () ->
-    [ Form.get_form ~service:suffix (fun s ->
-        [Form.input ~input_type:`Text ~name:s ~value:"a" Form.string]
-      )
-    ]
+      [ Form.get_form ~service:suffix (fun s ->
+            [Form.input ~input_type:`Text ~name:s ~value:"a" Form.string]
+        )
+      ]
   )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

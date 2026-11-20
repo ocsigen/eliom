@@ -138,7 +138,7 @@ end = struct
   let initialize ~compilation_unit_id {Runtime.injection_id; injection_value; _}
       =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Initialize injection %d" injection_id
+        fmt "Initialize injection %d" injection_id
     );
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
@@ -158,8 +158,8 @@ let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Do next client value data section in compilation unit %s"
-      compilation_unit_id
+      fmt "Do next client value data section in compilation unit %s"
+        compilation_unit_id
   );
   try
     let data = String_map.find compilation_unit_id !global_data in
@@ -176,8 +176,8 @@ let do_next_server_section_data ~compilation_unit_id =
 
 let do_next_client_section_data ~compilation_unit_id =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Do next injection data section in compilation unit %s"
-      compilation_unit_id
+      fmt "Do next injection data section in compilation unit %s"
+        compilation_unit_id
   );
   try
     let data = String_map.find compilation_unit_id !global_data in
@@ -209,13 +209,13 @@ let register_process_node, find_process_node =
   let process_nodes : Dom.node Js.t Jstable.t = Jstable.create () in
   let find id =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Find process node %s" (Js.to_string id)
+        fmt "Find process node %s" (Js.to_string id)
     );
     Jstable.find process_nodes id
   in
   let register id node =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Register process node %s" (Js.to_string id)
+        fmt "Register process node %s" (Js.to_string id)
     );
     let node =
       if node##.nodeName##toLowerCase == Js.string "script"
@@ -247,7 +247,7 @@ let register_request_node, find_request_node, reset_request_nodes =
   let find id = Jstable.find !request_nodes id in
   let register id node =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Register request node %s" (Js.to_string id)
+        fmt "Register request node %s" (Js.to_string id)
     );
     Jstable.add !request_nodes id node
   in
@@ -380,8 +380,8 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     if overrides_form
     then
       Logs.warn ~src:section (fun fmt ->
-        fmt
-          "the formaction, formmethod, formenctype and formtarget attributes of a button are ignored in a client application"
+          fmt
+            "the formaction, formmethod, formenctype and formtarget attributes of a button are ignored in a client application"
       );
     Lwt.async @@ fun () ->
     let* b = client_form_handler ev in
@@ -410,7 +410,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let node =
               Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-                raise_error ~section "not an anchor element"
+                  raise_error ~section "not an anchor element"
               )
             in
             raw_a_handler node cookies_info tmpl ev
@@ -423,7 +423,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let form =
               Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-                raise_error ~section "not a form element"
+                  raise_error ~section "not a form element"
               )
             in
             raw_form_handler form kind cookies_info tmpl ev
@@ -582,13 +582,13 @@ let rec rebuild_rattrib node ra =
                | None ->
                    node##(removeAttribute name);
                    iter_prop_protected node name (fun name ->
-                     Js.Unsafe.set node name Js.null
+                       Js.Unsafe.set node name Js.null
                    )
                | Some v ->
                    let v = rebuild_attrib_val v in
                    node##(setAttribute name v);
                    iter_prop_protected node name (fun name ->
-                     Js.Unsafe.set node name v
+                       Js.Unsafe.set node name v
                    )
                )
              s
@@ -693,8 +693,8 @@ end = struct
           (fun () -> (* no parent -> no replace needed *) ())
           (fun parent ->
             Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
-              (* really update the dom *)
-              ignore (Dom_html.element parent)##(replaceChild dom dom')
+                (* really update the dom *)
+                ignore (Dom_html.element parent)##(replaceChild dom dom')
             )
           )
 end
@@ -738,9 +738,9 @@ let tracked what (node : Dom.node Js.t) =
   ( match node##.nodeType with
   | Dom.DOCUMENT_FRAGMENT ->
       Logs.warn ~src:section (fun fmt ->
-        fmt
-          "Raw HTML with several top-level nodes used as %s: updates of these nodes, or of the following children of a reactive list, are lost. Wrap it in an element."
-          what
+          fmt
+            "Raw HTML with several top-level nodes used as %s: updates of these nodes, or of the following children of a reactive list, are lost. Wrap it in an element."
+            what
       )
   | _ -> ()
   );
@@ -766,15 +766,15 @@ let rec rebuild_node' ?parent ns elt =
   | Xml.ReactNode signal ->
       let dom =
         ReactState.start_signal (fun state ->
-          React.S.map
-            (fun elt' ->
-              let dom =
-                tracked "a reactive node" (rebuild_node' ?parent ns elt')
-              in
-              Xml.set_dom_node elt dom;
-              ReactState.change_dom state dom
-            )
-            signal
+            React.S.map
+              (fun elt' ->
+                let dom =
+                  tracked "a reactive node" (rebuild_node' ?parent ns elt')
+                in
+                Xml.set_dom_node elt dom;
+                ReactState.change_dom state dom
+              )
+              signal
         )
       in
       Xml.set_dom_node elt dom; dom
@@ -839,9 +839,9 @@ let is_before_initial_load, set_initial_load =
 
 let rebuild_node_ns ns context elt' =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Rebuild node %s (%s)"
-      (Content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
-      context
+      fmt "Rebuild node %s (%s)"
+        (Content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
+        context
   );
   if is_before_initial_load ()
   then (

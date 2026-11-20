@@ -66,7 +66,7 @@ let close_data_state ~scope ~secure_o ?sp () =
             match Mod_sessiongroups.Data.find_node_in_group_of_groups group with
             | None ->
                 Logs.err ~src:eliom_logs_src (fun fmt ->
-                  fmt "No group of groups. Please report this problem."
+                    fmt "No group of groups. Please report this problem."
                 )
             | Some g -> Mod_sessiongroups.Data.remove g
           )

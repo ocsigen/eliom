@@ -23,10 +23,10 @@ let test_paths () =
   let path s = Uri.make_string_uri ~absolute_path:true ~service:s () in
   let paths =
     Site.init ~site_dir:["blog"] ~app:"paths" (fun () ->
-      [ path (get ["a"; "b"] Parameter.unit)
-      ; path (get ["dir"; ""] Parameter.unit)
-      ; path (get [] Parameter.unit)
-      ]
+        [ path (get ["a"; "b"] Parameter.unit)
+        ; path (get ["dir"; ""] Parameter.unit)
+        ; path (get [] Parameter.unit)
+        ]
     )
   in
   Alcotest.(check (list string))
@@ -44,9 +44,9 @@ let test_full_path () =
   in
   let paths =
     Site.init ~site_dir:["s"; "t"] ~app:"full path" (fun () ->
-      [ full_path (get ["a"; "b"] Parameter.unit)
-      ; full_path (get [] Parameter.unit)
-      ]
+        [ full_path (get ["a"; "b"] Parameter.unit)
+        ; full_path (get [] Parameter.unit)
+        ]
     )
   in
   Alcotest.(check (list (list string)))
@@ -58,13 +58,13 @@ let test_path_escaping () =
   (* Each segment of the path of a service is escaped. *)
   let path =
     Site.init ~site_dir:["s"] ~app:"escaping" (fun () ->
-      Uri.make_string_uri ~absolute_path:true
-        ~service:
-          (get
-             ["a b"; "c%d"; "e?f"; "g#h"; "\xc3\xa9"; "i/j"; "k&l"; "m+n"]
-             Parameter.unit
-          )
-        ()
+        Uri.make_string_uri ~absolute_path:true
+          ~service:
+            (get
+               ["a b"; "c%d"; "e?f"; "g#h"; "\xc3\xa9"; "i/j"; "k&l"; "m+n"]
+               Parameter.unit
+            )
+          ()
     )
   in
   Alcotest.(check string)
@@ -73,9 +73,9 @@ let test_path_escaping () =
 let test_site_levels () =
   let relative, absolute =
     Site.init ~site_dir:["a"; "b"] ~app:"levels" (fun () ->
-      let s = get ["c"] Parameter.unit in
-      ( Uri.make_string_uri ~absolute_path:true ~service:s ()
-      , Uri.make_string_uri ~absolute:true ~service:s () )
+        let s = get ["c"] Parameter.unit in
+        ( Uri.make_string_uri ~absolute_path:true ~service:s ()
+        , Uri.make_string_uri ~absolute:true ~service:s () )
     )
   in
   Alcotest.(check string) "absolute path" "/a/b/c" relative;
@@ -90,10 +90,10 @@ let test_default_protocol () =
   in
   let https, default, http =
     Site.init ~config_info ~app:"default protocol" (fun () ->
-      let s = get ["a"] Parameter.unit in
-      ( Eliom.Config.default_protocol_is_https ()
-      , Uri.make_string_uri ~absolute:true ~service:s ()
-      , Uri.make_string_uri ~absolute:true ~https:false ~service:s () )
+        let s = get ["a"] Parameter.unit in
+        ( Eliom.Config.default_protocol_is_https ()
+        , Uri.make_string_uri ~absolute:true ~service:s ()
+        , Uri.make_string_uri ~absolute:true ~https:false ~service:s () )
     )
   in
   Alcotest.(check bool) "protocol" true https;
@@ -116,9 +116,9 @@ let test_standard_ports () =
   in
   let http, https =
     Site.init ~config_info ~app:"standard ports" (fun () ->
-      let s = get ["a"] Parameter.unit in
-      ( Uri.make_string_uri ~absolute:true ~service:s ()
-      , Uri.make_string_uri ~absolute:true ~https:true ~service:s () )
+        let s = get ["a"] Parameter.unit in
+        ( Uri.make_string_uri ~absolute:true ~service:s ()
+        , Uri.make_string_uri ~absolute:true ~https:true ~service:s () )
     )
   in
   Alcotest.(check string) "HTTP" ("http://" ^ Site.hostname ^ "/a") http;
@@ -130,29 +130,29 @@ let https_prefix = Printf.sprintf "https://%s:%d" Site.hostname Site.https_port
 let test_absolute_urls () =
   let urls =
     Site.init ~site_dir:["blog"] ~app:"absolute" (fun () ->
-      let s = get ["a"] Parameter.(int "i" ** string "s") in
-      let suffix = get ["b"] Parameter.(suffix (int "i" ** string "s")) in
-      let secure = get ~https:true ["c"] Parameter.unit in
-      let nl =
-        Parameter.make_non_localized_parameters ~prefix:"app" ~name:"n"
-          (Parameter.int "x")
-      in
-      let uri ?absolute ?absolute_path ?https ?fragment ?nl_params service v =
-        Uri.make_string_uri ?absolute ?absolute_path ?https ?fragment ?nl_params
-          ~service v
-      in
-      [ uri ~absolute:true s (1, "x y")
-      ; uri ~absolute_path:true s (1, "x")
-      ; uri ~absolute:true ~https:true s (1, "x")
-      ; uri ~absolute:true suffix (3, "x/y")
-      ; uri ~absolute:true secure ()
-      ; uri ~absolute_path:true ~fragment:"top" s (1, "x")
-      ; uri ~absolute_path:true
-          ~nl_params:
-            (Parameter.add_nl_parameter Parameter.empty_nl_params_set nl 7)
-          s (1, "x")
-      ; uri ~absolute_path:true (Service.preapply ~service:s (2, "p")) ()
-      ]
+        let s = get ["a"] Parameter.(int "i" ** string "s") in
+        let suffix = get ["b"] Parameter.(suffix (int "i" ** string "s")) in
+        let secure = get ~https:true ["c"] Parameter.unit in
+        let nl =
+          Parameter.make_non_localized_parameters ~prefix:"app" ~name:"n"
+            (Parameter.int "x")
+        in
+        let uri ?absolute ?absolute_path ?https ?fragment ?nl_params service v =
+          Uri.make_string_uri ?absolute ?absolute_path ?https ?fragment
+            ?nl_params ~service v
+        in
+        [ uri ~absolute:true s (1, "x y")
+        ; uri ~absolute_path:true s (1, "x")
+        ; uri ~absolute:true ~https:true s (1, "x")
+        ; uri ~absolute:true suffix (3, "x/y")
+        ; uri ~absolute:true secure ()
+        ; uri ~absolute_path:true ~fragment:"top" s (1, "x")
+        ; uri ~absolute_path:true
+            ~nl_params:
+              (Parameter.add_nl_parameter Parameter.empty_nl_params_set nl 7)
+            s (1, "x")
+        ; uri ~absolute_path:true (Service.preapply ~service:s (2, "p")) ()
+        ]
     )
   in
   Alcotest.(check (list string))
@@ -171,18 +171,19 @@ let test_absolute_urls () =
 let test_coservice_urls () =
   let urls =
     Site.init ~app:"coservices" (fun () ->
-      let fallback = get ["a"] Parameter.unit in
-      let anonymous =
-        Service.create_attached_get ~fallback ~get_params:(Parameter.int "i") ()
-      in
-      let named =
-        Service.create_attached_get ~name:"named" ~fallback
-          ~get_params:Parameter.unit ()
-      in
-      Site.register anonymous;
-      Site.register named;
-      ( Uri.make_string_uri ~absolute_path:true ~service:anonymous 1
-      , Uri.make_string_uri ~absolute_path:true ~service:named () )
+        let fallback = get ["a"] Parameter.unit in
+        let anonymous =
+          Service.create_attached_get ~fallback ~get_params:(Parameter.int "i")
+            ()
+        in
+        let named =
+          Service.create_attached_get ~name:"named" ~fallback
+            ~get_params:Parameter.unit ()
+        in
+        Site.register anonymous;
+        Site.register named;
+        ( Uri.make_string_uri ~absolute_path:true ~service:anonymous 1
+        , Uri.make_string_uri ~absolute_path:true ~service:named () )
     )
   in
   let anonymous, named = urls in
@@ -228,16 +229,16 @@ let state url =
 let test_anonymous_coservices () =
   let first, again, second =
     Site.init ~app:"anonymous coservices" (fun () ->
-      let fallback = get ["a"] Parameter.unit in
-      let anonymous () =
-        let s =
-          Service.create_attached_get ~fallback ~get_params:Parameter.unit ()
+        let fallback = get ["a"] Parameter.unit in
+        let anonymous () =
+          let s =
+            Service.create_attached_get ~fallback ~get_params:Parameter.unit ()
+          in
+          Site.register s; s
         in
-        Site.register s; s
-      in
-      let url s = Uri.make_string_uri ~absolute_path:true ~service:s () in
-      let first = anonymous () in
-      url first, url first, url (anonymous ())
+        let url s = Uri.make_string_uri ~absolute_path:true ~service:s () in
+        let first = anonymous () in
+        url first, url first, url (anonymous ())
     )
   in
   Alcotest.(check string) "same coservice" (state first) (state again);
@@ -251,26 +252,26 @@ let test_post_urls () =
   in
   let attached, with_get =
     Site.init ~app:"POST" (fun () ->
-      let fallback = get ["a"] Parameter.unit in
-      let attached =
-        Service.create_attached_post ~fallback
-          ~post_params:(Parameter.string "v") ()
-      in
-      let with_get =
-        Service.create ~path:(Service.Path ["p"])
-          ~meth:(Service.Post (Parameter.int "g", Parameter.string "x"))
-          ()
-      in
-      Site.register attached;
-      Site.register with_get;
-      ( show
-          (Uri.make_post_uri_components ~absolute_path:true ~service:attached ()
-             "x"
-          )
-      , show
-          (Uri.make_post_uri_components ~absolute_path:true ~service:with_get 3
-             "z"
-          ) )
+        let fallback = get ["a"] Parameter.unit in
+        let attached =
+          Service.create_attached_post ~fallback
+            ~post_params:(Parameter.string "v") ()
+        in
+        let with_get =
+          Service.create ~path:(Service.Path ["p"])
+            ~meth:(Service.Post (Parameter.int "g", Parameter.string "x"))
+            ()
+        in
+        Site.register attached;
+        Site.register with_get;
+        ( show
+            (Uri.make_post_uri_components ~absolute_path:true ~service:attached
+               () "x"
+            )
+        , show
+            (Uri.make_post_uri_components ~absolute_path:true ~service:with_get
+               3 "z"
+            ) )
     )
   in
   let path, get_params, fragment, names, post_params = attached in
@@ -305,25 +306,25 @@ let test_urls_needing_a_request () =
     | exception Eliom.Common.Request_information_not_available _ -> ()
   in
   Site.init ~app:"request" (fun () ->
-    let s = get ["a"] Parameter.unit in
-    let na =
-      Service.create ~name:"na" ~path:Service.No_path
-        ~meth:(Service.Get Parameter.unit) ()
-    in
-    Site.register na;
-    check "relative URL" (fun () -> Uri.make_string_uri ~service:s ());
-    check "non-attached coservice" (fun () ->
-      Uri.make_string_uri ~absolute:true ~service:na ()
-    )
+      let s = get ["a"] Parameter.unit in
+      let na =
+        Service.create ~name:"na" ~path:Service.No_path
+          ~meth:(Service.Get Parameter.unit) ()
+      in
+      Site.register na;
+      check "relative URL" (fun () -> Uri.make_string_uri ~service:s ());
+      check "non-attached coservice" (fun () ->
+          Uri.make_string_uri ~absolute:true ~service:na ()
+      )
   )
 
 let test_configuration () =
   let hostname, port, sslport, https =
     Site.init ~app:"configuration" (fun () ->
-      ( Eliom.Config.get_default_hostname ()
-      , Eliom.Config.get_default_port ()
-      , Eliom.Config.get_default_sslport ()
-      , Eliom.Config.default_protocol_is_https () )
+        ( Eliom.Config.get_default_hostname ()
+        , Eliom.Config.get_default_port ()
+        , Eliom.Config.get_default_sslport ()
+        , Eliom.Config.default_protocol_is_https () )
     )
   in
   Alcotest.(check string) "hostname" Site.hostname hostname;

@@ -13,18 +13,18 @@ let value = V.eref ~scope:Common.default_session_scope "none"
 
 let action service name =
   Registration.Action.register ~service (fun () () ->
-    V.set value name; Lwt.return_unit
+      V.set value name; Lwt.return_unit
   )
 
 let page = get ["page"] P.(opt (string "x"))
 
 let () =
   string page (fun x () ->
-    text
-      (Printf.sprintf "page x=%s value=%s"
-         (Option.value ~default:"none" x)
-         (V.get value)
-      )
+      text
+        (Printf.sprintf "page x=%s value=%s"
+           (Option.value ~default:"none" x)
+           (V.get value)
+        )
   )
 
 let fallback = get ["fallback"] P.unit
@@ -82,7 +82,7 @@ let () =
 
 let () =
   Test_app.register ~service:(get ["app_with_script"] P.unit) (fun () () ->
-    app_page ~scripts:[Test_app.application_script ()] ()
+      app_page ~scripts:[Test_app.application_script ()] ()
   )
 
 let () =
@@ -105,21 +105,24 @@ let () = string (get ["status"] P.unit) (fun () () -> status_text `Not_found)
 
 let () =
   string (get ["no_status"] P.unit) (fun () () ->
-    text
-      (match Registration.get_status () with Some _ -> "some" | None -> "none")
+      text
+        ( match Registration.get_status () with
+        | Some _ -> "some"
+        | None -> "none"
+        )
   )
 
 (* The status set by the handler wins over the code of the registration. *)
 let () =
   Registration.String.register ~code:410
     ~service:(get ["status_over_code"] P.unit) (fun () () ->
-    status_text `Not_found
+      status_text `Not_found
   )
 
 let () =
   Test_app.register ~service:(get ["app_status"] P.unit) (fun () () ->
-    Registration.set_status `Not_found;
-    app_page ()
+      Registration.set_status `Not_found;
+      app_page ()
   )
 
 (* Actions setting a status: sent as is without reload, dropped when the
@@ -129,16 +132,16 @@ let status_action =
 
 let () =
   Registration.Action.register ~service:status_action (fun () () ->
-    Registration.set_status `Bad_request;
-    V.set value "status";
-    Lwt.return_unit
+      Registration.set_status `Bad_request;
+      V.set value "status";
+      Lwt.return_unit
   )
 
 let () =
   Registration.Action.register ~options:`NoReload
     ~service:(get ["status_no_reload"] P.unit) (fun () () ->
-    Registration.set_status `Bad_request;
-    Lwt.return_unit
+      Registration.set_status `Bad_request;
+      Lwt.return_unit
   )
 
 (* The status set by a handler that raises an exception is dropped: the
@@ -147,8 +150,8 @@ exception Boom
 
 let () =
   string (get ["status_raise"] P.unit) (fun () () ->
-    Registration.set_status `Not_found;
-    raise Boom
+      Registration.set_status `Not_found;
+      raise Boom
   )
 
 let error_page text =

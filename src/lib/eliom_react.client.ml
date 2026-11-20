@@ -35,13 +35,13 @@ module Down = struct
     in
     let r =
       ref (fun ?exn () ->
-        let s =
-          "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
-        in
-        Logs.msg ~src:section Logs.Debug (fun fmt ->
-          fmt "%s%a" s pp_exn_option exn
-        );
-        Lwt.return_unit
+          let s =
+            "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
+          in
+          Logs.msg ~src:section Logs.Debug (fun fmt ->
+              fmt "%s%a" s pp_exn_option exn
+          );
+          Lwt.return_unit
       )
     in
     (fun ~exn () -> !r ~exn ()), fun f -> r := f
@@ -52,14 +52,14 @@ module Down = struct
     (* We transform the stream into a stream with exception: *)
     let stream = Lwt_stream.wrap_exn channel in
     Lwt.async (fun () ->
-      Lwt_stream.iter_s
-        (function
-          | Error exn ->
-              let* () = handle_react_exn ~exn () in
-              Lwt.fail exn
-          | Ok () -> Lwt.return_unit
-          )
-        stream
+        Lwt_stream.iter_s
+          (function
+            | Error exn ->
+                let* () = handle_react_exn ~exn () in
+                Lwt.fail exn
+            | Ok () -> Lwt.return_unit
+            )
+          stream
     );
     E.of_stream channel
 

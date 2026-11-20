@@ -127,7 +127,7 @@ module Pass = struct
               eliom_expr ~loc
                 "Client_core.Syntax_helpers.register_client_closure"]
               [%e str num] (fun [%p pat_args args] : [%t typ] ->
-              [%e map_get_escaped_values expr]
+                [%e map_get_escaped_values expr]
             )]
         )
         client_value_datas
@@ -263,9 +263,9 @@ module Pass = struct
     | `Escaped_value _section ->
         let typ =
           push_escaped_binding id expr (fun () ->
-            let typ = find_escaped_ident loc0 id in
-            let typ = assert_no_variables typ in
-            typ
+              let typ = find_escaped_ident loc0 id in
+              let typ = assert_no_variables typ in
+              typ
           )
         in
         [%expr ([%e frag_eid] : [%t typ])]

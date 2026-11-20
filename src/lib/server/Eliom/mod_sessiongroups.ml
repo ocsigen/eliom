@@ -653,8 +653,8 @@ module Pers = struct
                 List.iter
                   (fun e ->
                     Logs.err ~src:eliom_logs_src (fun fmt ->
-                      fmt "Closing a persistent session of a group: %s"
-                        (Printexc.to_string e)
+                        fmt "Closing a persistent session of a group: %s"
+                          (Printexc.to_string e)
                     )
                   )
                   others;

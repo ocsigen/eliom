@@ -41,7 +41,7 @@ let decode_entities s =
           else int_of_string_opt (String.sub e 1 (String.length e - 1))
         in
         Option.bind code (fun c ->
-          if Uchar.is_valid c then Some (Uchar.of_int c) else None
+            if Uchar.is_valid c then Some (Uchar.of_int c) else None
         )
     | _ -> None
   in

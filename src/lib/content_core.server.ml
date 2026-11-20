@@ -64,9 +64,9 @@ module Xml = struct
 
   let wrapper_mark =
     Wrap.create_wrapper (fun {elt; _} ->
-      if Node_id_set.mem elt.node_id !node_ids_in_content
-      then {elt with recontent = RE Empty}
-      else elt
+        if Node_id_set.mem elt.node_id !node_ids_in_content
+        then {elt with recontent = RE Empty}
+        else elt
     )
 
   let wrap page value =
@@ -461,7 +461,7 @@ module Html = struct
       let lazy_node ?(a = []) name children =
         make_lazy
           (Eliom_lazy.from_fun (fun () ->
-             Node (name, a, Eliom_lazy.force children)
+               Node (name, a, Eliom_lazy.force children)
            )
           )
     end

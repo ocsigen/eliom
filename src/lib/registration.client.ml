@@ -118,7 +118,7 @@ let register_att ~service ~att f =
   | None -> ()
   | Some _ ->
       Logs.info ~src:section (fun fmt ->
-        fmt "Service timeout ignored on the client"
+          fmt "Service timeout ignored on the client"
       )
   );
   let s_id =

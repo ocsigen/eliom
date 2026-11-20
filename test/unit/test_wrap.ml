@@ -100,7 +100,7 @@ let test_exception () =
   let control = Gc.get () in
   let v = boxed "a" (fun _ -> failwith "wrapper") in
   Alcotest.check_raises "propagated" (Failure "wrapper") (fun () ->
-    ignore (Wrap.wrap v)
+      ignore (Wrap.wrap v)
   );
   Alcotest.(check bool) "GC settings restored" true (Gc.get () = control)
 
@@ -111,11 +111,11 @@ let test_immediate_results () =
      wherever it appears. *)
   let check : type v. string -> v -> unit =
    fun name r ->
-     let calls = ref 0 in
-     let b = boxed name (fun _ -> incr calls; r) in
-     let w : v * v list = unwrap (b, [b]) in
-     Alcotest.(check int) (name ^ " wrapped once") 1 !calls;
-     Alcotest.(check bool) (name ^ " replaced") true (w = (r, [r]))
+    let calls = ref 0 in
+    let b = boxed name (fun _ -> incr calls; r) in
+    let w : v * v list = unwrap (b, [b]) in
+    Alcotest.(check int) (name ^ " wrapped once") 1 !calls;
+    Alcotest.(check bool) (name ^ " replaced") true (w = (r, [r]))
   in
   check "0" 0;
   check "1" 1;

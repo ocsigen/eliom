@@ -181,19 +181,19 @@ let html_document (src : Dom.element Dom.document Js.t) registered_process_node
     try Dom_html.document##(adoptNode (e :> Dom.element Js.t))
     with exn -> (
       Logs.debug ~src:section (fun fmt ->
-        fmt "can't adopt node, import instead@\n%s" (Printexc.to_string exn)
+          fmt "can't adopt node, import instead@\n%s" (Printexc.to_string exn)
       );
       try Dom_html.document##(importNode (e :> Dom.element Js.t) Js._true)
       with exn ->
         Logs.debug ~src:section (fun fmt ->
-          fmt "can't import node, copy instead@\n%s" (Printexc.to_string exn)
+            fmt "can't import node, copy instead@\n%s" (Printexc.to_string exn)
         );
         copy_element content registered_process_node
     )
   )
   | None ->
       Logs.debug ~src:section (fun fmt ->
-        fmt "can't adopt node, document not parsed as html. copy instead"
+          fmt "can't adopt node, document not parsed as html. copy instead"
       );
       copy_element content registered_process_node
 
@@ -404,7 +404,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
       | Incorrect_url -> Lwt.return ([], rewrite_css_url ~prefix css pos)
       | exn ->
           Logs.info ~src:section (fun fmt ->
-            fmt "Error while importing css@\n%s" (Printexc.to_string exn)
+              fmt "Error while importing css@\n%s" (Printexc.to_string exn)
           );
           Lwt.return ([], rewrite_css_url ~prefix css pos)
     )
@@ -474,8 +474,8 @@ let _ =
   ignore
     ( Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
         (Dom_html.handler (fun _event ->
-           current_position := createDocumentScroll ();
-           Js._false
+             current_position := createDocumentScroll ();
+             Js._false
          )
         )
         Js._true

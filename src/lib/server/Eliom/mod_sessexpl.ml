@@ -58,8 +58,8 @@ let iter_data_cookies f =
 (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
   Mod_cookies.Persistent_cookies.Cookies.iter (fun k v ->
-    let* () = f (k, v) in
-    Lwt.pause ()
+      let* () = f (k, v) in
+      Lwt.pause ()
   )
 
 (** Iterator on service cookies *)

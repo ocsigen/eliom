@@ -108,7 +108,7 @@ module Make (P : PARAM) = struct
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
             Logs.info ~src:section (fun fmt ->
-              fmt "Service expired. Removing it"
+                fmt "Service expired. Removing it"
             );
             let* r, toremove = aux toremove l in
             Lwt.return (r, a :: toremove)
@@ -120,7 +120,7 @@ module Make (P : PARAM) = struct
                 (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
                 Logs.info ~src:section (fun fmt ->
-                  fmt "Page found and generated successfully"
+                    fmt "Page found and generated successfully"
                 );
                 (* If this is an anonymous coservice,
                   we place it at the top of the dlist
@@ -438,24 +438,24 @@ module Make (P : PARAM) = struct
             )
       in
       function
-        | [] ->
-            (* It is a directory, without / at the end. We do a redirection. *)
-            P.handle_directory info
-        | [""] -> aux None []
-        | [a] when a = Common.eliom_nosuffix_page -> (
-          (* version without suffix of suffix service *)
-          try
-            match
-              !( try find_dircontent dircontent Common.eliom_suffix_internal_name
-                 with Not_found -> raise Exn1
-               )
-            with
-            | Common.Dir _ -> Lwt.fail Exn1
-            | Common.File page_table_ref -> find true page_table_ref None
-          with e -> Lwt.fail e
-        )
-        (* We do not remove "//" any more because of optional suffixes *)
-        | a :: l -> aux (Some a) l
+      | [] ->
+          (* It is a directory, without / at the end. We do a redirection. *)
+          P.handle_directory info
+      | [""] -> aux None []
+      | [a] when a = Common.eliom_nosuffix_page -> (
+        (* version without suffix of suffix service *)
+        try
+          match
+            !( try find_dircontent dircontent Common.eliom_suffix_internal_name
+               with Not_found -> raise Exn1
+             )
+          with
+          | Common.Dir _ -> Lwt.fail Exn1
+          | Common.File page_table_ref -> find true page_table_ref None
+        with e -> Lwt.fail e
+      )
+      (* We do not remove "//" any more because of optional suffixes *)
+      | a :: l -> aux (Some a) l
     in
     let search_by_priority_generation tables path =
       (* New in 1.91: There is now one table for each pair

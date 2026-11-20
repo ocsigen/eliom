@@ -14,13 +14,13 @@ let warnings f =
   let logged = ref [] in
   let report _src level ~over k msgf =
     msgf (fun ?header:_ ?tags:_ fmt ->
-      Format.kasprintf
-        (fun s ->
-          if level = Logs.Warning then logged := s :: !logged;
-          over ();
-          k ()
-        )
-        fmt
+        Format.kasprintf
+          (fun s ->
+            if level = Logs.Warning then logged := s :: !logged;
+            over ();
+            k ()
+          )
+          fmt
     )
   in
   let reporter = Logs.reporter () in
@@ -35,11 +35,11 @@ let warnings f =
 let test_all_registered () =
   let (), logged =
     warnings (fun () ->
-      Site.init ~site_dir:["s"] ~app:"registered" (fun () ->
-        Site.register (service ["a"]);
-        Site.register (service ["b"; "c"]);
-        Site.register (coservice "na")
-      )
+        Site.init ~site_dir:["s"] ~app:"registered" (fun () ->
+            Site.register (service ["a"]);
+            Site.register (service ["b"; "c"]);
+            Site.register (coservice "na")
+        )
     )
   in
   Alcotest.(check (list string)) "no warning" [] logged
@@ -47,9 +47,9 @@ let test_all_registered () =
 let test_unregistered () =
   match
     Site.init ~site_dir:["s"] ~app:"unregistered" (fun () ->
-      Site.register (service ["a"]);
-      ignore (service ["b"; "c"]);
-      ignore (coservice "na")
+        Site.register (service ["a"]);
+        ignore (service ["b"; "c"]);
+        ignore (coservice "na")
     )
   with
   | () -> Alcotest.fail "unregistered services accepted"
@@ -66,10 +66,10 @@ let test_unregistered_non_attached () =
      they are only reported. *)
   let (), logged =
     warnings (fun () ->
-      Site.init ~site_dir:["s"] ~app:"unregistered-na" (fun () ->
-        Site.register (coservice "used");
-        ignore (coservice "unused")
-      )
+        Site.init ~site_dir:["s"] ~app:"unregistered-na" (fun () ->
+            Site.register (coservice "used");
+            ignore (coservice "unused")
+        )
     )
   in
   Alcotest.(check (list string))
@@ -83,10 +83,10 @@ let test_allow_unregistered () =
      use. *)
   let (), logged =
     warnings (fun () ->
-      Site.init ~site_dir:["s"] ~app:"allow-unregistered" (fun () ->
-        Service.allow_unregistered (service ["a"]);
-        Service.allow_unregistered (coservice "na")
-      )
+        Site.init ~site_dir:["s"] ~app:"allow-unregistered" (fun () ->
+            Service.allow_unregistered (service ["a"]);
+            Service.allow_unregistered (coservice "na")
+        )
     )
   in
   Alcotest.(check (list string)) "no warning" [] logged
@@ -95,13 +95,13 @@ let test_allow_unregistered_registered () =
   (* An application that uses the feature registers the services. *)
   let (), logged =
     warnings (fun () ->
-      Site.init ~site_dir:["s"] ~app:"allow-registered" (fun () ->
-        let s = service ["a"] and c = coservice "na" in
-        Service.allow_unregistered s;
-        Service.allow_unregistered c;
-        Site.register s;
-        Site.register c
-      )
+        Site.init ~site_dir:["s"] ~app:"allow-registered" (fun () ->
+            let s = service ["a"] and c = coservice "na" in
+            Service.allow_unregistered s;
+            Service.allow_unregistered c;
+            Site.register s;
+            Site.register c
+        )
     )
   in
   Alcotest.(check (list string)) "no warning" [] logged
@@ -110,9 +110,9 @@ let test_allow_unregistered_attached_coservice () =
   (* The fallback of an attached coservice is still checked. *)
   match
     Site.init ~site_dir:["s"] ~app:"allow-attached" (fun () ->
-      let fallback = service ["a"] in
-      Service.allow_unregistered
-        (Service.create_attached_get ~fallback ~get_params:Parameter.unit ())
+        let fallback = service ["a"] in
+        Service.allow_unregistered
+          (Service.create_attached_get ~fallback ~get_params:Parameter.unit ())
     )
   with
   | () -> Alcotest.fail "unregistered fallback accepted"
@@ -124,13 +124,13 @@ let test_buses () =
      during requests. *)
   let (), logged =
     warnings (fun () ->
-      Site.init ~app:"buses" (fun () ->
-        ignore (Eliom.Bus.create [%json: int]);
-        ignore
-          (Eliom.Bus.create ~scope:Eliom.Common.default_process_scope
-             [%json: int]
-          )
-      )
+        Site.init ~app:"buses" (fun () ->
+            ignore (Eliom.Bus.create [%json: int]);
+            ignore
+              (Eliom.Bus.create ~scope:Eliom.Common.default_process_scope
+                 [%json: int]
+              )
+        )
     )
   in
   Alcotest.(check (list string)) "no warning" [] logged
@@ -138,8 +138,8 @@ let test_buses () =
 let test_registered_twice () =
   match
     Site.init ~app:"twice" (fun () ->
-      let s = service ["a"] in
-      Site.register s; Site.register s
+        let s = service ["a"] in
+        Site.register s; Site.register s
     )
   with
   | () -> Alcotest.fail "registered twice"
@@ -160,44 +160,45 @@ let test_duplicates () =
     Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
   in
   check "same path and parameters" (Some "a") (fun () ->
-    Site.register (service ["a"]);
-    Site.register (service ["a"])
+      Site.register (service ["a"]);
+      Site.register (service ["a"])
   );
   check "same path, other parameters" None (fun () ->
-    Site.register (get ["a"] (Parameter.int "i"));
-    Site.register (get ["a"] (Parameter.string "s"))
+      Site.register (get ["a"] (Parameter.int "i"));
+      Site.register (get ["a"] (Parameter.string "s"))
   );
   check "non-attached coservices with the same name"
     (Some "GET non-attached service na") (fun () ->
-    Site.register (coservice "na");
-    Site.register (coservice "na")
+      Site.register (coservice "na");
+      Site.register (coservice "na")
   );
   check "anonymous non-attached coservices" None (fun () ->
-    let anonymous () =
-      Service.create ~path:Service.No_path ~meth:(Service.Get Parameter.unit) ()
-    in
-    Site.register (anonymous ());
-    Site.register (anonymous ())
+      let anonymous () =
+        Service.create ~path:Service.No_path ~meth:(Service.Get Parameter.unit)
+          ()
+      in
+      Site.register (anonymous ());
+      Site.register (anonymous ())
   );
   check "attached coservices with the same name" (Some "a (coservice n)")
     (fun () ->
-    let fallback = service ["a"] in
-    let named () =
-      Service.create_attached_get ~name:"n" ~fallback ~get_params:Parameter.unit
-        ()
-    in
-    Site.register fallback;
-    Site.register (named ());
-    Site.register (named ())
+      let fallback = service ["a"] in
+      let named () =
+        Service.create_attached_get ~name:"n" ~fallback
+          ~get_params:Parameter.unit ()
+      in
+      Site.register fallback;
+      Site.register (named ());
+      Site.register (named ())
   );
   check "anonymous attached coservices" None (fun () ->
-    let fallback = service ["a"] in
-    let anonymous () =
-      Service.create_attached_get ~fallback ~get_params:Parameter.unit ()
-    in
-    Site.register fallback;
-    Site.register (anonymous ());
-    Site.register (anonymous ())
+      let fallback = service ["a"] in
+      let anonymous () =
+        Service.create_attached_get ~fallback ~get_params:Parameter.unit ()
+      in
+      Site.register fallback;
+      Site.register (anonymous ());
+      Site.register (anonymous ())
   )
 
 let test_page_erasing () =
@@ -205,8 +206,8 @@ let test_page_erasing () =
   let check msg first second =
     match
       Site.init ~app:("erasing, " ^ msg) (fun () ->
-        Site.register (service first);
-        Site.register (service second)
+          Site.register (service first);
+          Site.register (service second)
       )
     with
     | () -> Alcotest.failf "%s: accepted" msg
@@ -222,9 +223,9 @@ let test_session_registration () =
   (* Services of a session are registered during a request. *)
   match
     Site.init ~app:"session registration" (fun () ->
-      Html_text.register ~scope:Eliom.Common.default_session_scope
-        ~service:(service ["a"]) (fun () () -> Lwt.return ""
-      )
+        Html_text.register ~scope:Eliom.Common.default_session_scope
+          ~service:(service ["a"]) (fun () () -> Lwt.return ""
+        )
     )
   with
   | () -> Alcotest.fail "registered"
@@ -254,7 +255,7 @@ let test_current_site_restored () =
     "after a site" None (current_site_dir ());
   ( match
       Site.init ~site_dir:["failed"] ~app:"restored-failed" (fun () ->
-        ignore (service ["a"])
+          ignore (service ["a"])
       )
     with
   | () -> Alcotest.fail "unregistered service accepted"

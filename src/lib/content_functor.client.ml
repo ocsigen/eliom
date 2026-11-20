@@ -104,9 +104,9 @@ struct
   (* The node [node], if any, as an Eliom element, if it is an element *)
   let elt_of_node_opt node =
     Js.Opt.bind node (fun node ->
-      Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-        Of_dom.of_element (Dom_html.element node)
-      )
+        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+            Of_dom.of_element (Dom_html.element node)
+        )
     )
 
   let nth elt n =
@@ -456,7 +456,7 @@ module Html = struct
     let raw_addEventListener ?(capture = false) node event handler =
       Dom_html.addEventListener node event
         (Dom_html.full_handler (fun n e ->
-           Js.bool (handler (Html.F.tot (Xml.make_dom (n :> Dom.node Js.t))) e)
+             Js.bool (handler (Html.F.tot (Xml.make_dom (n :> Dom.node Js.t))) e)
          )
         )
         (Js.bool capture)
@@ -559,23 +559,23 @@ module Html = struct
 
       let onfocus :> (_, Dom_html.event) ev =
        fun elt f ->
-         let elt = get_unique_elt_input "Ev.onfocus" elt in
-         elt##.onfocus := bool_cb f
+        let elt = get_unique_elt_input "Ev.onfocus" elt in
+        elt##.onfocus := bool_cb f
 
       let onblur :> (_, Dom_html.event) ev =
        fun elt f ->
-         let elt = get_unique_elt_input "Ev.onblur" elt in
-         elt##.onblur := bool_cb f
+        let elt = get_unique_elt_input "Ev.onblur" elt in
+        elt##.onblur := bool_cb f
 
       let onfocus_textarea :> (_, Dom_html.event) ev =
        fun elt f ->
-         let elt = get_unique_elt_textarea "Ev.onfocus" elt in
-         elt##.onfocus := bool_cb f
+        let elt = get_unique_elt_textarea "Ev.onfocus" elt in
+        elt##.onfocus := bool_cb f
 
       let onblur_textarea :> (_, Dom_html.event) ev =
        fun elt f ->
-         let elt = get_unique_elt_textarea "Ev.onblur" elt in
-         elt##.onblur := bool_cb f
+        let elt = get_unique_elt_textarea "Ev.onblur" elt in
+        elt##.onblur := bool_cb f
 
       let onscroll elt f =
         let elt = get_unique_elt "Ev.onscroll" elt in

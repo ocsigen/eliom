@@ -47,7 +47,7 @@ let get_cookie_info_for_uri_js uri_js =
             Url.path_of_path_string
               (Js.to_string
                  (Js.Optdef.get (Js.array_get match_result 1) (fun () ->
-                    assert false
+                      assert false
                   )
                  )
               )
@@ -362,9 +362,9 @@ let send
                                      this case is already handled before *)
               else (
                 Logs.warn ~src:section (fun fmt ->
-                  fmt
-                    "received content for application %S when running application %s"
-                    appl_name current_appl_name
+                    fmt
+                      "received content for application %S when running application %s"
+                      appl_name current_appl_name
                 );
                 Lwt.fail (Failed_request code)
               )
@@ -411,19 +411,19 @@ let track_image_button_clicks () =
         Dom_html.CoerceTo.input
     in
     Js.Opt.iter input (fun i ->
-      if i##._type = Js.string "image"
-      then
-        (* A click without a pointer, from the keyboard or from a script,
+        if i##._type = Js.string "image"
+        then
+          (* A click without a pointer, from the keyboard or from a script,
            has a [detail] of 0: the image button then sends (0, 0), as
            the HTML specification says. *)
-        let point =
-          if (Js.Unsafe.coerce ev : clickEvent Js.t)##.detail = 0
-          then 0, 0
-          else
-            ( int_of_float (Js.to_float ev##.offsetX)
-            , int_of_float (Js.to_float ev##.offsetY) )
-        in
-        image_button_click := Some (i, point)
+          let point =
+            if (Js.Unsafe.coerce ev : clickEvent Js.t)##.detail = 0
+            then 0, 0
+            else
+              ( int_of_float (Js.to_float ev##.offsetX)
+              , int_of_float (Js.to_float ev##.offsetY) )
+          in
+          image_button_click := Some (i, point)
     );
     Js._true
   in

@@ -34,6 +34,6 @@ let () =
   let r = Lwt_main.run (Eliom_test_server.Browser.get b "/page") in
   cdata_sections r.body 0
   |> List.iter (fun script ->
-    Printf.printf "require(\"vm\").runInThisContext(%s);\n"
-      (Js_literal.string script)
+      Printf.printf "require(\"vm\").runInThisContext(%s);\n"
+        (Js_literal.string script)
   )

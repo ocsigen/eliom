@@ -11,6 +11,6 @@ let start () =
     (fun v () -> V.set session_value v; text "set");
   string (get ["get"] P.unit) (fun () () -> text (V.get session_value));
   string (get ["count"] P.unit) (fun () () ->
-    text (string_of_int (State.number_of_volatile_data_cookies ()))
+      text (string_of_int (State.number_of_volatile_data_cookies ()))
   );
   Eliom_test_server.Server_harness.start [App.run ()]

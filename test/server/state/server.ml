@@ -28,13 +28,15 @@ let string_of_status = function
 
 let () =
   string (get ["status"] P.unit) (fun () () ->
-    text
-      (Printf.sprintf "data=%s services=%s"
-         (string_of_status
-            (State.volatile_data_state_status ~scope:session_scope ())
-         )
-         (string_of_status (State.service_state_status ~scope:session_scope ()))
-      )
+      text
+        (Printf.sprintf "data=%s services=%s"
+           (string_of_status
+              (State.volatile_data_state_status ~scope:session_scope ())
+           )
+           (string_of_status
+              (State.service_state_status ~scope:session_scope ())
+           )
+        )
   )
 
 (* Session services: a coservice registered for the session of the request,
@@ -45,12 +47,14 @@ let () = string fallback (fun () () -> text "fallback")
 
 let () =
   string (get ["coservice"] P.unit) (fun () () ->
-    let service = Service.create_attached_get ~fallback ~get_params:P.unit () in
-    let owner = V.get session_value in
-    Registration.String.register ~scope:session_scope ~service (fun () () ->
-      text ("coservice of " ^ owner)
-    );
-    text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      let owner = V.get session_value in
+      Registration.String.register ~scope:session_scope ~service (fun () () ->
+          text ("coservice of " ^ owner)
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
   )
 
 (* Closing *)
@@ -241,7 +245,7 @@ let () =
       in
       let owner = V.get session_value in
       Registration.String.register ~scope:group_scope ~service (fun () () ->
-        text ("group nacoservice of " ^ owner)
+          text ("group nacoservice of " ^ owner)
       );
       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
     )
@@ -265,7 +269,7 @@ let () =
     (fun name () ->
       let close state =
         State.Ext.iter_sub_states ~state (fun state ->
-          State.Ext.discard_state ~state ()
+            State.Ext.discard_state ~state ()
         )
       in
       let* () =
@@ -289,7 +293,7 @@ let () =
       in
       let owner = V.get session_value in
       Registration.String.register ~scope:group_scope ~service (fun () () ->
-        text ("group coservice of " ^ owner)
+          text ("group coservice of " ^ owner)
       );
       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
     )

@@ -338,7 +338,7 @@ let strip_extension_if ((name, payload) : extension) ext_attrs =
     | PStr [({pstr_desc = Pstr_value (r, vbs); _} as item)] ->
         let vbs =
           List.map vbs ~f:(fun vb ->
-            {vb with pvb_attributes = strip_if vb.pvb_attributes}
+              {vb with pvb_attributes = strip_if vb.pvb_attributes}
           )
         in
         PStr [{item with pstr_desc = Pstr_value (r, vbs)}]
@@ -393,7 +393,7 @@ let traverse =
       | Pstr_value (r, l) -> (
           let l =
             filter_map l ~f:(fun b ->
-              if keep b.pvb_loc b.pvb_attributes then Some b else None
+                if keep b.pvb_loc b.pvb_attributes then Some b else None
             )
           in
           match l with
@@ -405,9 +405,9 @@ let traverse =
     method! cases cases =
       let cases =
         filter_map cases ~f:(fun case ->
-          match filter_pattern case.pc_lhs with
-          | None -> None
-          | Some pattern -> Some {case with pc_lhs = pattern}
+            match filter_pattern case.pc_lhs with
+            | None -> None
+            | Some pattern -> Some {case with pc_lhs = pattern}
         )
       in
       super#cases cases

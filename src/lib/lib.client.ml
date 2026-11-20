@@ -105,7 +105,7 @@ let _ =
   Lwt.async_exception_hook :=
     fun exn ->
       Logs.err ~src:eliom_logs_src (fun fmt ->
-        fmt "Lwt.async: %s%a" (Printexc.to_string exn) pp_js_stack exn
+          fmt "Lwt.async: %s%a" (Printexc.to_string exn) pp_js_stack exn
       )
 
 let trace fmts =

@@ -56,7 +56,7 @@ let tenable_value ~name v =
       )
       else
         Logs.warn ~src:eliom_logs_src (fun fmt ->
-          fmt "Ignored setting tenable value %S." name
+            fmt "Ignored setting tenable value %S." name
         )
   end
 
@@ -193,9 +193,9 @@ let decode_perssessgrp a =
          session-group cookie: treat it as an expired session instead of
          letting the Deriving_Json failure escape and 500 every request. *)
       Logs.info ~src:eliom_logs_src (fun fmt ->
-        fmt
-          "Unreadable persistent session group (pre-13 or corrupt), session expired: %s"
-          msg
+          fmt
+            "Unreadable persistent session group (pre-13 or corrupt), session expired: %s"
+            msg
       );
       raise Eliom_Session_expired
 
@@ -215,7 +215,7 @@ let of_json_or_default ~what ~default of_json s =
   try of_json s
   with Failure msg ->
     Logs.debug ~src:eliom_logs_src (fun fmt ->
-      fmt "Ignored malformed %s sent by the client: %s" what msg
+        fmt "Ignored malformed %s sent by the client: %s" what msg
     );
     default
 
@@ -805,9 +805,9 @@ let verify_all_registered sitedata =
       (* Libraries create non-attached coservices that applications may not
          use: they are only reported. *)
       Logs.warn ~src:eliom_logs_src (fun fmt ->
-        fmt "In site /%s - %s"
-          (Url.string_of_url_path ~encode:false (get_site_dir sitedata))
-          (describe_unregistered_na l)
+          fmt "In site /%s - %s"
+            (Url.string_of_url_path ~encode:false (get_site_dir sitedata))
+            (describe_unregistered_na l)
       )
   | l1, l2 ->
       raise
@@ -917,13 +917,13 @@ let global_tables max =
   let initialisation = anonymous_services max_int t2 in
   let requests = anonymous_services max t2 in
   ( tables t2 (fun ?sp v ->
-      match sp with
-      | Some _ -> add_dlist_ requests v
-      | None -> (
-        match global_register_allowed () with
-        | None -> failwith "global tables created outside initialisation"
-        | Some _ -> add_dlist_ initialisation v
-      )
+        match sp with
+        | Some _ -> add_dlist_ requests v
+        | None -> (
+          match global_register_allowed () with
+          | None -> failwith "global tables created outside initialisation"
+          | Some _ -> add_dlist_ initialisation v
+        )
     )
   , requests )
 
@@ -1434,12 +1434,12 @@ module Ocsipersist = struct
 
       let replace_if_exists key value =
         Omit_persistent_storage.not_if_omitting_storage (fun () ->
-          replace_if_exists key value
+            replace_if_exists key value
         )
 
       let modify_opt key f =
         Omit_persistent_storage.not_if_omitting_storage (fun () ->
-          modify_opt key f
+            modify_opt key f
         )
     end
   end
@@ -1574,9 +1574,9 @@ let defer get f =
   | Some v -> r := Some (f v)
   | None ->
       Ocsigen_base.Loader.add_module_init_function (get_app_name ()) (fun () ->
-        match get () with
-        | Some v -> r := Some (f v)
-        | None -> raise (Site_information_not_available "defer")
+          match get () with
+          | Some v -> r := Some (f v)
+          | None -> raise (Site_information_not_available "defer")
       )
   );
   r

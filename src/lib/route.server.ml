@@ -147,14 +147,14 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
         List.fold_left
           (fun beg (table, table_name) ->
             next beg (fun () ->
-              Logs.info ~src:section (fun fmt ->
-                fmt "Looking for %s in the %s:"
-                  (Url.string_of_url_path ~encode:true
-                     (Common.sub_path ri.request_info)
-                  )
-                  table_name
-              );
-              find_aux now sitedata info Common.Eliom_404 table
+                Logs.info ~src:section (fun fmt ->
+                    fmt "Looking for %s in the %s:"
+                      (Url.string_of_url_path ~encode:true
+                         (Common.sub_path ri.request_info)
+                      )
+                      table_name
+                );
+                find_aux now sitedata info Common.Eliom_404 table
             )
           )
           (Lwt.fail Common.Eliom_404)
@@ -164,10 +164,10 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
       List.fold_left
         (fun beg (table, group) ->
           next beg (fun () ->
-            Logs.info ~src:section (fun fmt ->
-              fmt "Looking in the table of a session group:"
-            );
-            find_service now table (Some group) sitedata info
+              Logs.info ~src:section (fun fmt ->
+                  fmt "Looking in the table of a session group:"
+              );
+              find_service now table (Some group) sitedata info
           )
         )
         in_sessions (group_tables info)
@@ -177,7 +177,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
           Lwt.catch (* then in the global table *)
             (fun () ->
               Logs.info ~src:section (fun fmt ->
-                fmt "Searching in the global table:"
+                  fmt "Searching in the global table:"
               );
               find_service now sitedata.Common.global_services None sitedata
                 info
@@ -192,7 +192,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                           We remove it, and remove POST parameters.
                     *)
                     Logs.info ~src:section (fun fmt ->
-                      fmt "Link too old. Try without POST parameters:"
+                        fmt "Link too old. Try without POST parameters:"
                     );
                     Polytables.set
                       ~table:(Ocsigen.Request.request_cache ri.request_info)
@@ -219,8 +219,8 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                      and remove POST parameters.
                     *)
                     Logs.info ~src:section (fun fmt ->
-                      fmt
-                        "Link to old. Trying without GET state parameters and POST parameters:"
+                        fmt
+                          "Link to old. Trying without GET state parameters and POST parameters:"
                     );
                     Polytables.set
                       ~table:(Ocsigen.Request.request_cache ri.request_info)
@@ -325,7 +325,7 @@ let find_naservice now tables name =
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
       Logs.info ~src:section (fun fmt ->
-        fmt "Non attached service expired. Removing it"
+          fmt "Non attached service expired. Removing it"
       );
       remove_naservice_ tables name nodeopt;
       raise Not_found
@@ -385,7 +385,7 @@ let make_naservice
           | [] -> raise Not_found
           | (table, table_name) :: l -> (
               Logs.info ~src:section (fun fmt ->
-                fmt "Looking for a non attached service in the %s:" table_name
+                  fmt "Looking for a non attached service in the %s:" table_name
               );
               try Lwt.return (find_aux table) with Not_found -> f l
             )
@@ -398,8 +398,8 @@ let make_naservice
             | [] -> raise Not_found
             | (table, group) :: l -> (
                 Logs.info ~src:section (fun fmt ->
-                  fmt
-                    "Looking for a non attached service in the table of a session group:"
+                    fmt
+                      "Looking for a non attached service in the table of a session group:"
                 );
                 try Lwt.return (find_naservice now table key, table, Some group)
                 with Not_found -> g l
@@ -408,7 +408,7 @@ let make_naservice
           g (group_tables info)
       with Not_found ->
         Logs.info ~src:section (fun fmt ->
-          fmt "Looking for a non attached service in the global table"
+            fmt "Looking for a non attached service in the global table"
         );
         Lwt.return
           ( find_naservice now sitedata.Common.global_services
@@ -425,8 +425,8 @@ let make_naservice
       | Common.RNa_post_ _ | Common.RNa_post' _ ->
           (*VVV (Some, Some) or (_, Some)? *)
           Logs.info ~src:section (fun fmt ->
-            fmt
-              "Link too old to a non-attached POST coservice. Try without POST parameters:"
+              fmt
+                "Link too old to a non-attached POST coservice. Try without POST parameters:"
           );
           Polytables.set
             ~table:(Ocsigen.Request.request_cache ri.request_info)
@@ -445,7 +445,7 @@ let make_naservice
                {info with request = ri'; session_info = si'}
       | Common.RNa_get_ _ | Common.RNa_get' _ ->
           Logs.info ~src:section (fun fmt ->
-            fmt "Link too old. Try without non-attached parameters:"
+              fmt "Link too old. Try without non-attached parameters:"
           );
           Polytables.set
             ~table:(Ocsigen.Request.request_cache ri.request_info)
@@ -467,7 +467,7 @@ let make_naservice
   let sp = Common.make_server_params sitedata info None fullsessname in
   let* r = naservice sp in
   Logs.info ~src:section (fun fmt ->
-    fmt "Non attached page found and generated successfully"
+      fmt "Non attached page found and generated successfully"
   );
   (match expdate with Some (timeout, e) -> e := timeout +. now | None -> ());
   ( match max_use with

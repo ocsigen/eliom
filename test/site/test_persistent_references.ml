@@ -16,11 +16,11 @@ let test_site_scope () =
   let r = site_eref "test_site_scope" 0 in
   let default, modified =
     on_site ~app:"persistent-a" ["a"] (fun () ->
-      let* default = Reference.get r in
-      let* () = Reference.set r 1 in
-      let* () = Reference.modify r succ in
-      let+ modified = Reference.get r in
-      default, modified
+        let* default = Reference.get r in
+        let* () = Reference.set r 1 in
+        let* () = Reference.modify r succ in
+        let+ modified = Reference.get r in
+        default, modified
     )
   in
   Alcotest.(check int) "default value" 0 default;
@@ -31,10 +31,10 @@ let test_site_scope () =
   (* The site is initialised again, as when the server is restarted. *)
   let kept, unset =
     on_site ~app:"persistent-a-again" ["a"] (fun () ->
-      let* kept = Reference.get r in
-      let* () = Reference.unset r in
-      let+ unset = Reference.get r in
-      kept, unset
+        let* kept = Reference.get r in
+        let* () = Reference.unset r in
+        let+ unset = Reference.get r in
+        kept, unset
     )
   in
   Alcotest.(check int) "same site" 2 kept;
@@ -46,7 +46,7 @@ let test_modify_later () =
   let r = site_eref "test_modify_later" 0 in
   let modification =
     Site.init ~site_dir:["m"] ~app:"modify-later" (fun () ->
-      Reference.modify r succ
+        Reference.modify r succ
     )
   in
   Lwt_main.run modification;
@@ -65,7 +65,7 @@ let test_site_identity () =
   Alcotest.(check int)
     "other default host name" 1
     (on_site ~config_info:other_host ~app:"identity-other-host" ["s"] (fun () ->
-       Reference.get r
+         Reference.get r
      )
     )
 
@@ -121,10 +121,10 @@ let test_unreadable () =
     let as_int = Reference.eref ~scope ~persistent:(name, [%json: int]) 7 in
     let as_int_value, as_string_value =
       run (fun () ->
-        let* () = Reference.set as_string "x" in
-        let* as_int_value = Reference.get as_int in
-        let+ as_string_value = Reference.get as_string in
-        as_int_value, as_string_value
+          let* () = Reference.set as_string "x" in
+          let* as_int_value = Reference.get as_int in
+          let+ as_string_value = Reference.get as_string in
+          as_int_value, as_string_value
       )
     in
     Alcotest.(check int) "reset" 7 as_int_value;

@@ -69,10 +69,10 @@ let fallback_global_service =
   Common.lazy_site_value_from_fun @@ fun () ->
   Comet.create ~meth:(Service.Get Parameter.unit)
     ~path:(Service.Path comet_global_path) (fun () () ->
-    Lwt.return
-      (error_msg
-         "request with no post parameters, or there isn't any registered site comet channel"
-      )
+      Lwt.return
+        (error_msg
+           "request with no post parameters, or there isn't any registered site comet channel"
+        )
   )
 
 let new_id = Lib.make_cryptographic_safe_string
@@ -311,9 +311,9 @@ end
 (** Register services at site initialization *)
 let () =
   Mod_main.register_site_init (fun () ->
-    ignore (Common.force_lazy_site_value fallback_global_service);
-    ignore (Common.force_lazy_site_value fallback_service);
-    ignore (Stateless.get_service ())
+      ignore (Common.force_lazy_site_value fallback_global_service);
+      ignore (Common.force_lazy_site_value fallback_service);
+      ignore (Stateless.get_service ())
   )
 
 (** String channels on which is build the module Channel *)
@@ -564,18 +564,20 @@ end = struct
             Lwt.catch
               (fun () ->
                 Lwt_unix.with_timeout (timeout ()) (fun () ->
-                  let* messages =
-                    let messages = read_channels 100 handler in
-                    if messages <> [] || idle
-                    then Lwt.return messages
-                    else
-                      let* () = wait_data (wait_closed_connection ()) handler in
-                      Lwt.return (read_channels 100 handler)
-                  in
-                  let message = encode_downgoing messages in
-                  handler.hd_last <- message, number;
-                  set_inactive handler;
-                  Lwt.return message
+                    let* messages =
+                      let messages = read_channels 100 handler in
+                      if messages <> [] || idle
+                      then Lwt.return messages
+                      else
+                        let* () =
+                          wait_data (wait_closed_connection ()) handler
+                        in
+                        Lwt.return (read_channels 100 handler)
+                    in
+                    let message = encode_downgoing messages in
+                    handler.hd_last <- message, number;
+                    set_inactive handler;
+                    Lwt.return message
                 )
               )
               (function

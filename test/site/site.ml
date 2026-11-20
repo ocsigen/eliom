@@ -24,14 +24,14 @@ let init
   Hashtbl.add apps app ();
   let result = ref None in
   Eliom.Service.register_eliom_module app (fun () ->
-    Eliom.Syntax.set_global true;
-    Fun.protect
-      ~finally:(fun () -> Eliom.Syntax.set_global false)
-      (fun () -> result := Some (f ()))
+      Eliom.Syntax.set_global true;
+      Fun.protect
+        ~finally:(fun () -> Eliom.Syntax.set_global false)
+        (fun () -> result := Some (f ()))
   );
   Ocsigen.Extensions.start_initialisation ();
   Fun.protect ~finally:Ocsigen.Extensions.end_initialisation (fun () ->
-    ignore (run ~app [] config_info site_dir : Ocsigen.Extensions.extension)
+      ignore (run ~app [] config_info site_dir : Ocsigen.Extensions.extension)
   );
   match !result with
   | Some r -> r

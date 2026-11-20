@@ -5,7 +5,7 @@ let test_site_scope () =
   let r = Volatile.eref ~scope:Common.site_scope 0 in
   let a =
     Site.init ~site_dir:["a"] ~app:"site-a" (fun () ->
-      Volatile.set r 1; Volatile.get r
+        Volatile.set r 1; Volatile.get r
     )
   in
   let b = Site.init ~site_dir:["b"] ~app:"site-b" (fun () -> Volatile.get r) in
@@ -71,10 +71,10 @@ let test_scopes_needing_a_request () =
       | exception Common.Request_information_not_available _ -> ()
     in
     Site.init ~app:("needing a request, " ^ msg) (fun () ->
-      check_operation "get" (fun () -> ignore (Volatile.get r : int));
-      check_operation "set" (fun () -> Volatile.set r 1);
-      check_operation "modify" (fun () -> Volatile.modify r succ);
-      check_operation "unset" (fun () -> Volatile.unset r)
+        check_operation "get" (fun () -> ignore (Volatile.get r : int));
+        check_operation "set" (fun () -> Volatile.set r 1);
+        check_operation "modify" (fun () -> Volatile.modify r succ);
+        check_operation "unset" (fun () -> Volatile.unset r)
     )
   in
   check "session" Common.default_session_scope;

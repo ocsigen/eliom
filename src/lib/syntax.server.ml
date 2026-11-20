@@ -57,8 +57,8 @@ let get_global_data, modify_global_data =
           | Some data, None | None, Some data -> Some data
           | Some _, Some site_data ->
               Logs.err ~src:Lib.eliom_logs_src (fun fmt ->
-                fmt "Compilation unit %s linked globally AND as Eliom module"
-                  compilation_unit_id
+                  fmt "Compilation unit %s linked globally AND as Eliom module"
+                    compilation_unit_id
               );
               Some site_data
         )
@@ -131,7 +131,7 @@ let register_client_value_data ~closure_id ~args ~value =
     else raise (Client_value.Client_value_creation_invalid_context closure_id)
   else
     Reference.Volatile.modify request_data (fun sofar ->
-      client_value_datum :: sofar
+        client_value_datum :: sofar
     )
 
 (*****************************************************************************)

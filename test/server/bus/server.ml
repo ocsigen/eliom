@@ -11,7 +11,7 @@ module Client = Eliom_test_client
 let record stream =
   let received = ref [] in
   Lwt.async (fun () ->
-    Lwt_stream.iter (fun v -> received := v :: !received) stream
+      Lwt_stream.iter (fun v -> received := v :: !received) stream
   );
   received
 

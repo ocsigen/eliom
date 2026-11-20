@@ -65,7 +65,7 @@ let () =
         Service.create_attached_get ~fallback ~get_params:P.unit ()
       in
       Registration.String.register ~scope:tab_scope ~service (fun () () ->
-        text "coservice of the tab"
+          text "coservice of the tab"
       );
       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
     )
@@ -80,7 +80,7 @@ let () =
         Service.create_attached_get ~fallback ~get_params:P.unit ()
       in
       Registration.String.register ~scope:group_scope ~service (fun () () ->
-        text "coservice of the group"
+          text "coservice of the group"
       );
       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
     )

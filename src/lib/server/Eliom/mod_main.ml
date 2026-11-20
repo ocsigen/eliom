@@ -418,16 +418,16 @@ let parse_eliom_option
      sessions, groups or services, which must be positive. *)
   let with_limit tag v f =
     with_int tag v (fun i ->
-      if i < 1
-      then
-        raise
-          (Error_in_config_file
-             (Printf.sprintf
-                "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
-                tag
-             )
-          );
-      f i
+        if i < 1
+        then
+          raise
+            (Error_in_config_file
+               (Printf.sprintf
+                  "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+                  tag
+               )
+            );
+        f i
     )
   in
   let parse_application_script_attrs attrs =
@@ -474,114 +474,112 @@ let parse_eliom_option
     aux [] 0 attrs
   in
   function
-    | Xml.Element ("volatiletimeout", attrs, []) ->
-        let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
-        set_volatile_timeout ct snoo (t : float option)
-    | Xml.Element ("datatimeout", attrs, []) ->
-        let t, snoo, ct = parse_timeout_attrs "datatimeout" attrs in
-        set_data_timeout ct snoo t
-    | Xml.Element ("servicetimeout", attrs, []) ->
-        let t, snoo, ct = parse_timeout_attrs "servicetimeout" attrs in
-        set_service_timeout ct snoo t
-    | Xml.Element ("persistenttimeout", attrs, []) ->
-        let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
-        set_persistent_timeout ct snoo t
-    | Xml.Element (("maxvolatilesessionspergroup" as tag), [("value", v)], [])
-      ->
-        with_limit tag v (fun i ->
+  | Xml.Element ("volatiletimeout", attrs, []) ->
+      let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
+      set_volatile_timeout ct snoo (t : float option)
+  | Xml.Element ("datatimeout", attrs, []) ->
+      let t, snoo, ct = parse_timeout_attrs "datatimeout" attrs in
+      set_data_timeout ct snoo t
+  | Xml.Element ("servicetimeout", attrs, []) ->
+      let t, snoo, ct = parse_timeout_attrs "servicetimeout" attrs in
+      set_service_timeout ct snoo t
+  | Xml.Element ("persistenttimeout", attrs, []) ->
+      let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
+      set_persistent_timeout ct snoo t
+  | Xml.Element (("maxvolatilesessionspergroup" as tag), [("value", v)], []) ->
+      with_limit tag v (fun i ->
           set_max_service_sessions_per_group i;
           set_max_data_sessions_per_group i
-        )
-    | Xml.Element (("maxservicesessionspergroup" as tag), [("value", v)], []) ->
-        with_limit tag v set_max_service_sessions_per_group
-    | Xml.Element (("maxdatasessionspergroup" as tag), [("value", v)], []) ->
-        with_limit tag v set_max_data_sessions_per_group
-    | Xml.Element
-        (("maxvolatilesessionswithoutgroup" as tag), [("value", v)], []) ->
-        with_limit tag v (fun i ->
+      )
+  | Xml.Element (("maxservicesessionspergroup" as tag), [("value", v)], []) ->
+      with_limit tag v set_max_service_sessions_per_group
+  | Xml.Element (("maxdatasessionspergroup" as tag), [("value", v)], []) ->
+      with_limit tag v set_max_data_sessions_per_group
+  | Xml.Element (("maxvolatilesessionswithoutgroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v (fun i ->
           set_max_service_sessions_without_group i;
           set_max_data_sessions_without_group i
-        )
-    | Xml.Element (("maxservicesessionswithoutgroup" as tag), [("value", v)], [])
-      ->
-        with_limit tag v set_max_service_sessions_without_group
-    | Xml.Element (("maxdatasessionswithoutgroup" as tag), [("value", v)], [])
-      ->
-        with_limit tag v set_max_data_sessions_without_group
-    | Xml.Element (("maxpersistentsessionspergroup" as tag), [("value", v)], [])
-      ->
-        with_limit tag v set_max_persistent_sessions_per_group
-    | Xml.Element (("maxvolatiletabsessionspergroup" as tag), [("value", v)], [])
-      ->
-        with_limit tag v (fun i ->
+      )
+  | Xml.Element (("maxservicesessionswithoutgroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_service_sessions_without_group
+  | Xml.Element (("maxdatasessionswithoutgroup" as tag), [("value", v)], []) ->
+      with_limit tag v set_max_data_sessions_without_group
+  | Xml.Element (("maxpersistentsessionspergroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_persistent_sessions_per_group
+  | Xml.Element (("maxvolatiletabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v (fun i ->
           set_max_service_tab_sessions_per_group i;
           set_max_data_tab_sessions_per_group i
+      )
+  | Xml.Element (("maxservicetabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_service_tab_sessions_per_group
+  | Xml.Element (("maxdatatabsessionspergroup" as tag), [("value", v)], []) ->
+      with_limit tag v set_max_data_tab_sessions_per_group
+  | Xml.Element (("maxpersistenttabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_persistent_tab_sessions_per_group
+  | Xml.Element (("maxanonymouscoservicespersession" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_services_per_session
+  | Xml.Element (("maxanonymouscoservicespersite" as tag), [("value", v)], [])
+    ->
+      with_limit tag v set_max_services_per_site
+  | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
+      with_limit tag v set_max_volatile_groups_per_site
+  | Xml.Element ("securecookies", [("value", v)], []) -> (
+    try
+      let i =
+        match v with "true" -> true | "false" -> false | _ -> failwith ""
+      in
+      set_secure_cookies i
+    with Failure _ ->
+      raise
+        (Error_in_config_file
+           "Eliom: Wrong attribute value for securecookies tag"
         )
-    | Xml.Element (("maxservicetabsessionspergroup" as tag), [("value", v)], [])
-      ->
-        with_limit tag v set_max_service_tab_sessions_per_group
-    | Xml.Element (("maxdatatabsessionspergroup" as tag), [("value", v)], []) ->
-        with_limit tag v set_max_data_tab_sessions_per_group
-    | Xml.Element
-        (("maxpersistenttabsessionspergroup" as tag), [("value", v)], []) ->
-        with_limit tag v set_max_persistent_tab_sessions_per_group
-    | Xml.Element
-        (("maxanonymouscoservicespersession" as tag), [("value", v)], []) ->
-        with_limit tag v set_max_services_per_session
-    | Xml.Element (("maxanonymouscoservicespersite" as tag), [("value", v)], [])
-      ->
-        with_limit tag v set_max_services_per_site
-    | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
-        with_limit tag v set_max_volatile_groups_per_site
-    | Xml.Element ("securecookies", [("value", v)], []) -> (
-      try
-        let i =
-          match v with "true" -> true | "false" -> false | _ -> failwith ""
-        in
-        set_secure_cookies i
-      with Failure _ ->
-        raise
-          (Error_in_config_file
-             "Eliom: Wrong attribute value for securecookies tag"
-          )
-    )
-    | Xml.Element ("applicationscript", attrs, []) ->
-        set_application_script (parse_application_script_attrs attrs)
-    | Xml.Element ("wasm", [("enabled", v)], []) -> (
-      try
-        let b = bool_of_string v in
-        set_enable_wasm b
-      with Invalid_argument _ ->
-        raise (Error_in_config_file "Eliom: Wrong attribute value for wasm tag")
-    )
-    | Xml.Element ("cacheglobaldata", attrs, []) ->
-        set_global_data_caching (parse_global_data_caching_attrs attrs)
-    | Xml.Element ("htmlcontenttype", [("value", v)], []) ->
-        set_html_content_type v
-    | Xml.Element ("ignoredgetparams", [("regexp", v)], []) ->
-        let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
-        set_ignored_get_params (v, re)
-    | Xml.Element ("ignoredpostparams", [("regexp", v)], []) ->
-        let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
-        set_ignored_post_params (v, re)
-    | Xml.Element ("omitpersistentstorage", [], tags) ->
-        let parse_rule = function
-          | Xml.Element ("header", [(attr_name, attr_value)], []) ->
-              let header_name = Ocsigen_http.Header.Name.of_string attr_name in
-              let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
-              Common.HeaderRule (header_name, header_regexp)
-          | _ ->
-              raise
-                (Error_in_config_file
-                   "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements"
-                )
-        in
-        let rules = List.map parse_rule tags in
-        set_omitpersistentstorage (Some rules)
-    | Xml.Element (s, _, _) ->
-        raise
-          (Unknown_option ("Unexpected content <" ^ s ^ "> inside eliom config"))
-    | _ -> raise (Unknown_option "Unexpected content inside eliom config")
+  )
+  | Xml.Element ("applicationscript", attrs, []) ->
+      set_application_script (parse_application_script_attrs attrs)
+  | Xml.Element ("wasm", [("enabled", v)], []) -> (
+    try
+      let b = bool_of_string v in
+      set_enable_wasm b
+    with Invalid_argument _ ->
+      raise (Error_in_config_file "Eliom: Wrong attribute value for wasm tag")
+  )
+  | Xml.Element ("cacheglobaldata", attrs, []) ->
+      set_global_data_caching (parse_global_data_caching_attrs attrs)
+  | Xml.Element ("htmlcontenttype", [("value", v)], []) ->
+      set_html_content_type v
+  | Xml.Element ("ignoredgetparams", [("regexp", v)], []) ->
+      let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
+      set_ignored_get_params (v, re)
+  | Xml.Element ("ignoredpostparams", [("regexp", v)], []) ->
+      let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
+      set_ignored_post_params (v, re)
+  | Xml.Element ("omitpersistentstorage", [], tags) ->
+      let parse_rule = function
+        | Xml.Element ("header", [(attr_name, attr_value)], []) ->
+            let header_name = Ocsigen_http.Header.Name.of_string attr_name in
+            let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
+            Common.HeaderRule (header_name, header_regexp)
+        | _ ->
+            raise
+              (Error_in_config_file
+                 "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements"
+              )
+      in
+      let rules = List.map parse_rule tags in
+      set_omitpersistentstorage (Some rules)
+  | Xml.Element (s, _, _) ->
+      raise
+        (Unknown_option ("Unexpected content <" ^ s ^ "> inside eliom config"))
+  | _ -> raise (Unknown_option "Unexpected content inside eliom config")
 
 (* [parse_known_option f e] is [parse_eliom_option f e], for an option that
    must be an option of Eliom *)
@@ -1117,8 +1115,8 @@ let parse_config _ hostpattern conf_info site_dir =
           if not !eliommodulewarningdisplayed
           then
             Logs.warn ~src:eliom_logs_src (fun fmt ->
-              fmt
-                "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site."
+                fmt
+                  "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site."
             );
           eliommodulewarningdisplayed := true;
           gen_nothing ()

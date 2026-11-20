@@ -32,57 +32,57 @@ let attached server =
   let case = case server in
   ( "attached"
   , [ case "anonymous" (fun b ->
-        let* url = get_link b "anonymous" in
-        Alcotest.(check string)
-          "path of the fallback" "/main"
-          (Uri.path (Uri.of_string url));
-        let* r = Browser.get b url in
-        check_response "first call" ~status:200 ~body:"anonymous" r;
-        let+ r = Browser.get b url in
-        check_response "second call" ~status:200 ~body:"anonymous" r
+          let* url = get_link b "anonymous" in
+          Alcotest.(check string)
+            "path of the fallback" "/main"
+            (Uri.path (Uri.of_string url));
+          let* r = Browser.get b url in
+          check_response "first call" ~status:200 ~body:"anonymous" r;
+          let+ r = Browser.get b url in
+          check_response "second call" ~status:200 ~body:"anonymous" r
       )
     ; case "fallback" (fun b ->
-        let* r = Browser.get b "/main" in
-        check_response "without coservice" ~status:200 ~body:"main" r;
-        let* r = Browser.get b "/main?__eliom_n__=unknown" in
-        check_response "unknown anonymous coservice" ~status:200
-          ~body:"main, link too old" r;
-        let+ r = Browser.get b "/main?__eliom__=unknown" in
-        check_response "unknown named coservice" ~status:200
-          ~body:"main, link too old" r
+          let* r = Browser.get b "/main" in
+          check_response "without coservice" ~status:200 ~body:"main" r;
+          let* r = Browser.get b "/main?__eliom_n__=unknown" in
+          check_response "unknown anonymous coservice" ~status:200
+            ~body:"main, link too old" r;
+          let+ r = Browser.get b "/main?__eliom__=unknown" in
+          check_response "unknown named coservice" ~status:200
+            ~body:"main, link too old" r
       )
     ; case "named" (fun b ->
-        (* The URL of a named coservice can be written by hand. *)
-        let* r = Browser.get b "/main?__eliom__=named&__co_eliom_n=1" in
-        check_response "by hand" ~status:200 ~body:"named 1" r;
-        let* url = get_link b "named" in
-        let+ r = Browser.get b url in
-        check_response "generated" ~status:200 ~body:"named 3" r
+          (* The URL of a named coservice can be written by hand. *)
+          let* r = Browser.get b "/main?__eliom__=named&__co_eliom_n=1" in
+          check_response "by hand" ~status:200 ~body:"named 1" r;
+          let* url = get_link b "named" in
+          let+ r = Browser.get b url in
+          check_response "generated" ~status:200 ~body:"named 3" r
       )
     ; case "parameters" (fun b ->
-        let* r = Browser.get b "/main?__eliom__=named&__co_eliom_n=x" in
-        check_response "wrong type" ~status:400 r;
-        (* Without its parameters, the coservice is not found. *)
-        let* r = Browser.get b "/main?__eliom__=named" in
-        check_response "missing" ~status:200 ~body:"main, link too old" r;
-        let+ r = Browser.get b "/main?__eliom__=named&__co_eliom_n=1&z=2" in
-        check_response "other parameters" ~status:200 ~body:"named 1 z=2" r
+          let* r = Browser.get b "/main?__eliom__=named&__co_eliom_n=x" in
+          check_response "wrong type" ~status:400 r;
+          (* Without its parameters, the coservice is not found. *)
+          let* r = Browser.get b "/main?__eliom__=named" in
+          check_response "missing" ~status:200 ~body:"main, link too old" r;
+          let+ r = Browser.get b "/main?__eliom__=named&__co_eliom_n=1&z=2" in
+          check_response "other parameters" ~status:200 ~body:"named 1 z=2" r
       )
     ; case "POST" (fun b ->
-        let* url, params = link b "attached_post" in
-        let* r = Browser.post b url params in
-        check_response "coservice" ~status:200 ~body:"attached post x" r;
-        let* r = Browser.get b url in
-        check_response "GET" ~status:200 ~body:"main" r;
-        let+ r =
-          Browser.post b url
-            (List.map
-               (fun (n, v) -> n, if n = "__eliom_np__" then "unknown" else v)
-               params
-            )
-        in
-        check_response "unknown coservice" ~status:200
-          ~body:"main, link too old" r
+          let* url, params = link b "attached_post" in
+          let* r = Browser.post b url params in
+          check_response "coservice" ~status:200 ~body:"attached post x" r;
+          let* r = Browser.get b url in
+          check_response "GET" ~status:200 ~body:"main" r;
+          let+ r =
+            Browser.post b url
+              (List.map
+                 (fun (n, v) -> n, if n = "__eliom_np__" then "unknown" else v)
+                 params
+              )
+          in
+          check_response "unknown coservice" ~status:200
+            ~body:"main, link too old" r
       )
     ] )
 
@@ -90,59 +90,59 @@ let non_attached server =
   let case = case server in
   ( "non-attached"
   , [ case "anonymous" (fun b ->
-        let* url = get_link b "na_anonymous" in
-        (* A link to the current page *)
-        Alcotest.(check string)
-          "path of the page" "/link"
-          (Uri.path (Uri.of_string url));
-        let* r = Browser.get b url in
-        check_response "current page" ~status:200 ~body:"na anonymous" r;
-        let* r = Browser.get b (on_path "/main" url) in
-        check_response "another page" ~status:200 ~body:"na anonymous" r;
-        let+ r = Browser.get b (on_path "/nowhere" url) in
-        check_response "no page" ~status:200 ~body:"na anonymous" r
+          let* url = get_link b "na_anonymous" in
+          (* A link to the current page *)
+          Alcotest.(check string)
+            "path of the page" "/link"
+            (Uri.path (Uri.of_string url));
+          let* r = Browser.get b url in
+          check_response "current page" ~status:200 ~body:"na anonymous" r;
+          let* r = Browser.get b (on_path "/main" url) in
+          check_response "another page" ~status:200 ~body:"na anonymous" r;
+          let+ r = Browser.get b (on_path "/nowhere" url) in
+          check_response "no page" ~status:200 ~body:"na anonymous" r
       )
     ; case "named" (fun b ->
-        let* r =
-          Browser.get b "/nowhere?__eliom_na__name=na_named&__na_eliom_n=1"
-        in
-        check_response "by hand" ~status:200 ~body:"na named 1" r;
-        let* url = get_link b "na_named" in
-        let* r = Browser.get b url in
-        check_response "generated" ~status:200 ~body:"na named 4" r;
-        let+ r =
-          Browser.get b "/main?__eliom_na__name=na_named&__na_eliom_n=x"
-        in
-        check_response "wrong type" ~status:400 r
+          let* r =
+            Browser.get b "/nowhere?__eliom_na__name=na_named&__na_eliom_n=1"
+          in
+          check_response "by hand" ~status:200 ~body:"na named 1" r;
+          let* url = get_link b "na_named" in
+          let* r = Browser.get b url in
+          check_response "generated" ~status:200 ~body:"na named 4" r;
+          let+ r =
+            Browser.get b "/main?__eliom_na__name=na_named&__na_eliom_n=x"
+          in
+          check_response "wrong type" ~status:400 r
       )
     ; case "POST" (fun b ->
-        let* url, params = link b "na_post" in
-        let+ r = Browser.post b url params in
-        check_response "coservice" ~status:200 ~body:"na post y" r
+          let* url, params = link b "na_post" in
+          let+ r = Browser.post b url params in
+          check_response "coservice" ~status:200 ~body:"na post y" r
       )
     ; case "unknown" (fun b ->
-        (* The service of the page is used instead. *)
-        let* r = Browser.get b "/main?__eliom_na__num=unknown" in
-        check_response "anonymous" ~status:200 ~body:"main, link too old" r;
-        let* r = Browser.get b "/main?__eliom_na__name=unknown" in
-        check_response "named" ~status:200 ~body:"main, link too old" r;
-        let* r = Browser.post b "/main" ["__eliom_na__num", "unknown"] in
-        check_response "POST" ~status:200 ~body:"main, link too old" r;
-        let+ r = Browser.get b "/nowhere?__eliom_na__num=unknown" in
-        check_response "no page" ~status:404 r
+          (* The service of the page is used instead. *)
+          let* r = Browser.get b "/main?__eliom_na__num=unknown" in
+          check_response "anonymous" ~status:200 ~body:"main, link too old" r;
+          let* r = Browser.get b "/main?__eliom_na__name=unknown" in
+          check_response "named" ~status:200 ~body:"main, link too old" r;
+          let* r = Browser.post b "/main" ["__eliom_na__num", "unknown"] in
+          check_response "POST" ~status:200 ~body:"main, link too old" r;
+          let+ r = Browser.get b "/nowhere?__eliom_na__num=unknown" in
+          check_response "no page" ~status:404 r
       )
     ; case "attached to a path" (fun b ->
-        let* url = get_link b "na_attached" in
-        Alcotest.(check string) "path" "/other" (Uri.path (Uri.of_string url));
-        let+ r = Browser.get b url in
-        check_response "coservice" ~status:200 ~body:"na named 5" r
+          let* url = get_link b "na_attached" in
+          Alcotest.(check string) "path" "/other" (Uri.path (Uri.of_string url));
+          let+ r = Browser.get b url in
+          check_response "coservice" ~status:200 ~body:"na named 5" r
       )
     ; case "before attached coservices" (fun b ->
-        let+ r =
-          Browser.get b
-            "/main?__eliom_na__name=na_named&__na_eliom_n=1&__eliom_n__=unknown"
-        in
-        check_response "non-attached" ~status:200 ~body:"na named 1" r
+          let+ r =
+            Browser.get b
+              "/main?__eliom_na__name=na_named&__na_eliom_n=1&__eliom_n__=unknown"
+          in
+          check_response "non-attached" ~status:200 ~body:"na named 1" r
       )
     ] )
 
@@ -160,27 +160,27 @@ let limits server =
   let case ?speed = case ?speed server in
   ( "limits"
   , [ case "max_use, attached" (fun b ->
-        let* url = get_link b "once" in
-        calls b url ["once"; "main, link too old"]
+          let* url = get_link b "once" in
+          calls b url ["once"; "main, link too old"]
       )
     ; case "max_use, non-attached" (fun b ->
-        let* url = get_link b "na_once" in
-        calls b (on_path "/main" url) ["na once"; "main, link too old"]
+          let* url = get_link b "na_once" in
+          calls b (on_path "/main" url) ["na once"; "main, link too old"]
       )
     ; case "created by a request" (fun b ->
-        let* url = get_link b "created_once" in
-        calls b url ["created"; "main, link too old"]
+          let* url = get_link b "created_once" in
+          calls b url ["created"; "main, link too old"]
       )
     ; case ~speed:`Slow "timeout" (fun b ->
-        (* 1 s after the creation or the last call *)
-        let* url = get_link b "created_timeout" in
-        let* () = calls b url ["created"] in
-        let* () = Lwt_unix.sleep 0.5 in
-        let* () = calls b url ["created"] in
-        let* () = Lwt_unix.sleep 0.5 in
-        let* () = calls b url ["created"] in
-        let* () = Lwt_unix.sleep 1.5 in
-        calls b url ["main, link too old"]
+          (* 1 s after the creation or the last call *)
+          let* url = get_link b "created_timeout" in
+          let* () = calls b url ["created"] in
+          let* () = Lwt_unix.sleep 0.5 in
+          let* () = calls b url ["created"] in
+          let* () = Lwt_unix.sleep 0.5 in
+          let* () = calls b url ["created"] in
+          let* () = Lwt_unix.sleep 1.5 in
+          calls b url ["main, link too old"]
       )
     ] )
 
@@ -191,57 +191,57 @@ let csrf_safe server =
   let too_old = "main, link too old" in
   ( "CSRF-safe"
   , [ case "a coservice for each link" (fun b ->
-        let* first = get_link b "csrf" in
-        let* second = get_link b "csrf" in
-        Alcotest.(check bool) "new coservice" true (first <> second);
-        let* () = calls b first ["csrf"] in
-        calls b second ["csrf"]
+          let* first = get_link b "csrf" in
+          let* second = get_link b "csrf" in
+          Alcotest.(check bool) "new coservice" true (first <> second);
+          let* () = calls b first ["csrf"] in
+          calls b second ["csrf"]
       )
     ; case "of the session of the link" (fun b ->
-        let* url = get_link b "csrf" in
-        let* () = calls (Browser.create server) url [too_old] in
-        calls b url ["csrf"]
+          let* url = get_link b "csrf" in
+          let* () = calls (Browser.create server) url [too_old] in
+          calls b url ["csrf"]
       )
     ; case "max_use" (fun b ->
-        let* url = get_link b "csrf_once" in
-        calls b url ["csrf once"; too_old]
+          let* url = get_link b "csrf_once" in
+          calls b url ["csrf once"; too_old]
       )
     ; case "POST" (fun b ->
-        let* url, params = link b "csrf_post" in
-        let* r = Browser.post (Browser.create server) url params in
-        check_response "other browser" ~status:200 ~body:too_old r;
-        let+ r = Browser.post b url params in
-        check_response "own browser" ~status:200 ~body:"csrf post x" r
+          let* url, params = link b "csrf_post" in
+          let* r = Browser.post (Browser.create server) url params in
+          check_response "other browser" ~status:200 ~body:too_old r;
+          let+ r = Browser.post b url params in
+          check_response "own browser" ~status:200 ~body:"csrf post x" r
       )
     ; case "non-attached" (fun b ->
-        let* url = get_link b "na_csrf" in
-        let url = on_path "/main" url in
-        let* () = calls (Browser.create server) url [too_old] in
-        calls b url ["na csrf"]
+          let* url = get_link b "na_csrf" in
+          let url = on_path "/main" url in
+          let* () = calls (Browser.create server) url [too_old] in
+          calls b url ["na csrf"]
       )
     ; case "non-attached, POST" (fun b ->
-        let* url, params = link b "na_csrf_post" in
-        let url = on_path "/main" url in
-        let* r = Browser.post (Browser.create server) url params in
-        check_response "other browser" ~status:200 ~body:too_old r;
-        let+ r = Browser.post b url params in
-        check_response "own browser" ~status:200 ~body:"na csrf post y" r
+          let* url, params = link b "na_csrf_post" in
+          let url = on_path "/main" url in
+          let* r = Browser.post (Browser.create server) url params in
+          check_response "other browser" ~status:200 ~body:too_old r;
+          let+ r = Browser.post b url params in
+          check_response "own browser" ~status:200 ~body:"na csrf post y" r
       )
     ; case "of a client process" (fun b ->
-        let tab = Eliom_test_client.Tab.create b in
-        let* r = Eliom_test_client.Tab.get tab "/link?to=csrf_tab" in
-        let url = r.body in
-        let* r =
-          Eliom_test_client.Tab.get (Eliom_test_client.Tab.create b) url
-        in
-        check_response "other tab" ~status:200 ~body:too_old r;
-        let+ r = Eliom_test_client.Tab.get tab url in
-        check_response "own tab" ~status:200 ~body:"csrf of the tab" r
+          let tab = Eliom_test_client.Tab.create b in
+          let* r = Eliom_test_client.Tab.get tab "/link?to=csrf_tab" in
+          let url = r.body in
+          let* r =
+            Eliom_test_client.Tab.get (Eliom_test_client.Tab.create b) url
+          in
+          check_response "other tab" ~status:200 ~body:too_old r;
+          let+ r = Eliom_test_client.Tab.get tab url in
+          check_response "own tab" ~status:200 ~body:"csrf of the tab" r
       )
     ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-coservices"
-      [attached server; non_attached server; limits server; csrf_safe server]
+      Alcotest.run ~and_exit:false "eliom-server-coservices"
+        [attached server; non_attached server; limits server; csrf_safe server]
   )

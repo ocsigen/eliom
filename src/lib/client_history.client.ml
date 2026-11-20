@@ -104,8 +104,8 @@ let string_of_page p =
 
 let set_page_status p st =
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Set page status %d/%d: %s" p.page_unique_id p.page_id.state_index
-      (Page_status_t.to_string st)
+      fmt "Set page status %d/%d: %s" p.page_unique_id p.page_id.state_index
+        (Page_status_t.to_string st)
   );
   p.set_page_status st
 
@@ -125,7 +125,7 @@ let last_page_id = ref (-1)
 let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   incr last_page_id;
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Create page %d/%d" !last_page_id state_id.state_index
+      fmt "Create page %d/%d" !last_page_id state_id.state_index
   );
   let page_status, set_page_status = React.S.create status in
   (* protect page_status from React.S.stop ~strong:true *)
@@ -150,7 +150,7 @@ let active_page = ref @@ mk_page ~status:Active ()
 
 let set_active_page p =
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Set active page %d/%d" p.page_unique_id p.page_id.state_index
+      fmt "Set active page %d/%d" p.page_unique_id p.page_id.state_index
   );
   retire_page !active_page;
   active_page := p;
@@ -244,8 +244,8 @@ module History = struct
     let history = ref [!active_page] in
     let set h =
       Logs.debug ~src:section (fun fmt ->
-        fmt "setting history:\n%s"
-          (String.concat "\n" @@ List.map string_of_page !history)
+          fmt "setting history:\n%s"
+            (String.concat "\n" @@ List.map string_of_page !history)
       );
       history := h
     in

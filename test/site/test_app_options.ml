@@ -97,11 +97,11 @@ let test_configuration_file () =
   let run ~app = Eliom.App.run ~app ~max_service_sessions_per_group:3 () in
   let kept, overridden =
     Site.init ~run ~app:"options, configuration file" (fun () ->
-      State.set_default_max_service_sessions_per_group 5;
-      let kept = (settings ()).max_service_sessions in
-      State.set_default_max_service_sessions_per_group ~override_configfile:true
-        5;
-      kept, (settings ()).max_service_sessions
+        State.set_default_max_service_sessions_per_group 5;
+        let kept = (settings ()).max_service_sessions in
+        State.set_default_max_service_sessions_per_group
+          ~override_configfile:true 5;
+        kept, (settings ()).max_service_sessions
     )
   in
   Alcotest.(check int) "kept" 3 kept;

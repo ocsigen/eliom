@@ -11,11 +11,11 @@ let fallback name =
     Service.create ~path:(Service.Path [name]) ~meth:(Service.Get P.unit) ()
   in
   string service (fun () () ->
-    text
-      ( if Request_info.get_link_too_old ()
-        then name ^ ", link too old"
-        else name
-      )
+      text
+        ( if Request_info.get_link_too_old ()
+          then name ^ ", link too old"
+          else name
+        )
   );
   service
 
@@ -36,14 +36,14 @@ let named =
    page. *)
 let () =
   string named (fun n () ->
-    text
-      (String.concat " "
-         (("named " ^ string_of_int n)
-         :: List.map
-              (fun (n, v) -> n ^ "=" ^ v)
-              (Request_info.get_other_get_params ())
-         )
-      )
+      text
+        (String.concat " "
+           (("named " ^ string_of_int n)
+           :: List.map
+                (fun (n, v) -> n ^ "=" ^ v)
+                (Request_info.get_other_get_params ())
+           )
+        )
   )
 
 let attached_post =

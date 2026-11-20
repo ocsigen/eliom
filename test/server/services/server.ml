@@ -43,10 +43,10 @@ let suffix_service = get ["suffix"] P.(suffix (int "i" ** string "s"))
 
 let () =
   string (get ["suffix_link"] P.unit) (fun () () ->
-    text
-      (Eliom_uri.make_string_uri ~absolute_path:true ~service:suffix_service
-         (3, "x/y")
-      )
+      text
+        (Eliom_uri.make_string_uri ~absolute_path:true ~service:suffix_service
+           (3, "x/y")
+        )
   )
 
 let () =
@@ -80,13 +80,13 @@ let () =
 
 let () =
   string (get ["client"] P.unit) (fun () () ->
-    text
-      ( match Request_info.get_client_conn () with
-      | `Inet _ -> "inet"
-      | `Forwarded_for ip -> "forwarded " ^ ip
-      | `Unix _ -> "unix"
-      | `Unknown -> "unknown"
-      )
+      text
+        ( match Request_info.get_client_conn () with
+        | `Inet _ -> "inet"
+        | `Forwarded_for ip -> "forwarded " ^ ip
+        | `Unix _ -> "unix"
+        | `Unknown -> "unknown"
+        )
   )
 
 let () =
@@ -137,8 +137,8 @@ let () = string temporary (fun () () -> text "temporary")
 
 let () =
   string (get ["unregister"] P.unit) (fun () () ->
-    Service.unregister temporary;
-    text "unregistered"
+      Service.unregister temporary;
+      text "unregistered"
   )
 
 let () =
@@ -148,10 +148,10 @@ let () =
 
 let () =
   Registration.Html.register ~service:(get ["html"] P.unit) (fun () () ->
-    Lwt.return
-      Content.Html.F.(
-        html (head (title (txt "title")) []) (body [p [txt "body"]])
-      )
+      Lwt.return
+        Content.Html.F.(
+          html (head (title (txt "title")) []) (body [p [txt "body"]])
+        )
   )
 
 let () =
@@ -174,7 +174,7 @@ let () =
 
 let () =
   Registration.Unit.register ~service:(get ["unit"] P.unit) (fun () () ->
-    Lwt.return_unit
+      Lwt.return_unit
   )
 
 let () =
@@ -190,19 +190,19 @@ let () =
 let () =
   Registration.Redirection.register ~options:`MovedPermanently
     ~service:(get ["moved"] P.unit) (fun () () ->
-    Lwt.return (Registration.Redirection hello)
+      Lwt.return (Registration.Redirection hello)
   )
 
 let () =
   Registration.Redirection.register ~options:`NotModified
     ~service:(get ["not_modified"] P.unit) (fun () () ->
-    Lwt.return (Registration.Redirection hello)
+      Lwt.return (Registration.Redirection hello)
   )
 
 let () =
   Registration.String_redirection.register
     ~service:(get ["redirect_string"] P.unit) (fun () () ->
-    Lwt.return "http://example.org/elsewhere"
+      Lwt.return "http://example.org/elsewhere"
   )
 
 let () =
@@ -255,13 +255,13 @@ let () =
   List.iter
     (fun service ->
       string service (fun () () ->
-        let value nl =
-          Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
-        in
-        text
-          (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
-             (value transient_nl)
-          )
+          let value nl =
+            Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
+          in
+          text
+            (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
+               (value transient_nl)
+            )
       )
     )
     [nl_target; nl_target_all]
@@ -316,14 +316,14 @@ let cookie_page = get ["cookie_page"] P.(suffix (all_suffix "s"))
 
 let () =
   string cookie_page (fun _ () ->
-    text
-      ( match
-          Ocsigen_cookie_map.Map_inner.find_opt "test_action"
-            (Request_info.get_cookies ())
-        with
-      | Some v -> "cookie " ^ v
-      | None -> "no cookie"
-      )
+      text
+        ( match
+            Ocsigen_cookie_map.Map_inner.find_opt "test_action"
+              (Request_info.get_cookies ())
+          with
+        | Some v -> "cookie " ^ v
+        | None -> "no cookie"
+        )
   )
 
 let set_cookie =
@@ -332,19 +332,19 @@ let set_cookie =
 let () =
   Registration.Action.register ~options:`Reload ~service:set_cookie
     (fun () () ->
-    State.set_cookie ~path:["cookie_page"; "a"] ~name:"test_action" ~value:"set"
-      ();
-    Lwt.return_unit
+      State.set_cookie ~path:["cookie_page"; "a"] ~name:"test_action"
+        ~value:"set" ();
+      Lwt.return_unit
   )
 
 (* The POST parameters of the action, one per line, the name and the value
    separated by a tab *)
 let () =
   string (get ["set_cookie"] P.unit) (fun () () ->
-    let _, _, _, params =
-      Eliom_uri.make_post_uri_components ~service:set_cookie () ()
-    in
-    text (String.concat "\n" (List.map (fun (n, v) -> n ^ "\t" ^ v) params))
+      let _, _, _, params =
+        Eliom_uri.make_post_uri_components ~service:set_cookie () ()
+      in
+      text (String.concat "\n" (List.map (fun (n, v) -> n ^ "\t" ^ v) params))
   )
 
 (* The file served by /file, in the directory of the server *)

@@ -36,7 +36,7 @@ type ('a, 'b) t =
 
 let register_sender scope service write =
   Registration.Action.register ~scope ~options:`NoReload ~service (fun () x ->
-    Lwt_list.iter_s write x
+      Lwt_list.iter_s write x
   )
 
 let internal_wrap (bus : ('a, 'b) t) :
@@ -68,16 +68,16 @@ let bus_mark () = Common.make_wrapper internal_wrap
 
 let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t =
  fun (type typ) typ ->
-   let (typ_list : typ list Deriving_Json.t) =
-     let module M = Deriving_Json.Json_list (Deriving_Json.Defaults'' (struct
-       type a = typ
+  let (typ_list : typ list Deriving_Json.t) =
+    let module M = Deriving_Json.Json_list (Deriving_Json.Defaults'' (struct
+      type a = typ
 
-       let t = typ
-     end))
-     in
-     M.t
-   in
-   typ_list
+      let t = typ
+    end))
+    in
+    M.t
+  in
+  typ_list
 
 let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)

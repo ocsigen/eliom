@@ -75,11 +75,13 @@ let () = string fallback (fun () () -> text "fallback")
 
 let () =
   string (get ["coservice"] P.unit) (fun () () ->
-    let service = Service.create_attached_get ~fallback ~get_params:P.unit () in
-    Registration.String.register ~scope:session_scope ~service (fun () () ->
-      text "coservice"
-    );
-    text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~scope:session_scope ~service (fun () () ->
+          text "coservice"
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
   )
 
 let () =
@@ -139,8 +141,8 @@ let () =
 
 let () =
   string (get ["discard_all_scopes"] P.unit) (fun () () ->
-    let* () = State.discard_all_scopes () in
-    text "discarded"
+      let* () = State.discard_all_scopes () in
+      text "discarded"
   )
 
 (* Session groups *)
@@ -183,10 +185,10 @@ let () =
 
 let () =
   string (get ["groups"] P.unit) (fun () () ->
-    text
-      (String.concat ","
-         (List.sort compare (State.Ext.get_session_group_list ()))
-      )
+      text
+        (String.concat ","
+           (List.sort compare (State.Ext.get_session_group_list ()))
+        )
   )
 
 let () = Services.start ()

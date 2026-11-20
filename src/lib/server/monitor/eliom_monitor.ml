@@ -198,14 +198,14 @@ let content_html () =
           [ link ~rel:[`Stylesheet]
               ~href:
                 (uri_of_string (fun () ->
-                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+                     "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
                  )
                 )
               ()
           ; link ~rel:[`Stylesheet]
               ~href:
                 (uri_of_string (fun () ->
-                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"
+                     "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"
                  )
                 )
               ()

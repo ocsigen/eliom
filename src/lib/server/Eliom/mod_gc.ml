@@ -293,8 +293,8 @@ let collect_data_sessions sitedata =
               if scope <> `Session
               then
                 Logs.err ~src:section (fun fmt ->
-                  fmt
-                    "Eliom: Group of the sessions without a group has scope different from `Session. Please report the problem."
+                    fmt
+                      "Eliom: Group of the sessions without a group has scope different from `Session. Please report the problem."
                 );
               Mod_sessiongroups.Data.remove session_group_node;
               (* See also the finalisers in Mod_sessiongroups
@@ -323,13 +323,13 @@ let collect_persistent_sessions sitedata =
     match expiry with
     | Some exp when exp <= now ->
         Logs.info ~src:section (fun fmt ->
-          fmt "remove expired cookie %s" (log_hash cookie)
+            fmt "remove expired cookie %s" (log_hash cookie)
         );
         Mod_persess.close_persistent_state_of_cookie ~scope sitedata
           session_group cookie
     | _ ->
         Logs.info ~src:section (fun fmt ->
-          fmt "cookie not expired: %s" (log_hash cookie)
+            fmt "cookie not expired: %s" (log_hash cookie)
         );
         Lwt.return_unit
   in
@@ -340,7 +340,7 @@ let collect_persistent_sessions sitedata =
       (function
         | Not_found ->
             Logs.info ~src:section (fun fmt ->
-              fmt "cookie does not exist: %s" (log_hash c)
+                fmt "cookie does not exist: %s" (log_hash c)
             );
             Lwt.return_unit
         | exn -> Lwt.fail exn

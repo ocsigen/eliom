@@ -70,9 +70,9 @@ let rec reconstruct_set : type a c.
     -> (a, _, c) params_type
     -> a list * Form.form_elt M.t =
  fun ((acc, m) as p) y ->
-   match reconstruct_params_form m y with
-   | Some (v, m) -> reconstruct_set (v :: acc, m) y
-   | None -> p
+  match reconstruct_params_form m y with
+  | Some (v, m) -> reconstruct_set (v :: acc, m) y
+  | None -> p
 
 and reconstruct_params_form : type a c.
        Form.form_elt M.t

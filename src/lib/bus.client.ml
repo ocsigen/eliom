@@ -53,12 +53,12 @@ let consume (t, u) s =
 let clone_exn (t, u) s =
   let s' = Lwt_stream.clone s in
   Lwt_stream.from (fun () ->
-    Lwt.catch
-      (fun () -> Lwt.choose [Lwt_stream.get s'; t])
-      (fun e ->
-        (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-        Lwt.fail e
-      )
+      Lwt.catch
+        (fun () -> Lwt.choose [Lwt_stream.get s'; t])
+        (fun e ->
+          (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+          Lwt.fail e
+        )
   )
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =

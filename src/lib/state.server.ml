@@ -712,9 +712,9 @@ let set_max_in_parent name ~scope session_group set_max =
   match scope, session_group with
   | `Session _, {Common.sg_group = Common.No_group; _} ->
       Logs.warn ~src:eliom_logs_src (fun fmt ->
-        fmt
-          "State.%s: the session is not in a session group, the limit is not changed"
-          name
+          fmt
+            "State.%s: the session is not in a session group, the limit is not changed"
+            name
       )
   | _ -> set_max ()
 
@@ -730,7 +730,7 @@ let set_max_service_states_in_parent ~scope ?secure m =
           ()
       in
       set_max_in_parent name ~scope !(c.Common.sc_session_group) (fun () ->
-        Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
+          Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
       )
 
 let set_max_volatile_data_states_in_parent ~scope ?secure m =
@@ -745,7 +745,7 @@ let set_max_volatile_data_states_in_parent ~scope ?secure m =
           ~secure_o:secure ()
       in
       set_max_in_parent name ~scope !(c.Common.dc_session_group) (fun () ->
-        Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m
+          Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m
       )
 
 let set_max_volatile_states_in_parent ~scope ?secure m =

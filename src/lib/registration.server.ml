@@ -145,7 +145,7 @@ module Flow5_base = struct
 
   let body l =
     Ocsigen.Response.Body.make Cohttp.Transfer.Unknown (fun write ->
-      Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l
+        Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l
     )
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
@@ -503,8 +503,8 @@ struct
 
   let make_eh =
     Option.map (fun eh l ->
-      let* r = eh l in
-      T.translate r
+        let* r = eh l in
+        T.translate r
     )
 
   let make_service_handler f g p =
@@ -669,14 +669,14 @@ module Ocaml = struct
           ( match name with
           | Some name ->
               Logs.err (fun fmt ->
-                fmt "Uncaught exception in service %s [%s]%s@\n%s" name code
-                  (Str.global_replace string_regexp "\"xxx\"" argument)
-                  (Printexc.to_string exn)
+                  fmt "Uncaught exception in service %s [%s]%s@\n%s" name code
+                    (Str.global_replace string_regexp "\"xxx\"" argument)
+                    (Printexc.to_string exn)
               )
           | None ->
               Logs.err (fun fmt ->
-                fmt "Uncaught exception [%s]%s@\n%s" code argument
-                  (Printexc.to_string exn)
+                  fmt "Uncaught exception [%s]%s@\n%s" code argument
+                    (Printexc.to_string exn)
               )
           );
           Lwt.return (`Failure code)
@@ -829,7 +829,7 @@ let get_global_data ~keep_debug =
         (fun {Runtime.server_sections_data; client_sections_data} ->
           Array.iter
             (Array.iter (fun d ->
-               Runtime.Client_value_server_repr.clear_loc d.Runtime.value
+                 Runtime.Client_value_server_repr.clear_loc d.Runtime.value
              )
             )
             server_sections_data;

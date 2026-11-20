@@ -31,7 +31,7 @@ let () =
         Service.create_attached_get ~fallback ~get_params:P.unit ()
       in
       Registration.String.register ~service (fun () () ->
-        text ("coservice " ^ v)
+          text ("coservice " ^ v)
       );
       text (uri service)
     )

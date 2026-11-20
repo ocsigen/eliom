@@ -48,7 +48,7 @@ let () =
   List.iter
     (fun service ->
       Registration.String.register ~service (fun () () ->
-        Lwt.return (menus (), "text/plain")
+          Lwt.return (menus (), "text/plain")
       )
     )
     [home; a; b; c; section; x; y]

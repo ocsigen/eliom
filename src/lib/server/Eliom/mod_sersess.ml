@@ -62,7 +62,7 @@ let close_service_state ~scope ~secure_o ?sp () =
             match Mod_sessiongroups.Serv.find_node_in_group_of_groups group with
             | None ->
                 Logs.err ~src:eliom_logs_src (fun fmt ->
-                  fmt "No group of groups. Please report this problem."
+                    fmt "No group of groups. Please report this problem."
                 )
             | Some (_service_table, g) -> Mod_sessiongroups.Serv.remove g
           )

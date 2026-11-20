@@ -47,14 +47,14 @@ let reload_fun : type gp pp.
     (gp, pp, _, _, _, _, _, _, _, _, _) t -> (gp -> unit -> result Lwt.t) option
     =
  fun service ->
-   match Parameter.is_unit (post_params_type service) with
-   | Parameter.U_yes -> (
-     match service with
-     | {client_fun = Some {contents = Some f}; reload_fun = Rf_client_fun; _} ->
-         Some f
-     | _ -> None
-   )
-   | _ -> None
+  match Parameter.is_unit (post_params_type service) with
+  | Parameter.U_yes -> (
+    match service with
+    | {client_fun = Some {contents = Some f}; reload_fun = Rf_client_fun; _} ->
+        Some f
+    | _ -> None
+  )
+  | _ -> None
 
 let reset_reload_fun service = service.reload_fun <- Rf_keep
 

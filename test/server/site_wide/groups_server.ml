@@ -25,7 +25,7 @@ let () =
         Service.create_attached_get ~fallback ~get_params:P.unit ()
       in
       Registration.String.register ~scope:session_scope ~service (fun () () ->
-        text "coservice"
+          text "coservice"
       );
       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
     )

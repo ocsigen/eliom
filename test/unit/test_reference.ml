@@ -26,9 +26,9 @@ let opening () =
   let attempts = ref 0 and pending = Queue.create () in
   let open_ =
     open_on_first_use (fun () ->
-      incr attempts;
-      let p, u = Lwt.task () in
-      Queue.push u pending; p
+        incr attempts;
+        let p, u = Lwt.task () in
+        Queue.push u pending; p
     )
   in
   open_, attempts, pending
@@ -57,8 +57,8 @@ let test_exception () =
   let attempts = ref 0 in
   let open_ =
     open_on_first_use (fun () ->
-      incr attempts;
-      if !attempts = 1 then raise not_configured else Lwt.return 1
+        incr attempts;
+        if !attempts = 1 then raise not_configured else Lwt.return 1
     )
   in
   check "exception as a rejection" (Rejected not_configured) (open_ ());

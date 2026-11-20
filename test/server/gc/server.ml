@@ -162,11 +162,13 @@ let () = string fallback (fun () () -> text "fallback")
 
 let () =
   string (get ["coservice"] P.unit) (fun () () ->
-    let service = Service.create_attached_get ~fallback ~get_params:P.unit () in
-    Registration.String.register ~scope:session_scope ~service (fun () () ->
-      text "coservice"
-    );
-    text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~scope:session_scope ~service (fun () () ->
+          text "coservice"
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
   )
 
 let group_value = V.eref ~scope:Common.default_group_scope ""
@@ -182,26 +184,26 @@ let () =
 
 let () =
   string (get ["collect"] P.unit) (fun () () ->
-    let sitedata = Request_info.get_sitedata () in
-    let* () = Mod_gc.collect_service_sessions sitedata in
-    let* () = Mod_gc.collect_data_sessions sitedata in
-    let* () = Mod_gc.collect_persistent_sessions sitedata in
-    text "collected"
+      let sitedata = Request_info.get_sitedata () in
+      let* () = Mod_gc.collect_service_sessions sitedata in
+      let* () = Mod_gc.collect_data_sessions sitedata in
+      let* () = Mod_gc.collect_persistent_sessions sitedata in
+      text "collected"
   )
 
 (* The numbers of sessions, and the session groups *)
 let () =
   string (get ["count"] P.unit) (fun () () ->
-    let* persistent = State.number_of_persistent_data_cookies () in
-    text
-      (Printf.sprintf "data=%d services=%d persistent=%d groups=[%s]"
-         (State.number_of_volatile_data_cookies ())
-         (State.number_of_service_cookies ())
-         persistent
-         (String.concat ","
-            (List.sort compare (State.Ext.get_session_group_list ()))
-         )
-      )
+      let* persistent = State.number_of_persistent_data_cookies () in
+      text
+        (Printf.sprintf "data=%d services=%d persistent=%d groups=[%s]"
+           (State.number_of_volatile_data_cookies ())
+           (State.number_of_service_cookies ())
+           persistent
+           (String.concat ","
+              (List.sort compare (State.Ext.get_session_group_list ()))
+           )
+        )
   )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

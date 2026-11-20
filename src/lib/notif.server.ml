@@ -128,15 +128,15 @@ module Make (A : ARG) :
   let notif_e : notification_react Reference.Volatile.eref =
     Reference.Volatile.eref_from_fun ~scope:Common.default_process_scope
       (fun () ->
-      let e, send_e = React.E.create () in
-      let client_ev =
-        Eliom_react.Down.of_react
-        (*VVV If we add throttling, some events may be lost
+        let e, send_e = React.E.create () in
+        let client_ev =
+          Eliom_react.Down.of_react
+          (*VVV If we add throttling, some events may be lost
                even if buffer size is not 1 :O *)
-          ~size:100 (*VVV ? *)
-          ~scope:Common.default_process_scope e
-      in
-      client_ev, send_e
+            ~size:100 (*VVV ? *)
+            ~scope:Common.default_process_scope e
+        in
+        client_ev, send_e
     )
 
   let set_identity identity =

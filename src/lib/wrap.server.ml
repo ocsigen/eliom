@@ -414,10 +414,10 @@ let perform_wrap =
   ignore (find_substs tbl subst_tbl v);
   let w = duplicate tbl subst_tbl copy_tbl v in
   Logs.debug ~src:section (fun fmt ->
-    fmt
-      "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d rehashes"
-      !iteration_count tbl.occupancy !wrap_count !copy_count !resize_count
-      !rehash_count
+      fmt
+        "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d rehashes"
+        !iteration_count tbl.occupancy !wrap_count !copy_count !resize_count
+        !rehash_count
   );
   w
 

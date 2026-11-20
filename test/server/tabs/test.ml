@@ -21,38 +21,38 @@ let tabs server =
   let case = case_browsers server in
   ( "tabs"
   , [ case "tab data" (fun browser ->
-        let b = browser () in
-        let t1 = tab b and t2 = tab b in
-        let* _ = text t1 "/tab/set?v=1" in
-        let* _ = text t1 "/session/set?v=s" in
-        let* () = check "own tab" "1" t1 "/tab/get" in
-        let* () = check "other tab" "" t2 "/tab/get" in
-        check "session shared by the tabs" "s" t2 "/session/get"
+          let b = browser () in
+          let t1 = tab b and t2 = tab b in
+          let* _ = text t1 "/tab/set?v=1" in
+          let* _ = text t1 "/session/set?v=s" in
+          let* () = check "own tab" "1" t1 "/tab/get" in
+          let* () = check "other tab" "" t2 "/tab/get" in
+          check "session shared by the tabs" "s" t2 "/session/get"
       )
     ; case "tab coservice" (fun browser ->
-        let b = browser () in
-        let t1 = tab b and t2 = tab b in
-        let* url = text t1 "/tab/coservice" in
-        let* () = check "own tab" "coservice of the tab" t1 url in
-        check "other tab" "fallback" t2 url
+          let b = browser () in
+          let t1 = tab b and t2 = tab b in
+          let* url = text t1 "/tab/coservice" in
+          let* () = check "own tab" "coservice of the tab" t1 url in
+          check "other tab" "fallback" t2 url
       )
     ; case "leave a group of services" (fun browser ->
-        (* The service session of the browser has no service, but it is not
+          (* The service session of the browser has no service, but it is not
            closed, as a tab has one. *)
-        let t = tab (browser ()) in
-        let* _ = text t "/group/join?name=leave-g" in
-        let* url = text t "/tab/coservice" in
-        let* _ = text t "/group/leave_services" in
-        check "tab coservice" "coservice of the tab" t url
+          let t = tab (browser ()) in
+          let* _ = text t "/group/join?name=leave-g" in
+          let* url = text t "/tab/coservice" in
+          let* _ = text t "/group/leave_services" in
+          check "tab coservice" "coservice of the tab" t url
       )
     ; case "tab cookies" (fun browser ->
-        (* A tab is its tab cookies, as a session is its cookie: whoever
+          (* A tab is its tab cookies, as a session is its cookie: whoever
            sends them gets the tab, even from another browser. *)
-        let t1 = tab (browser ()) and t2 = tab (browser ()) in
-        let* _ = text t1 "/tab/set?v=1" in
-        Eliom_test_client.Tab.set_tab_cookies t2
-          (Eliom_test_client.Tab.tab_cookies t1);
-        check "value of the tab cookies" "1" t2 "/tab/get"
+          let t1 = tab (browser ()) and t2 = tab (browser ()) in
+          let* _ = text t1 "/tab/set?v=1" in
+          Eliom_test_client.Tab.set_tab_cookies t2
+            (Eliom_test_client.Tab.tab_cookies t1);
+          check "value of the tab cookies" "1" t2 "/tab/get"
       )
     ] )
 
@@ -60,50 +60,50 @@ let closing server =
   let case = case_browsers server in
   ( "closing"
   , [ case "close a tab" (fun browser ->
-        let b = browser () in
-        let t1 = tab b and t2 = tab b in
-        let* _ = text t1 "/tab/set?v=1" in
-        let* _ = text t2 "/tab/set?v=2" in
-        let* _ = text t1 "/session/set?v=s" in
-        let* _ = text t1 "/discard?scope=tab" in
-        let* () = check "closed tab" "" t1 "/tab/get" in
-        let* () = check "other tab" "2" t2 "/tab/get" in
-        check "session" "s" t2 "/session/get"
+          let b = browser () in
+          let t1 = tab b and t2 = tab b in
+          let* _ = text t1 "/tab/set?v=1" in
+          let* _ = text t2 "/tab/set?v=2" in
+          let* _ = text t1 "/session/set?v=s" in
+          let* _ = text t1 "/discard?scope=tab" in
+          let* () = check "closed tab" "" t1 "/tab/get" in
+          let* () = check "other tab" "2" t2 "/tab/get" in
+          check "session" "s" t2 "/session/get"
       )
     ; case "close the session" (fun browser ->
-        (* Closing a browser session closes its tabs. *)
-        let b = browser () in
-        let t1 = tab b and t2 = tab b in
-        let* _ = text t1 "/session/set?v=s" in
-        let* _ = text t1 "/tab/set?v=1" in
-        let* _ = text t2 "/tab/set?v=2" in
-        let* url = text t2 "/tab/coservice" in
-        let* _ = text t1 "/discard?scope=session" in
-        let* () = check "session" "" t2 "/session/get" in
-        let* () = check "tab of the request" "" t1 "/tab/get" in
-        let* () = check "other tab" "" t2 "/tab/get" in
-        check "coservice of the other tab" "fallback" t2 url
+          (* Closing a browser session closes its tabs. *)
+          let b = browser () in
+          let t1 = tab b and t2 = tab b in
+          let* _ = text t1 "/session/set?v=s" in
+          let* _ = text t1 "/tab/set?v=1" in
+          let* _ = text t2 "/tab/set?v=2" in
+          let* url = text t2 "/tab/coservice" in
+          let* _ = text t1 "/discard?scope=session" in
+          let* () = check "session" "" t2 "/session/get" in
+          let* () = check "tab of the request" "" t1 "/tab/get" in
+          let* () = check "other tab" "" t2 "/tab/get" in
+          check "coservice of the other tab" "fallback" t2 url
       )
     ; case "close the group" (fun browser ->
-        (* Closing a group closes the tabs of its sessions. *)
-        let a = tab (browser ()) and b = tab (browser ()) in
-        let* _ = text a "/group/join?name=tabs-g" in
-        let* _ = text b "/group/join?name=tabs-g" in
-        let* _ = text b "/tab/set?v=b" in
-        let* _ = text a "/discard?scope=group" in
-        check "tab of another session of the group" "" b "/tab/get"
+          (* Closing a group closes the tabs of its sessions. *)
+          let a = tab (browser ()) and b = tab (browser ()) in
+          let* _ = text a "/group/join?name=tabs-g" in
+          let* _ = text b "/group/join?name=tabs-g" in
+          let* _ = text b "/tab/set?v=b" in
+          let* _ = text a "/discard?scope=group" in
+          check "tab of another session of the group" "" b "/tab/get"
       )
     ; case "close the last tab of a session in a group" (fun browser ->
-        (* The service session of the browser has no service of its own,
+          (* The service session of the browser has no service of its own,
            but it is in a group: it is kept, and so are the services of the
            group. The coservice of the tab gives the tab a service session,
            so that there is a last tab service session to close. *)
-        let t = tab (browser ()) in
-        let* _ = text t "/group/join?name=last-tab-g" in
-        let* _ = text t "/tab/coservice" in
-        let* url = text t "/group/coservice" in
-        let* _ = text t "/discard?scope=tab" in
-        check "group coservice" "coservice of the group" t url
+          let t = tab (browser ()) in
+          let* _ = text t "/group/join?name=last-tab-g" in
+          let* _ = text t "/tab/coservice" in
+          let* url = text t "/group/coservice" in
+          let* _ = text t "/discard?scope=tab" in
+          check "group coservice" "coservice of the group" t url
       )
     ] )
 
@@ -111,69 +111,69 @@ let limits server =
   let case = case_browsers server in
   ( "limits"
   , [ case "least recently used tab" (fun browser ->
-        (* Beyond the limit, the tab used least recently is closed: [t1] is
+          (* Beyond the limit, the tab used least recently is closed: [t1] is
            used after [t2] is opened, so [t2] is closed. *)
-        let b = browser () in
-        let t1 = tab b and t2 = tab b and t3 = tab b in
-        let* _ = text t1 "/tab/set?v=1" in
-        let* url1 = text t1 "/tab/coservice" in
-        let* _ = text t1 "/tab/max?n=2" in
-        let* _ = text t2 "/tab/set?v=2" in
-        let* url2 = text t2 "/tab/coservice" in
-        let* () = check "used" "1" t1 "/tab/get" in
-        let* _ = text t3 "/tab/set?v=3" in
-        let* _ = text t3 "/tab/coservice" in
-        let* () = check "kept" "1" t1 "/tab/get" in
-        let* () = check "kept, coservice" "coservice of the tab" t1 url1 in
-        let* () = check "newest" "3" t3 "/tab/get" in
-        let* () = check "closed, coservice" "fallback" t2 url2 in
-        (* Last: reading a tab reference without value opens a tab
+          let b = browser () in
+          let t1 = tab b and t2 = tab b and t3 = tab b in
+          let* _ = text t1 "/tab/set?v=1" in
+          let* url1 = text t1 "/tab/coservice" in
+          let* _ = text t1 "/tab/max?n=2" in
+          let* _ = text t2 "/tab/set?v=2" in
+          let* url2 = text t2 "/tab/coservice" in
+          let* () = check "used" "1" t1 "/tab/get" in
+          let* _ = text t3 "/tab/set?v=3" in
+          let* _ = text t3 "/tab/coservice" in
+          let* () = check "kept" "1" t1 "/tab/get" in
+          let* () = check "kept, coservice" "coservice of the tab" t1 url1 in
+          let* () = check "newest" "3" t3 "/tab/get" in
+          let* () = check "closed, coservice" "fallback" t2 url2 in
+          (* Last: reading a tab reference without value opens a tab
            session. *)
-        check "closed" "" t2 "/tab/get"
+          check "closed" "" t2 "/tab/get"
       )
     ; case "default limit of tabs" (fun browser ->
-        (* A browser session holds 100 tab sessions by default *)
-        let b = browser () in
-        let tabs = List.init 101 (fun _ -> tab b) in
-        let* () =
-          Lwt_list.iteri_s
-            (fun i t ->
-              Lwt.map ignore (text t ("/tab/set?v=" ^ string_of_int i))
-            )
-            tabs
-        in
-        match tabs with
-        | first :: second :: _ ->
-            let* () = check "second" "1" second "/tab/get" in
-            let* () = check "last" "100" (List.nth tabs 100) "/tab/get" in
-            check "first, closed" "" first "/tab/get"
-        | _ -> Alcotest.fail "not enough tabs"
+          (* A browser session holds 100 tab sessions by default *)
+          let b = browser () in
+          let tabs = List.init 101 (fun _ -> tab b) in
+          let* () =
+            Lwt_list.iteri_s
+              (fun i t ->
+                Lwt.map ignore (text t ("/tab/set?v=" ^ string_of_int i))
+              )
+              tabs
+          in
+          match tabs with
+          | first :: second :: _ ->
+              let* () = check "second" "1" second "/tab/get" in
+              let* () = check "last" "100" (List.nth tabs 100) "/tab/get" in
+              check "first, closed" "" first "/tab/get"
+          | _ -> Alcotest.fail "not enough tabs"
       )
     ; case "default limit of persistent tabs" (fun browser ->
-        (* The limit of tabs applies to persistent tab sessions too *)
-        let b = browser () in
-        let tabs = List.init 101 (fun _ -> tab b) in
-        let* () =
-          Lwt_list.iteri_s
-            (fun i t ->
-              Lwt.map ignore
-                (text t ("/tab/persistent/set?v=" ^ string_of_int i))
-            )
-            tabs
-        in
-        match tabs with
-        | first :: second :: _ ->
-            let* () = check "second" "1" second "/tab/persistent/get" in
-            let* () =
-              check "last" "100" (List.nth tabs 100) "/tab/persistent/get"
-            in
-            check "first, closed" "" first "/tab/persistent/get"
-        | _ -> Alcotest.fail "not enough tabs"
+          (* The limit of tabs applies to persistent tab sessions too *)
+          let b = browser () in
+          let tabs = List.init 101 (fun _ -> tab b) in
+          let* () =
+            Lwt_list.iteri_s
+              (fun i t ->
+                Lwt.map ignore
+                  (text t ("/tab/persistent/set?v=" ^ string_of_int i))
+              )
+              tabs
+          in
+          match tabs with
+          | first :: second :: _ ->
+              let* () = check "second" "1" second "/tab/persistent/get" in
+              let* () =
+                check "last" "100" (List.nth tabs 100) "/tab/persistent/get"
+              in
+              check "first, closed" "" first "/tab/persistent/get"
+          | _ -> Alcotest.fail "not enough tabs"
       )
     ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-tabs"
-      [tabs server; closing server; limits server]
+      Alcotest.run ~and_exit:false "eliom-server-tabs"
+        [tabs server; closing server; limits server]
   )

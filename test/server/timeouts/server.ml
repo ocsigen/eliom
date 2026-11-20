@@ -51,7 +51,7 @@ let coservice ?timeout ?max_use () =
       ()
   in
   Registration.String.register ~scope:session_scope ~service (fun () () ->
-    text "coservice"
+      text "coservice"
   );
   text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
 

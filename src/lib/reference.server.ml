@@ -34,7 +34,8 @@ let pers_ref_store = Store_json.open_store "eliom__persistent_refs"
 let reset_unreadable ~reset = function
   | Common.Ocsipersist.Decoding_error msg ->
       Logs.warn ~src:section (fun fmt ->
-        fmt "Unreadable persistent reference reset to its default value: %s" msg
+          fmt "Unreadable persistent reference reset to its default value: %s"
+            msg
       );
       reset ()
   | exc -> Lwt.fail exc
@@ -93,8 +94,8 @@ let global_store ~name ~json () =
     )
     (fun exc ->
       Logs.err ~src:section (fun fmt ->
-        fmt "Cannot open the store of the persistent reference %s: %s" name
-          (Printexc.to_string exc)
+          fmt "Cannot open the store of the persistent reference %s: %s" name
+            (Printexc.to_string exc)
       );
       Lwt.fail exc
     )
@@ -401,7 +402,7 @@ module Ext = struct
                 (* An unreadable stored value is treated as absent, like in
                    [Reference.get]. *)
                 Logs.warn ~src:section (fun fmt ->
-                  fmt "Unreadable persistent reference read as absent: %s" msg
+                    fmt "Unreadable persistent reference read as absent: %s" msg
                 );
                 absent ()
             | e -> Lwt.fail e

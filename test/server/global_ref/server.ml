@@ -17,14 +17,14 @@ let () =
 
 let () =
   string (get ["get"] P.unit) (fun () () ->
-    let* v = Reference.get Toplevel_ref.value in
-    text v
+      let* v = Reference.get Toplevel_ref.value in
+      text v
   )
 
 let () =
   string (get ["unset"] P.unit) (fun () () ->
-    let* () = Reference.unset Toplevel_ref.value in
-    text "unset"
+      let* () = Reference.unset Toplevel_ref.value in
+      text "unset"
   )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

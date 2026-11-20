@@ -378,9 +378,9 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
 let gen is_eliom_extension sitedata =
   let open Ocsigen.Extensions in
   function
-    | Req_found _ -> Lwt.return Ext_do_nothing
-    | Req_not_found ((`Not_found as previous_extension_err), req)
-      when handled_method (Ocsigen.Request.meth req.request_info) ->
-        gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err
-          ~req
-    | Req_not_found (_, _ri) -> Lwt.return Ext_do_nothing
+  | Req_found _ -> Lwt.return Ext_do_nothing
+  | Req_not_found ((`Not_found as previous_extension_err), req)
+    when handled_method (Ocsigen.Request.meth req.request_info) ->
+      gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err
+        ~req
+  | Req_not_found (_, _ri) -> Lwt.return Ext_do_nothing

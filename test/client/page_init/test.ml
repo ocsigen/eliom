@@ -30,8 +30,8 @@ let print_table () =
   Eliom.Mod_cookies.get_table (Some host)
   |> Ocsigen_cookie_map.Map_path.bindings
   |> List.concat_map (fun (path, cookies) ->
-    Ocsigen_cookie_map.Map_inner.bindings cookies
-    |> List.map (fun (name, _) -> String.concat "/" path ^ ":" ^ name)
+      Ocsigen_cookie_map.Map_inner.bindings cookies
+      |> List.map (fun (name, _) -> String.concat "/" path ^ ":" ^ name)
   )
   |> String.concat " "
   |> Printf.printf "table: %s\n"
@@ -64,9 +64,10 @@ let () =
 let () =
   let data = Eliom.Request_info.get_request_data () in
   Lwt.async (fun () ->
-    Eliom.Request_info.set_session_info
-      ~uri:(String.concat "/" (Eliom.Request_info.get_csp_original_full_path ()))
-      data.ejs_sess_info Lwt.return
+      Eliom.Request_info.set_session_info
+        ~uri:
+          (String.concat "/" (Eliom.Request_info.get_csp_original_full_path ()))
+        data.ejs_sess_info Lwt.return
   )
 
 let () =

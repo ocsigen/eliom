@@ -24,10 +24,10 @@ let check msg expected b url =
 
 let case ?(speed = `Quick) server name f =
   Alcotest.test_case name speed (fun () ->
-    Lwt_main.run (f (Browser.create server))
+      Lwt_main.run (f (Browser.create server))
   )
 
 let case_browsers server name f =
   Alcotest.test_case name `Quick (fun () ->
-    Lwt_main.run (f (fun () -> Browser.create server))
+      Lwt_main.run (f (fun () -> Browser.create server))
   )

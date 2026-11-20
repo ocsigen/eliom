@@ -44,8 +44,8 @@ let () = string (get ["stateful"; "end"] P.unit) (fun () () -> push_to_tab None)
 
 let () =
   string (get ["discard"] P.unit) (fun () () ->
-    let* () = State.discard ~scope:Common.comet_client_process_scope () in
-    text "discarded"
+      let* () = State.discard ~scope:Common.comet_client_process_scope () in
+      text "discarded"
   )
 
 (* Channels of the site *)

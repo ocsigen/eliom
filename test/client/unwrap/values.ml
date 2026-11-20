@@ -108,21 +108,21 @@ let cases =
   ; case "subnormal" 5e-324 show_float
   ; case "float array" [|1.; 2.5|] show_floats
   ; case "long float array" (Array.init 300 float_of_int) (fun a ->
-      Printf.sprintf "%d floats, last %h" (Array.length a) a.(299)
+        Printf.sprintf "%d floats, last %h" (Array.length a) a.(299)
     )
   ; case "float record" {x = 1.; y = -2.} (fun {x; y} ->
-      Printf.sprintf "{x = %h; y = %h}" x y
+        Printf.sprintf "{x = %h; y = %h}" x y
     )
   ; (* Strings, at the limits of each encoding *)
     case "empty string" "" (Printf.sprintf "%S")
   ; case "string of 31 bytes" (String.make 31 'a') (fun s ->
-      Printf.sprintf "%d bytes" (String.length s)
+        Printf.sprintf "%d bytes" (String.length s)
     )
   ; case "string of 32 bytes" (String.make 32 'b') (fun s ->
-      Printf.sprintf "%d bytes" (String.length s)
+        Printf.sprintf "%d bytes" (String.length s)
     )
   ; case "string of 256 bytes" (String.make 256 'c') (fun s ->
-      Printf.sprintf "%d bytes" (String.length s)
+        Printf.sprintf "%d bytes" (String.length s)
     )
   ; case "UTF-8" "é漢🙂" (Printf.sprintf "%S")
   ; case "all bytes" all_bytes (fun s -> string_of_bool (s = all_bytes))
@@ -156,7 +156,7 @@ let cases =
       ]
       (show_list show_many)
   ; case "8 fields" (1, 2, 3, 4, 5, 6, 7, 8) (fun (a, b, c, d, e, f, g, h) ->
-      show_list string_of_int [a; b; c; d; e; f; g; h]
+        show_list string_of_int [a; b; c; d; e; f; g; h]
     )
   ; case "polymorphic variants"
       [`A; `B 1; `C ("c", 2.)]
@@ -168,7 +168,7 @@ let cases =
   ; (* Sharing and cycles *)
     (let l = [1; 2] in
      case "sharing" (l, l) (fun (a, b) ->
-       Printf.sprintf "%s, shared: %b" (show_list string_of_int a) (a == b)
+         Printf.sprintf "%s, shared: %b" (show_list string_of_int a) (a == b)
      )
     )
   ; (* CODE_SHARED16: a reference to an object read more than 255 objects
@@ -208,7 +208,7 @@ let cases =
     )
   ; (let rec l = 1 :: 2 :: l in
      case "cycle" l (fun l ->
-       Printf.sprintf "cycle of 2: %b" (List.tl (List.tl l) == l)
+         Printf.sprintf "cycle of 2: %b" (List.tl (List.tl l) == l)
      )
     )
   ]
@@ -221,7 +221,7 @@ let big_endian =
   let l = [0] in
   let around name x show =
     case name (l, x, l) (fun (a, x, b) ->
-      Printf.sprintf "%s, shared: %b" (show x) (a == b)
+        Printf.sprintf "%s, shared: %b" (show x) (a == b)
     )
   in
   let show_array a =

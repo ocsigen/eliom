@@ -44,14 +44,14 @@ let gen_usage_msg l =
 
 let rec yes_no : default:bool -> string -> bool =
  fun ~default msg ->
-   printf "%s (%s/%s) " msg
-     (if default then "YES" else "yes")
-     (if default then "no" else "NO");
-   match String.(lowercase_ascii (read_line ())) with
-   | "yes" | "y" -> true
-   | "no" | "n" -> false
-   | "" -> default
-   | _ -> yes_no ~default msg
+  printf "%s (%s/%s) " msg
+    (if default then "YES" else "yes")
+    (if default then "no" else "NO");
+  match String.(lowercase_ascii (read_line ())) with
+  | "yes" | "y" -> true
+  | "no" | "n" -> false
+  | "" -> default
+  | _ -> yes_no ~default msg
 
 let split_path str = Str.(split_delim (regexp (quote Filename.dir_sep)) str)
 

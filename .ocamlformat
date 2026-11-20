@@ -15,5 +15,4 @@ space-around-arrays = false
 space-around-records = false
 space-around-lists = false
 space-around-variants = false
-function-indent-nested = always
 indicate-multiline-delimiters = closing-on-separate-line
