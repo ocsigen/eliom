@@ -128,10 +128,7 @@ let rec find_or_create_persistent_cookie_
     let hc_string = Common.Hashed_cookies.to_string hc in
     (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
-    let usertimeout =
-      ref Common.TGlobal
-      (* See global table *)
-    in
+    let usertimeout = ref Common.TGlobal (* See global table *) in
     let* () =
       Mod_cookies.Persistent_cookies.add hc_string
         { Mod_cookies.full_state_name

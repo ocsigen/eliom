@@ -108,10 +108,7 @@ let rec find_or_create_service_cookie_
     let hc = Common.Hashed_cookies.hash c in
     let hc_string = Common.Hashed_cookies.to_string hc in
     let str = ref (Common.new_service_session_tables sitedata) in
-    let timeout =
-      ref Common.TGlobal
-      (* See global table *)
-    in
+    let timeout = ref Common.TGlobal (* See global table *) in
     let expiry =
       ref None
       (*Some 0.*)

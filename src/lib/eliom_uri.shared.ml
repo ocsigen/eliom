@@ -470,10 +470,7 @@ let make_post_uri_components_
             Common.naservice_num, n
         | _ -> assert false
       in
-      let fragment =
-        None
-        (* fragment is not sent to the server *)
-      in
+      let fragment = None (* fragment is not sent to the server *) in
       let postparams = [naservice_line] in
       uri, params, fragment, Mod_parameters.inject_param_list postparams
 

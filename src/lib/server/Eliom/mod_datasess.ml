@@ -115,10 +115,7 @@ let rec find_or_create_data_cookie
     let c = Mod_cookies.make_new_session_id () in
     let hc = Common.Hashed_cookies.hash c in
     let hc_string = Common.Hashed_cookies.to_string hc in
-    let usertimeout =
-      ref Common.TGlobal
-      (* See global table *)
-    in
+    let usertimeout = ref Common.TGlobal (* See global table *) in
     let serverexp =
       ref None
       (* Some 0. *)
