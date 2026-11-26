@@ -2,3 +2,4 @@
 upgrade.sql
 .eliomignore
 .eliomverbatim
+.git-blame-ignore-revs

@@ -26,4 +26,6 @@ let () =
         ; (* As <wasm> in the configuration file: the page loads the WASM
              version of the client program in the browsers that support it, and
              the JavaScript version in the others. *)
-          Eliom.App.run ~enable_wasm:true () ] ]
+          Eliom.App.run ~enable_wasm:true ()
+        ]
+    ]
