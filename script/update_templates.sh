@@ -13,6 +13,8 @@
 # %%%PROJECT_NAME%%% in file contents, Project_name becomes
 # %%%MODULE_NAME%%%. The files listed in .eliomverbatim are copied
 # unchanged.
+# .git-blame-ignore-revs is not copied: its hashes are commits of the
+# template repository.
 
 set -eo pipefail
 
@@ -45,6 +47,7 @@ encode_dir ()
   touch "$src/.eliomverbatim"
   mkdir "$dest"
   git -C "$src" ls-files -z | while IFS= read -r -d '' src_f; do
+    if [[ $src_f = .git-blame-ignore-revs ]]; then continue; fi
     dest_f=$(encode_fname "$src_f")
     if grep -qxF -- "$dest_f" "$src/.eliomverbatim"; then
       cp "$src/$src_f" "$dest/$dest_f"
