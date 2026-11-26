@@ -25,20 +25,19 @@ open Js_of_ocaml
 (* == Low-level: call service. *)
 
 let create_request__
-      ?absolute
-      ?absolute_path
-      ?https
-      (type m)
-      ~(service : (_, _, m, _, _, _, _, _, _, _, _) Service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-      post_params
-  =
+    ?absolute
+    ?absolute_path
+    ?https
+    (type m)
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Service.t)
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    get_params
+    post_params =
   let path, get_params, fragment, post_params =
     Eliom_uri.make_post_uri_components__ ?absolute ?absolute_path ?https
       ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
@@ -50,20 +49,19 @@ let create_request__
   uri, get_params, post_params
 
 let create_request_
-      (type m)
-      ?absolute
-      ?absolute_path
-      ?https
-      ~(service : (_, _, m, _, _, _, _, _, _, _, _) Service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-      post_params
-  =
+    (type m)
+    ?absolute
+    ?absolute_path
+    ?https
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Service.t)
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    get_params
+    post_params =
   (* TODO: allow get_get_or_post service to return also the service
      with the correct subtype. Then do use Eliom_uri.make_string_uri
      and Eliom_uri.make_post_uri_components instead of
@@ -81,35 +79,37 @@ let create_request_
       `Post
         (create_request__ ?absolute ?absolute_path ?https ~service ?hostname
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-           get_params post_params)
+           get_params post_params
+        )
   | Service.Put' ->
       `Put
         (create_request__ ?absolute ?absolute_path ?https ~service ?hostname
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-           get_params post_params)
+           get_params post_params
+        )
   | Service.Delete' ->
       `Delete
         (create_request__ ?absolute ?absolute_path ?https ~service ?hostname
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-           get_params post_params)
+           get_params post_params
+        )
 
 let raw_call_service
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      get_params
-      post_params
-  =
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    get_params
+    post_params =
   (* with_credentials = true is necessary for client side apps when
      we want the Eliom server to be different from the server for
      static files (if any). For example when testing a mobile app
@@ -146,22 +146,21 @@ let raw_call_service
   | Some content -> Lwt.return (uri, content)
 
 let call_service
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      get_params
-      post_params
-  =
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    get_params
+    post_params =
   let* _, content =
     raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
@@ -172,21 +171,20 @@ let call_service
 (* == Leave an application. *)
 
 let exit_to
-      ?window_name
-      ?window_features
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-      post_params
-  =
+    ?window_name
+    ?window_features
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    get_params
+    post_params =
   match
     create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
@@ -201,27 +199,27 @@ let exit_to
       Request.redirect_delete ?window_name uri post_params
 
 let window_open
-      ~window_name
-      ?window_features
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-  =
+    ~window_name
+    ?window_features
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    get_params =
   match
     create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params ()
   with
   | `Get (uri, _) ->
       Dom_html.window##(open_ (Js.string uri) window_name
-                          (Js.Opt.option window_features))
+                          (Js.Opt.option window_features)
+                       )
   | `Post (_, _, _) -> assert false
   | `Put (_, _, _) -> assert false
   | `Delete (_, _, _) -> assert false

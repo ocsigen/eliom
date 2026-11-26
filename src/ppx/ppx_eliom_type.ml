@@ -49,7 +49,8 @@ module Pass = struct
         typing_expr :=
           ( id
           , let loc = orig_expr.pexp_loc in
-            [%expr [%e frag_eid] := Some [%e orig_expr]] )
+            [%expr [%e frag_eid] := Some [%e orig_expr]]
+          )
           :: !typing_expr
     in
     let flush () =
@@ -70,7 +71,8 @@ module Pass = struct
         typing_strs :=
           ( id
           , let loc = orig_expr.pexp_loc in
-            [%stri let [%p Pat.var id] = Stdlib.ref None] )
+            [%stri let [%p Pat.var id] = Stdlib.ref None]
+          )
           :: !typing_strs
     in
     let flush () =
@@ -100,19 +102,15 @@ module Pass = struct
       [%e flush_typing_expr ()];
       [%e frag_eid] :=
         Some
-          ([%e eliom_expr ~loc "Syntax.client_value"] "" 0
-           : [%t eliom_type ~loc "Client_value.t" [typ]]);
-      (Stdlib.Option.get ![%e frag_eid]
-       : [%t eliom_type ~loc "Client_value.t" [Typ.any ~loc ()]])]
+          ( [%e eliom_expr ~loc "Syntax.client_value"] "" 0
+            : [%t eliom_type ~loc "Client_value.t" [typ]]
+          );
+      ( Stdlib.Option.get ![%e frag_eid]
+        : [%t eliom_type ~loc "Client_value.t" [Typ.any ~loc ()]]
+      )]
 
   let escape_inject
-        ~loc
-        ?ident:_
-        ~(context : Context.escape_inject)
-        ~id
-        ~unsafe:_
-        expr
-    =
+      ~loc ?ident:_ ~(context : Context.escape_inject) ~id ~unsafe:_ expr =
     push_typing_str_item expr id;
     push_typing_expr expr id;
     match context with

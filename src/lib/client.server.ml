@@ -27,32 +27,34 @@ type ('a, 'b) server_function =
 let mk_serv_fun a b : ('a, 'b) server_function = a, b
 
 let server_function
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?https
-      ?error_handler
-      argument_type
-      f
-  =
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ?error_handler
+    argument_type
+    f =
   mk_serv_fun
     (Registration.Ocaml.create ?scope ?options ?charset ?code ?content_type
        ?headers ?secure_session ?name ?csrf_safe ?csrf_scope ?csrf_secure
        ?max_use ?timeout ?https ?error_handler
        ~meth:
          (Service.Post
-            (Parameter.unit, Parameter.(ocaml "argument" argument_type)))
+            (Parameter.unit, Parameter.(ocaml "argument" argument_type))
+         )
        ~path:Service.No_path
-       (fun () argument -> f argument))
+       (fun () argument -> f argument)
+    )
     (Wrap.create_unwrapper
-       (Wrap.id_of_int Common_base.server_function_unwrap_id_int))
+       (Wrap.id_of_int Common_base.server_function_unwrap_id_int)
+    )

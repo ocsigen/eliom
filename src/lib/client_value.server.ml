@@ -31,7 +31,8 @@ let client_value_from_server_repr cv = cv
 let client_value_datum ~closure_id ~args ~value =
   { Runtime.closure_id
   ; args
-  ; value = Runtime.Client_value_server_repr.to_poly value }
+  ; value = Runtime.Client_value_server_repr.to_poly value
+  }
 
 exception Client_value_creation_invalid_context of string
 

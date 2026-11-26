@@ -26,18 +26,18 @@
 module Make
     (Pages : Registration_sigs.PARAM with type frame := Ocsigen.Response.t) :
   Registration_sigs.S_with_create
-  with type page = Pages.page
-   and type options = Pages.options
-   and type result = Pages.result
+    with type page = Pages.page
+     and type options = Pages.options
+     and type result = Pages.result
 
 (** {2 Creating modules to register services for one type of
     parametrised pages} *)
 module Make_poly
     (Pages : Registration_sigs.PARAM_POLY with type frame := Ocsigen.Response.t) :
   Registration_sigs.S_poly_with_create
-  with type 'a page = 'a Pages.page
-   and type options = Pages.options
-   and type 'a return = 'a Pages.return
+    with type 'a page = 'a Pages.page
+     and type options = Pages.options
+     and type 'a return = 'a Pages.return
 
 (**/**)
 

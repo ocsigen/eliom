@@ -34,7 +34,7 @@ module type PARAM = sig
   val subpath_of_info : info -> string list
 
   val make_params :
-     site_data
+       site_data
     -> info
     -> string list option
     -> Common.full_state_name option
@@ -56,13 +56,13 @@ module type PARAM = sig
     val empty : unit -> t
 
     val add :
-       Common.page_table_key
+         Common.page_table_key
       -> Node.t option * (params, result) Common.service list
       -> t
       -> t
 
     val find :
-       Common.page_table_key
+         Common.page_table_key
       -> t
       -> Node.t option * (params, result) Common.service list
 
@@ -75,7 +75,7 @@ module type PARAM = sig
     val set_contains_timeout : t -> bool -> unit
 
     val dlist_add :
-       ?sp:Common.server_params
+         ?sp:Common.server_params
       -> t
       -> (Table.t ref * Common.page_table_key, Common.na_key_serv) Either.t
       -> Node.t
@@ -87,15 +87,14 @@ end
 
 module Make (P : PARAM) = struct
   let find_page_table
-        nosuffixversion
-        now
-        (pagetableref : P.Table.t ref)
-        fullsessname
-        (site_data : P.site_data)
-        (info : P.info)
-        (urlsuffix : _ option)
-        k : P.result Lwt.t
-    =
+      nosuffixversion
+      now
+      (pagetableref : P.Table.t ref)
+      fullsessname
+      (site_data : P.site_data)
+      (info : P.info)
+      (urlsuffix : _ option)
+      k : P.result Lwt.t =
     let sp = P.make_params site_data info urlsuffix fullsessname in
     let* node, l =
       Lwt.catch
@@ -109,47 +108,55 @@ module Make (P : PARAM) = struct
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
             Logs.info ~src:section (fun fmt ->
-              fmt "Service expired. Removing it");
+                fmt "Service expired. Removing it"
+            );
             let* r, toremove = aux toremove l in
             Lwt.return (r, a :: toremove)
         | _ ->
             Lwt.catch
               (fun () ->
-                 Logs.info ~src:section (fun fmt -> fmt "Trying a service");
-                 let* p = s_f nosuffixversion sp in
-                 (* warning: the list ll may change during funct
+                Logs.info ~src:section (fun fmt -> fmt "Trying a service");
+                let* p = s_f nosuffixversion sp in
+                (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
-                 Logs.info ~src:section (fun fmt ->
-                   fmt "Page found and generated successfully");
-                 (* If this is an anonymous coservice,
+                Logs.info ~src:section (fun fmt ->
+                    fmt "Page found and generated successfully"
+                );
+                (* If this is an anonymous coservice,
                   we place it at the top of the dlist
                   (limitation of number of coservices) *)
-                 (match node with
-                 | None -> ()
-                 | Some node -> P.Node.up node);
-                 (* We update the expiration date *)
-                 (match s_expire with
-                 | Some (timeout, e) -> e := timeout +. now
-                 | None -> ());
-                 let newtoremove =
-                   match s_max_use with
-                   | Some s_max_use ->
-                       if s_max_use = 1
-                       then a :: toremove
-                       else (
-                         a.s_max_use <- Some (s_max_use - 1);
-                         toremove)
-                   | _ -> toremove
-                 in
-                 Lwt.return (Ok p, newtoremove))
+                ( match node with
+                | None -> ()
+                | Some node -> P.Node.up node
+                );
+                (* We update the expiration date *)
+                ( match s_expire with
+                | Some (timeout, e) -> e := timeout +. now
+                | None -> ()
+                );
+                let newtoremove =
+                  match s_max_use with
+                  | Some s_max_use ->
+                      if s_max_use = 1
+                      then a :: toremove
+                      else (
+                        a.s_max_use <- Some (s_max_use - 1);
+                        toremove
+                      )
+                  | _ -> toremove
+                in
+                Lwt.return (Ok p, newtoremove)
+              )
               (function
                 | Common.Eliom_Wrong_parameter ->
                     let* r, toremove = aux toremove l in
                     Lwt.return (r, toremove)
-                | e -> Lwt.return (Error e, toremove)))
+                | e -> Lwt.return (Error e, toremove)
+                )
+      )
     in
     let* r, toremove = aux [] l in
-    (match node, toremove with
+    ( match node, toremove with
     | _, [] -> ()
     | Some node, _ ->
         (* it is an anonymous coservice that has expired.
@@ -176,7 +183,9 @@ module Make (P : PARAM) = struct
           match newlist with
           | [] -> newptr
           | newlist -> P.Table.add k (None, newlist) newptr
-      with Not_found -> ()));
+      with Not_found -> ()
+    )
+    );
     match r with Ok r -> Lwt.return (r : P.result) | Error e -> Lwt.fail e
 
   let remove_id services id =
@@ -192,21 +201,18 @@ module Make (P : PARAM) = struct
     match found with Some found -> found, List.rev l | None -> raise Not_found
 
   let add_page_table
-        tables
-        url_act
-        tref
-        key
-        ({Common.s_id; s_expire; _} as service)
-    =
+      tables url_act tref key ({Common.s_id; s_expire; _} as service) =
     let sp = Common.get_sp_option () in
-    (match s_expire with
+    ( match s_expire with
     | Some _ -> P.Container.set_contains_timeout tables true
-    | _ -> ());
+    | _ -> ()
+    );
     (* Duplicate registration forbidden in global table with same generation *)
     match key with
     | {Common.key_state = Common.SAtt_anon _, _; key_meth = `Get}
     | { Common.key_state = _, Common.SAtt_anon _
-      ; key_meth = `Post | `Put | `Delete } -> (
+      ; key_meth = `Post | `Put | `Delete
+      } -> (
       (* Anonymous coservice:
          - only one for each key
          - we add a node in the dlist to limit their number *)
@@ -214,13 +220,15 @@ module Make (P : PARAM) = struct
         let (nodeopt, _), newt =
           P.Table.find key !tref, P.Table.remove key !tref
         in
-        (match nodeopt with
+        ( match nodeopt with
         | None -> () (* should not occur *)
-        | Some node -> P.Node.up node);
+        | Some node -> P.Node.up node
+        );
         tref := P.Table.add key (nodeopt, [service]) newt
       with Not_found ->
         let node = P.Container.dlist_add ?sp tables (Either.Left (tref, key)) in
-        tref := P.Table.add key (Some node, [service]) !tref)
+        tref := P.Table.add key (Some node, [service]) !tref
+    )
     | {Common.key_state = Common.SAtt_no, Common.SAtt_no; _} -> (
       try
         let _nodeopt, l = P.Table.find key !tref
@@ -237,13 +245,15 @@ module Make (P : PARAM) = struct
                 fail (if during initialisation) *)
             raise
               (Common.Eliom_duplicate_registration
-                 (Url.string_of_url_path ~encode:false url_act))
+                 (Url.string_of_url_path ~encode:false url_act)
+              )
           else
             (* We insert as last element so that services are tried
                 in registration order *)
             tref := P.Table.add key (None, oldl @ [service]) newt
         with Not_found -> tref := P.Table.add key (None, l @ [service]) newt
-      with Not_found -> tref := P.Table.add key (None, [service]) !tref)
+      with Not_found -> tref := P.Table.add key (None, [service]) !tref
+    )
     | {Common.key_state; _} -> (
       try
         let _nodeopt, l = P.Table.find key !tref
@@ -260,11 +270,13 @@ module Make (P : PARAM) = struct
           in
           raise
             (Common.Eliom_duplicate_registration
-               (Url.string_of_url_path ~encode:false url_act ^ name))
+               (Url.string_of_url_path ~encode:false url_act ^ name)
+            )
         else
           (* if there was an old version with the same id, we remove it *)
           tref := P.Table.add key (None, oldl @ [service]) newt
-      with Not_found -> tref := P.Table.add key (None, [service]) !tref)
+      with Not_found -> tref := P.Table.add key (None, [service]) !tref
+    )
 
   let remove_page_table _ _ tref key id =
     (* Actually this does not remove empty directories.
@@ -282,7 +294,8 @@ module Make (P : PARAM) = struct
         | [] -> tref := newt
         (* In that case, we must remove it, otherwise we get
          "Wrong parameters" instead of "404 Not found" *)
-        | newl -> tref := P.Table.add key (None, newl) newt)
+        | newl -> tref := P.Table.add key (None, newl) newt
+      )
 
   let add_dircontent dc (key, (elt : P.Table.t Common.direlt ref)) =
     match dc with
@@ -318,7 +331,8 @@ module Make (P : PARAM) = struct
           let newpagetableref = ref (P.Table.empty ()) in
           dircontentref :=
             add_dircontent !dircontentref (a, ref (Common.File newpagetableref));
-          newpagetableref)
+          newpagetableref
+      )
       | "" :: l -> search_page_table_ref dircontentref l
       | a :: l -> aux dircontentref a l
     in
@@ -333,7 +347,9 @@ module Make (P : PARAM) = struct
           ( t
           , [ { Common.st_generation = generation
               ; st_priority = priority
-              ; st_content = t } ] )
+              ; st_content = t
+              }
+            ] )
       | {Common.st_generation = g; st_priority = p; st_content = t} :: _ as l
         when g = generation && p = priority ->
           t, l
@@ -343,7 +359,8 @@ module Make (P : PARAM) = struct
           ( t
           , { Common.st_generation = generation
             ; st_priority = priority
-            ; st_content = t }
+            ; st_content = t
+            }
             :: l )
       | ({Common.st_generation = g; st_priority = p; _} as a) :: l
         when g = generation && p > priority ->
@@ -361,7 +378,8 @@ module Make (P : PARAM) = struct
       | {Common.st_content = table; _} :: l -> (
         try
           add_or_remove_service remove_page_table tables table path k unique_id
-        with Not_found -> aux l)
+        with Not_found -> aux l
+      )
     in
     aux (P.Container.get tables)
 
@@ -376,7 +394,8 @@ module Make (P : PARAM) = struct
           { Common.key_state =
               ( Common.att_key_serv_of_req (fst si.Common.si_state_info)
               , Common.att_key_serv_of_req (snd si.Common.si_state_info) )
-          ; Common.key_meth = P.meth_of_info info }
+          ; Common.key_meth = P.meth_of_info info
+          }
       in
       let aux a l =
         let aa =
@@ -384,34 +403,39 @@ module Make (P : PARAM) = struct
         in
         Lwt.catch
           (fun () ->
-             let dc =
-               try !(find_dircontent dircontent aa)
-               with Not_found -> raise Exn1
-             in
-             match dc with
-             | Common.Dir dircontentref2 -> search_page_table !dircontentref2 l
-             | Common.File page_table_ref -> (
-               match l with
-               | [] -> find false page_table_ref None
-               | _ ->
-                   (* We have a file with suffix *)
-                   raise Common.Eliom_Wrong_parameter))
+            let dc =
+              try !(find_dircontent dircontent aa)
+              with Not_found -> raise Exn1
+            in
+            match dc with
+            | Common.Dir dircontentref2 -> search_page_table !dircontentref2 l
+            | Common.File page_table_ref -> (
+              match l with
+              | [] -> find false page_table_ref None
+              | _ ->
+                  (* We have a file with suffix *)
+                  raise Common.Eliom_Wrong_parameter
+            )
+          )
           (function
             | (Exn1 | Common.Eliom_Wrong_parameter) as e -> (
               (* If no service matches, we try a suffix service *)
               try
                 match
-                  !(try
-                      find_dircontent dircontent
-                        Common.eliom_suffix_internal_name
-                    with Not_found -> raise e)
+                  !( try
+                       find_dircontent dircontent
+                         Common.eliom_suffix_internal_name
+                     with Not_found -> raise e
+                   )
                 with
                 | Common.Dir _ -> Lwt.fail Exn1
                 | Common.File page_table_ref ->
                     find false page_table_ref
                       (if a = None then Some [] else Some (aa :: l))
-              with e -> Lwt.fail e)
-            | e -> Lwt.fail e)
+              with e -> Lwt.fail e
+            )
+            | e -> Lwt.fail e
+            )
       in
       function
       | [] ->
@@ -422,12 +446,14 @@ module Make (P : PARAM) = struct
         (* version without suffix of suffix service *)
         try
           match
-            !(try find_dircontent dircontent Common.eliom_suffix_internal_name
-              with Not_found -> raise Exn1)
+            !( try find_dircontent dircontent Common.eliom_suffix_internal_name
+               with Not_found -> raise Exn1
+             )
           with
           | Common.Dir _ -> Lwt.fail Exn1
           | Common.File page_table_ref -> find true page_table_ref None
-        with e -> Lwt.fail e)
+        with e -> Lwt.fail e
+      )
       (* We do not remove "//" any more because of optional suffixes *)
       | a :: l -> aux (Some a) l
     in
@@ -436,17 +462,20 @@ module Make (P : PARAM) = struct
          (generation, priority) *)
       List.fold_left
         (fun prev {Common.st_content = table; _} ->
-           Lwt.catch
-             (fun () -> prev)
-             (function
-               | Exn1 | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
-                   search_page_table !table path
-               | e -> Lwt.fail e))
+          Lwt.catch
+            (fun () -> prev)
+            (function
+              | Exn1 | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
+                  search_page_table !table path
+              | e -> Lwt.fail e
+              )
+        )
         (Lwt.fail Exn1) tables
     in
     Lwt.catch
       (fun () ->
-         search_by_priority_generation (P.Container.get tables)
-           (Url.change_empty_list (P.subpath_of_info info)))
+        search_by_priority_generation (P.Container.get tables)
+          (Url.change_empty_list (P.subpath_of_info info))
+      )
       (function Exn1 -> Lwt.fail Common.Eliom_404 | e -> Lwt.fail e)
 end

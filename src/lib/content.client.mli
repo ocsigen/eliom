@@ -60,8 +60,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -83,8 +83,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -105,8 +105,8 @@ module Svg : sig
 
     module Raw :
       Svg_sigs.Make(Content_core.Xml_wed).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -308,16 +308,16 @@ module Html : sig
   module type T = sig
     include
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include
       Content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (**/**)
@@ -337,8 +337,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -351,11 +351,11 @@ module Html : sig
 
     include
       Content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
@@ -369,8 +369,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -383,11 +383,11 @@ module Html : sig
 
     include
       Content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML5 content from
@@ -415,8 +415,8 @@ module Html : sig
     (** Cf. {!Html_sigs.T}. *)
     module Raw :
       Html_sigs.Make(Content_core.Xml_wed)(Svg.R.Raw).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -470,7 +470,7 @@ module Html : sig
     (** Custom data with values of type ['a]. *)
 
     val create :
-       name:string
+         name:string
       -> ?default:'a
       -> to_string:('a -> string)
       -> of_string:(string -> 'a)
@@ -569,7 +569,7 @@ module Html : sig
     (** [children elt] returns the list of html children of [elt]. *)
 
     val addEventListener :
-       ?capture:bool
+         ?capture:bool
       -> 'a elt
       -> (#Dom_html.event as 'b) Js.t Dom_html.Event.typ
       -> ('a elt -> 'b Js.t -> bool)
@@ -606,7 +606,7 @@ module Html : sig
       (** see [replaceChildren] *)
 
       val addEventListener :
-         ?capture:bool
+           ?capture:bool
         -> 'a Id.id
         -> (#Dom_html.event as 'b) Js.t Dom_html.Event.typ
         -> ('a elt -> 'b Js.t -> bool)
@@ -933,7 +933,7 @@ val force_link : unit
 (**/**)
 
 val set_client_fun :
-   ?app:string
+     ?app:string
   -> service:('a, 'b, _, _, _, _, _, _, _, _, _) Service.t
   -> ('a -> 'b -> Service.result Lwt.t)
   -> unit

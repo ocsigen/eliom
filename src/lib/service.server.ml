@@ -20,49 +20,49 @@
 include Service_base
 
 let plain_service
-      (type m gp gn pp pn gp')
-      ?(https = false)
-      ~path
-      ?keep_nl_params
-      ?priority
-      ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
-      ()
-  =
+    (type m gp gn pp pn gp')
+    ?(https = false)
+    ~path
+    ?keep_nl_params
+    ?priority
+    ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
+    () =
   let get_params, post_params = params_of_meth meth
   and meth = which_meth_internal meth in
   let redirect_suffix = Parameter.contains_suffix get_params in
   let path =
-    (match redirect_suffix with
+    ( match redirect_suffix with
       | None -> path
-      | Some _ -> path @ [Common.eliom_suffix_internal_name])
+      | Some _ -> path @ [Common.eliom_suffix_internal_name]
+      )
     |> Url.remove_slash_at_beginning |> Url.change_empty_list
     |> Url.remove_internal_slash
   in
-  (if Common.get_sp_option () = None
-   then
-     match Common.global_register_allowed () with
-     | Some current_site_data ->
-         Common.add_unregistered (current_site_data ()) path
-     | None -> raise (Common.Site_information_not_available "service"));
+  ( if Common.get_sp_option () = None
+    then
+      match Common.global_register_allowed () with
+      | Some current_site_data ->
+          Common.add_unregistered (current_site_data ()) path
+      | None -> raise (Common.Site_information_not_available "service")
+  );
   let reload_fun = Rf_client_fun in
   main_service ~https ~prefix:"" ~path ~kind:`Service ~meth ?redirect_suffix
     ?keep_nl_params ?priority ~get_params ~post_params ~reload_fun ()
 
 let create_attached
-      ?name
-      ?(csrf_safe = false)
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?(https = false)
-      ?keep_nl_params
-      ~fallback
-      ~get_params
-      ~post_params
-      ~meth
-      ()
-  =
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ?keep_nl_params
+    ~fallback
+    ~get_params
+    ~post_params
+    ~meth
+    () =
   let is_post = is_post' meth in
   let csrf_scope = default_csrf_scope csrf_scope
   and get_params_type, post_params_type =
@@ -88,7 +88,8 @@ let create_attached
            Common.SAtt_csrf_safe
              { Common.csrf_id = uniqueid ()
              ; csrf_scope :> Common.user_scope
-             ; csrf_secure }
+             ; csrf_secure
+             }
          else
            match name with
            | None -> Common.SAtt_anon (new_state ())
@@ -97,30 +98,30 @@ let create_attached
        Attached
          { k with
            get_name = (if is_post then k.get_name else att_name)
-         ; post_name = (if not is_post then k.post_name else att_name) })
+         ; post_name = (if not is_post then k.post_name else att_name)
+         }
+      )
   ; https = https || fallback.https
   ; keep_nl_params =
-      (match keep_nl_params with
-      | None -> fallback.keep_nl_params
-      | Some k -> k)
+      (match keep_nl_params with None -> fallback.keep_nl_params | Some k -> k)
   ; client_fun = no_client_fun ()
-  ; reload_fun = Rf_client_fun }
+  ; reload_fun = Rf_client_fun
+  }
 
 let create_attached_get = create_attached ~meth:Get' ~post_params:Parameter.unit
 
 let create_attached_post
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?https
-      ?keep_nl_params
-      ~fallback
-      ~post_params
-      ()
-  =
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ?keep_nl_params
+    ~fallback
+    ~post_params
+    () =
   let get_params = get_params_type fallback in
   create_attached ~meth:Post' ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
     ?timeout ?https ?keep_nl_params ~fallback ~post_params ~get_params ()
@@ -129,18 +130,17 @@ let create_attached_get_unsafe = create_attached_get
 let create_attached_post_unsafe = create_attached_post
 
 let coservice'
-      (type m gp gn pp pn)
-      ?name
-      ?(csrf_safe = false)
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?(https = false)
-      ?(keep_nl_params = `Persistent)
-      ~(meth : (m, gp, gn, pp, pn, _, unit) meth)
-      ()
-  =
+    (type m gp gn pp pn)
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ?(keep_nl_params = `Persistent)
+    ~(meth : (m, gp, gn, pp, pn, _, unit) meth)
+    () =
   let get_params, post_params = params_of_meth meth in
   let meth = which_meth_internal meth and is_post = is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope in
@@ -152,12 +152,14 @@ let coservice'
         Common.SNa_post_csrf_safe
           { Common.csrf_id = uniqueid ()
           ; csrf_scope :> Common.user_scope
-          ; csrf_secure }
+          ; csrf_secure
+          }
       else
         Common.SNa_get_csrf_safe
           { Common.csrf_id = uniqueid ()
           ; csrf_scope :> Common.user_scope
-          ; csrf_secure }
+          ; csrf_secure
+          }
     else
       match name, is_post with
       | None, true -> Common.SNa_post' (new_state ())
@@ -167,10 +169,11 @@ let coservice'
   in
   (* Coservices created during the initialisation of a site must be
      registered then, like services with a path. *)
-  (match Common.get_sp_option (), Common.global_register_allowed () with
+  ( match Common.get_sp_option (), Common.global_register_allowed () with
   | None, Some current_site_data ->
       Common.add_unregistered_na (current_site_data ()) na_name
-  | _ -> ());
+  | _ -> ()
+  );
   { max_use
   ; timeout
   ; pre_applied_parameters = Lib.String.Table.empty, []
@@ -185,23 +188,23 @@ let coservice'
   ; send_appl_content = XNever
   ; service_mark = service_mark ()
   ; client_fun = no_client_fun ()
-  ; reload_fun = Rf_client_fun }
+  ; reload_fun = Rf_client_fun
+  }
 
 let create
-      ?name
-      ?(csrf_safe = false)
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?(https = false)
-      ?(keep_nl_params = `Persistent)
-      ?priority
-      (type m gp gn pp pn gp' att_ co_ ext_ reg_ rr)
-      ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
-      ~(path : (att_, co_, gp') path_option)
-      () : (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t
-  =
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ?(keep_nl_params = `Persistent)
+    ?priority
+    (type m gp gn pp pn gp' att_ co_ ext_ reg_ rr)
+    ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
+    ~(path : (att_, co_, gp') path_option)
+    () : (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t =
   match path with
   | Path path -> plain_service ~https ~keep_nl_params ?priority ~path ~meth ()
   | No_path ->
@@ -212,10 +215,22 @@ let create_unsafe = create
 let create_ocaml = create
 
 let attach :
-   fallback:
-     (unit, unit, get, att, _, non_ext, 'rg1, [< suff], unit, unit, 'return1) t
-  -> service:
-       ( 'get
+       fallback:
+         ( unit
+         , unit
+         , get
+         , att
+         , _
+         , non_ext
+         , 'rg1
+         , [< suff]
+         , unit
+         , unit
+         , 'return1
+         )
+         t
+    -> service:
+         ( 'get
          , 'post
          , 'gp
          , non_att
@@ -225,17 +240,18 @@ let attach :
          , ([< `WithoutSuffix] as 'sf)
          , 'gn
          , 'pn
-         , 'return )
+         , 'return
+         )
          t
-  -> unit
-  -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
-  =
+    -> unit
+    -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t =
  fun ~fallback ~service () ->
   let {na_name; _} = non_attached_info service in
   let fallbackkind = attached_info fallback in
   let open Common in
   let error_msg =
-    "attach is not implemented for this kind of service. Please report a bug if you need this."
+    "attach is not implemented for this kind of service. Please report a bug \
+     if you need this."
   in
   let get_name =
     match na_name with
@@ -262,7 +278,8 @@ let attach :
     service_mark = service_mark ()
   ; kind = `AttachedCoservice
   ; pre_applied_parameters = fallback.pre_applied_parameters
-  ; info = Attached {fallbackkind with get_name; post_name} }
+  ; info = Attached {fallbackkind with get_name; post_name}
+  }
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
@@ -292,42 +309,41 @@ let register_eliom_module name f =
 exception Unregistered_CSRF_safe_coservice
 
 let register_delayed_get_or_na_coservice
-      ~sp
-      {Common.csrf_id = k; csrf_scope = scope; csrf_secure = secure}
-  =
+    ~sp {Common.csrf_id = k; csrf_scope = scope; csrf_secure = secure} =
   let f =
     try
       let table =
         !(State.get_session_service_table_if_exists ~sp
             ~scope:(scope :> Common.user_scope)
-            ?secure ())
+            ?secure ()
+         )
       in
       Lib.Int.Table.find k table.Common.csrf_get_or_na_registration_functions
     with Not_found -> (
       let table = State.get_global_table () in
       try
         Lib.Int.Table.find k table.Common.csrf_get_or_na_registration_functions
-      with Not_found -> raise Unregistered_CSRF_safe_coservice)
+      with Not_found -> raise Unregistered_CSRF_safe_coservice
+    )
   in
   f ~sp
 
 let register_delayed_post_coservice
-      ~sp
-      {Common.csrf_id = k; csrf_scope = scope; csrf_secure = secure}
-      getname
-  =
+    ~sp {Common.csrf_id = k; csrf_scope = scope; csrf_secure = secure} getname =
   let f =
     try
       let table =
         !(State.get_session_service_table_if_exists ~sp
             ~scope:(scope :> Common.user_scope)
-            ?secure ())
+            ?secure ()
+         )
       in
       Lib.Int.Table.find k table.Common.csrf_post_registration_functions
     with Not_found -> (
       let table = State.get_global_table () in
       try Lib.Int.Table.find k table.Common.csrf_post_registration_functions
-      with Not_found -> raise Unregistered_CSRF_safe_coservice)
+      with Not_found -> raise Unregistered_CSRF_safe_coservice
+    )
   in
   f ~sp getname
 
@@ -340,10 +356,7 @@ let set_delayed_post_registration_function tables k f =
     Lib.Int.Table.add k f tables.Common.csrf_post_registration_functions
 
 let remove_service
-      table
-      (type m a)
-      (service : (_, _, m, a, _, _, _, _, _, _, _) t)
-  =
+    table (type m a) (service : (_, _, m, a, _, _, _, _, _, _, _) t) =
   match info service with
   | Attached attser ->
       let key_kind = which_meth_untyped service in
@@ -353,19 +366,16 @@ let remove_service
       let sppt = post_params_type service in
       Route.remove_service table (sub_path attser)
         {Common.key_state = attserget, attserpost; Common.key_meth = key_kind}
-        (if attserget = Common.SAtt_no || attserpost = Common.SAtt_no
-         then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
-         else 0, 0)
+        ( if attserget = Common.SAtt_no || attserpost = Common.SAtt_no
+          then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
+          else 0, 0
+        )
   | Nonattached naser ->
       let na_name = na_name naser in
       Route.remove_naservice table na_name
 
 let unregister
-      ?scope
-      ?secure
-      (type m)
-      (service : (_, _, m, _, _, _, _, _, _, _, _) t)
-  =
+    ?scope ?secure (type m) (service : (_, _, m, _, _, _, _, _, _, _, _) t) =
   let sp = Common.get_sp_option () in
   match scope with
   | None | Some `Site ->
@@ -376,7 +386,8 @@ let unregister
           | Some get_current_sitedata ->
               let sitedata = get_current_sitedata () in
               sitedata.Common.global_services
-          | _ -> raise (Common.Site_information_not_available "unregister"))
+          | _ -> raise (Common.Site_information_not_available "unregister")
+        )
         | Some _ -> State.get_global_table ()
       in
       remove_service table service
@@ -385,15 +396,16 @@ let unregister
     | None ->
         raise
           (failwith
-             "Unregistering service for non global scope must be done during a request")
+             "Unregistering service for non global scope must be done during a \
+              request"
+          )
     | Some sp ->
         let table = !(State.get_session_service_table ~sp ?secure ~scope ()) in
-        remove_service table service)
+        remove_service table service
+  )
 
-let allow_unregistered
-      (type a)
-      (service : (_, _, _, a, _, _, reg, _, _, _, _) t)
-  =
+let allow_unregistered (type a) (service : (_, _, _, a, _, _, reg, _, _, _, _) t)
+    =
   match Common.get_sp_option (), Common.global_register_allowed () with
   | None, Some current_site_data -> (
       let sitedata = current_site_data () in
@@ -405,7 +417,8 @@ let allow_unregistered
              their fallback, which must stay recorded. *)
           ()
       | Nonattached naser ->
-          Common.remove_unregistered_na sitedata (na_name naser))
+          Common.remove_unregistered_na sitedata (na_name naser)
+    )
   | _ -> ()
 
 let client_fun _ = None

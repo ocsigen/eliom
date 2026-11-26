@@ -34,8 +34,9 @@ let () =
   string
     (get ["persistent"; "set"] P.(string "v"))
     (fun v () ->
-       let* () = Reference.set persistent_value v in
-       text "set")
+      let* () = Reference.set persistent_value v in
+      text "set"
+    )
 
 (* Sets the timeout of all the persistent cookies, or unsets it without [t].
    The cookies are read first: writing a cookie during an iteration on the
@@ -44,21 +45,23 @@ let () =
   string
     (get ["persistent"; "timeout"] P.(opt (float "t")))
     (fun t () ->
-       let* cookies =
-         State.Ext.fold_persistent_data_cookies
-           (fun cookie l -> Lwt.return (cookie :: l))
-           []
-       in
-       let* () =
-         Lwt_list.iter_s
-           (fun cookie ->
-              match t with
-              | Some t ->
-                  State.Ext.set_persistent_data_cookie_timeout ~cookie (Some t)
-              | None -> State.Ext.unset_persistent_data_cookie_timeout ~cookie)
-           cookies
-       in
-       text "timeout")
+      let* cookies =
+        State.Ext.fold_persistent_data_cookies
+          (fun cookie l -> Lwt.return (cookie :: l))
+          []
+      in
+      let* () =
+        Lwt_list.iter_s
+          (fun cookie ->
+            match t with
+            | Some t ->
+                State.Ext.set_persistent_data_cookie_timeout ~cookie (Some t)
+            | None -> State.Ext.unset_persistent_data_cookie_timeout ~cookie
+          )
+          cookies
+      in
+      text "timeout"
+    )
 
 (* Sets the global timeout of persistent sessions, and computes again the
    expiration dates of the cookies. *)
@@ -66,9 +69,10 @@ let () =
   string
     (get ["persistent"; "global"] P.(float "t"))
     (fun t () ->
-       State.set_global_persistent_data_state_timeout
-         ~cookie_scope:session_scope ~recompute_expdates:true (Some t);
-       text "global")
+      State.set_global_persistent_data_state_timeout ~cookie_scope:session_scope
+        ~recompute_expdates:true (Some t);
+      text "global"
+    )
 
 (* Whether the expiration dates of the persistent cookies are all more than
    50 s away ("far"), not all ("near"), or there is no cookie ("none"). *)
@@ -76,32 +80,35 @@ let () =
   string
     (get ["persistent"; "expiry"] P.unit)
     (fun () () ->
-       let now = Unix.gettimeofday () in
-       let* expiries =
-         Mod_cookies.Persistent_cookies.Cookies.fold
-           (fun _ {Mod_cookies.expiry; _} l -> Lwt.return (expiry :: l))
-           []
-       in
-       let far = function Some t -> t > now +. 50. | None -> true in
-       text
-         (match expiries with
-         | [] -> "none"
-         | l -> if List.for_all far l then "far" else "near"))
+      let now = Unix.gettimeofday () in
+      let* expiries =
+        Mod_cookies.Persistent_cookies.Cookies.fold
+          (fun _ {Mod_cookies.expiry; _} l -> Lwt.return (expiry :: l))
+          []
+      in
+      let far = function Some t -> t > now +. 50. | None -> true in
+      text
+        ( match expiries with
+        | [] -> "none"
+        | l -> if List.for_all far l then "far" else "near"
+        )
+    )
 
 (* Sets the timeout of the cookie of the session after closing it. *)
 let () =
   string
     (get ["persistent"; "close"; "timeout"] P.unit)
     (fun () () ->
-       let* state =
-         State.Ext.current_persistent_data_state ~scope:session_scope ()
-       in
-       let* cookie = State.Ext.get_persistent_cookie_info state in
-       let* () = State.discard ~scope:session_scope () in
-       let* () =
-         State.Ext.set_persistent_data_cookie_timeout ~cookie (Some 100.)
-       in
-       text "closed")
+      let* state =
+        State.Ext.current_persistent_data_state ~scope:session_scope ()
+      in
+      let* cookie = State.Ext.get_persistent_cookie_info state in
+      let* () = State.discard ~scope:session_scope () in
+      let* () =
+        State.Ext.set_persistent_data_cookie_timeout ~cookie (Some 100.)
+      in
+      text "closed"
+    )
 
 (* Gives a timeout to the first persistent cookie while the expiration dates
    are computed again for a global timeout of 100 s, after they have all been
@@ -113,52 +120,56 @@ let () =
   string
     (get ["persistent"; "race"] P.unit)
     (fun () () ->
-       let sitedata = Request_info.find_sitedata "race" in
-       let* cookies =
-         Mod_cookies.Persistent_cookies.Cookies.fold
-           (fun k c l -> Lwt.return ((k, c) :: l))
-           []
-       in
-       match cookies, List.rev cookies with
-       | (last, _) :: _, (first, {Mod_cookies.full_state_name; _}) :: _ ->
-           let update o n =
-             Mod_sessadmin.update_pers_exp full_state_name sitedata (Some o)
-               (Some n)
-           in
-           let rec wait_for_update n =
-             let* {Mod_cookies.expiry; _} =
-               Mod_cookies.Persistent_cookies.Cookies.find last
-             in
-             match expiry with
-             | Some t when t > Unix.gettimeofday () +. 50. -> Lwt.return_unit
-             | _ when n = 0 -> Lwt.fail_with "update not started"
-             | _ ->
-                 let* () = Lwt.pause () in
-                 wait_for_update (n - 1)
-           in
-           let updated = update 1. 100. in
-           let* () = wait_for_update 1000 in
-           let* () =
-             Mod_cookies.Persistent_cookies.set_timeout first
-               (Common.TSome 1000.)
-           in
-           let* () = updated in
-           let* {Mod_cookies.timeout; _} =
-             Mod_cookies.Persistent_cookies.Cookies.find first
-           in
-           let* () = update 100. 1. in
-           text (if timeout = Common.TSome 1000. then "kept" else "lost")
-       | _ -> text "no cookie")
+      let sitedata = Request_info.find_sitedata "race" in
+      let* cookies =
+        Mod_cookies.Persistent_cookies.Cookies.fold
+          (fun k c l -> Lwt.return ((k, c) :: l))
+          []
+      in
+      match cookies, List.rev cookies with
+      | (last, _) :: _, (first, {Mod_cookies.full_state_name; _}) :: _ ->
+          let update o n =
+            Mod_sessadmin.update_pers_exp full_state_name sitedata (Some o)
+              (Some n)
+          in
+          let rec wait_for_update n =
+            let* {Mod_cookies.expiry; _} =
+              Mod_cookies.Persistent_cookies.Cookies.find last
+            in
+            match expiry with
+            | Some t when t > Unix.gettimeofday () +. 50. -> Lwt.return_unit
+            | _ when n = 0 -> Lwt.fail_with "update not started"
+            | _ ->
+                let* () = Lwt.pause () in
+                wait_for_update (n - 1)
+          in
+          let updated = update 1. 100. in
+          let* () = wait_for_update 1000 in
+          let* () =
+            Mod_cookies.Persistent_cookies.set_timeout first (Common.TSome 1000.)
+          in
+          let* () = updated in
+          let* {Mod_cookies.timeout; _} =
+            Mod_cookies.Persistent_cookies.Cookies.find first
+          in
+          let* () = update 100. 1. in
+          text (if timeout = Common.TSome 1000. then "kept" else "lost")
+      | _ -> text "no cookie"
+    )
 
 let fallback = get ["fallback"] P.unit
 let () = string fallback (fun () () -> text "fallback")
 
 let () =
   string (get ["coservice"] P.unit) (fun () () ->
-    let service = Service.create_attached_get ~fallback ~get_params:P.unit () in
-    Registration.String.register ~scope:session_scope ~service (fun () () ->
-      text "coservice");
-    text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~scope:session_scope ~service (fun () () ->
+          text "coservice"
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+  )
 
 let group_value = V.eref ~scope:Common.default_group_scope ""
 
@@ -166,28 +177,33 @@ let () =
   string
     (get ["group"; "join"] P.(string "name" ** string "v"))
     (fun (name, v) () ->
-       State.set_volatile_data_session_group ~scope:session_scope name;
-       V.set group_value v;
-       text "joined")
+      State.set_volatile_data_session_group ~scope:session_scope name;
+      V.set group_value v;
+      text "joined"
+    )
 
 let () =
   string (get ["collect"] P.unit) (fun () () ->
-    let sitedata = Request_info.get_sitedata () in
-    let* () = Mod_gc.collect_service_sessions sitedata in
-    let* () = Mod_gc.collect_data_sessions sitedata in
-    let* () = Mod_gc.collect_persistent_sessions sitedata in
-    text "collected")
+      let sitedata = Request_info.get_sitedata () in
+      let* () = Mod_gc.collect_service_sessions sitedata in
+      let* () = Mod_gc.collect_data_sessions sitedata in
+      let* () = Mod_gc.collect_persistent_sessions sitedata in
+      text "collected"
+  )
 
 (* The numbers of sessions, and the session groups *)
 let () =
   string (get ["count"] P.unit) (fun () () ->
-    let* persistent = State.number_of_persistent_data_cookies () in
-    text
-      (Printf.sprintf "data=%d services=%d persistent=%d groups=[%s]"
-         (State.number_of_volatile_data_cookies ())
-         (State.number_of_service_cookies ())
-         persistent
-         (String.concat ","
-            (List.sort compare (State.Ext.get_session_group_list ())))))
+      let* persistent = State.number_of_persistent_data_cookies () in
+      text
+        (Printf.sprintf "data=%d services=%d persistent=%d groups=[%s]"
+           (State.number_of_volatile_data_cookies ())
+           (State.number_of_service_cookies ())
+           persistent
+           (String.concat ","
+              (List.sort compare (State.Ext.get_session_group_list ()))
+           )
+        )
+  )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

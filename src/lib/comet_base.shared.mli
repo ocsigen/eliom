@@ -43,9 +43,10 @@ type comet_request =
 
 val comet_request_param :
   ( comet_request
-    , [`WithoutSuffix]
-    , [`One of comet_request Parameter.ocaml] Parameter.param_name )
-    Parameter.params_type
+  , [`WithoutSuffix]
+  , [`One of comet_request Parameter.ocaml] Parameter.param_name
+  )
+  Parameter.params_type
 
 type 'a channel_data = Data of 'a | Full | Closed [@@deriving json]
 
@@ -60,36 +61,38 @@ type answer =
 type comet_service =
   | Comet_service :
       ( unit
-        , bool * comet_request
-        , Service.post
-        , Service.att
-        , _
-        , _
-        , _
-        , [`WithoutSuffix]
-        , unit
-        , [`One of bool] Parameter.param_name
-          * [`One of comet_request Parameter.ocaml] Parameter.param_name
-        , Service.non_ocaml )
-        Service.t
+      , bool * comet_request
+      , Service.post
+      , Service.att
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , [`One of bool] Parameter.param_name
+        * [`One of comet_request Parameter.ocaml] Parameter.param_name
+      , Service.non_ocaml
+      )
+      Service.t
       * command list ref
       -> comet_service
 
 type internal_comet_service =
   | Internal_comet_service :
       ( unit
-        , bool * comet_request
-        , Service.post
-        , Service.att
-        , _
-        , Service.non_ext
-        , Service.reg
-        , [`WithoutSuffix]
-        , unit
-        , [`One of bool] Parameter.param_name
-          * [`One of comet_request Parameter.ocaml] Parameter.param_name
-        , Service.non_ocaml )
-        Service.t
+      , bool * comet_request
+      , Service.post
+      , Service.att
+      , _
+      , Service.non_ext
+      , Service.reg
+      , [`WithoutSuffix]
+      , unit
+      , [`One of bool] Parameter.param_name
+        * [`One of comet_request Parameter.ocaml] Parameter.param_name
+      , Service.non_ocaml
+      )
+      Service.t
       * command list ref
       -> internal_comet_service
 
@@ -105,17 +108,18 @@ type 'a wrapped_channel =
 type 'a bus_send_service =
   | Bus_send_service :
       ( unit
-        , 'a list
-        , Service.post
-        , Service.non_att
-        , Service.co
-        , Service.non_ext
-        , Service.reg
-        , [`WithoutSuffix]
-        , unit
-        , [`One of 'a list Parameter.ocaml] Parameter.param_name
-        , Service.non_ocaml )
-        Service.t
+      , 'a list
+      , Service.post
+      , Service.non_att
+      , Service.co
+      , Service.non_ext
+      , Service.reg
+      , [`WithoutSuffix]
+      , unit
+      , [`One of 'a list Parameter.ocaml] Parameter.param_name
+      , Service.non_ocaml
+      )
+      Service.t
       -> 'a bus_send_service
 
 type ('a, 'b) wrapped_bus = 'b wrapped_channel * 'a bus_send_service

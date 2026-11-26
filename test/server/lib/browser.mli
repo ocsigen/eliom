@@ -17,7 +17,7 @@ val get : ?headers:(string * string) list -> t -> string -> response Lwt.t
     in {!Cookie_jar}. Redirections are not followed. *)
 
 val post :
-   ?headers:(string * string) list
+     ?headers:(string * string) list
   -> t
   -> string
   -> (string * string) list

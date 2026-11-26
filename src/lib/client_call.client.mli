@@ -25,22 +25,23 @@
 open Js_of_ocaml
 
 val create_request_ :
-   ?absolute:bool
+     ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'a
-         , 'b
-         , _
-         , _
-         , _
-         , _
-         , _
-         , [< `WithSuffix | `WithoutSuffix]
-         , _
-         , _
-         , _ )
-         Service.t
+       , 'b
+       , _
+       , _
+       , _
+       , _
+       , _
+       , [< `WithSuffix | `WithoutSuffix]
+       , _
+       , _
+       , _
+       )
+       Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -51,38 +52,39 @@ val create_request_ :
   -> 'b
   -> [ `Get of string * (string * Mod_parameters.param) list
      | `Post of
-         string
-         * (string * Mod_parameters.param) list
-         * (string * Mod_parameters.param) list
+       string
+       * (string * Mod_parameters.param) list
+       * (string * Mod_parameters.param) list
      | `Put of
-         string
-         * (string * Mod_parameters.param) list
-         * (string * Mod_parameters.param) list
+       string
+       * (string * Mod_parameters.param) list
+       * (string * Mod_parameters.param) list
      | `Delete of
-         string
-         * (string * Mod_parameters.param) list
-         * (string * Mod_parameters.param) list ]
+       string
+       * (string * Mod_parameters.param) list
+       * (string * Mod_parameters.param) list ]
 (** The URI and the parameters of a request to a service, tagged with
     its HTTP method. For a [`Get], the parameters are the GET ones;
     otherwise they are the GET and the POST ones. *)
 
 val raw_call_service :
-   ?absolute:bool
+     ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'a
-         , 'b
-         , _
-         , _
-         , _
-         , _
-         , _
-         , [< `WithSuffix | `WithoutSuffix]
-         , _
-         , _
-         , _ )
-         Service.t
+       , 'b
+       , _
+       , _
+       , _
+       , _
+       , _
+       , [< `WithSuffix | `WithoutSuffix]
+       , _
+       , _
+       , _
+       )
+       Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -99,22 +101,23 @@ val raw_call_service :
     Fails with [Request.Failed_request 204] if there is no content. *)
 
 val call_service :
-   ?absolute:bool
+     ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'a
-         , 'b
-         , _
-         , _
-         , _
-         , _
-         , _
-         , [< `WithSuffix | `WithoutSuffix]
-         , _
-         , _
-         , _ )
-         Service.t
+       , 'b
+       , _
+       , _
+       , _
+       , _
+       , _
+       , [< `WithSuffix | `WithoutSuffix]
+       , _
+       , _
+       , _
+       )
+       Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -130,24 +133,25 @@ val call_service :
 (** See {!Client.call_service}. *)
 
 val exit_to :
-   ?window_name:string
+     ?window_name:string
   -> ?window_features:string
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'a
-         , 'b
-         , _
-         , _
-         , _
-         , _
-         , _
-         , [< `WithSuffix | `WithoutSuffix]
-         , _
-         , _
-         , _ )
-         Service.t
+       , 'b
+       , _
+       , _
+       , _
+       , _
+       , _
+       , [< `WithSuffix | `WithoutSuffix]
+       , _
+       , _
+       , _
+       )
+       Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -160,24 +164,25 @@ val exit_to :
 (** See {!Client.exit_to}. *)
 
 val window_open :
-   window_name:Js.js_string Js.t
+     window_name:Js.js_string Js.t
   -> ?window_features:Js.js_string Js.t
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'a
-         , unit
-         , _
-         , _
-         , _
-         , _
-         , _
-         , [< `WithSuffix | `WithoutSuffix]
-         , _
-         , _
-         , _ )
-         Service.t
+       , unit
+       , _
+       , _
+       , _
+       , _
+       , _
+       , [< `WithSuffix | `WithoutSuffix]
+       , _
+       , _
+       , _
+       )
+       Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string

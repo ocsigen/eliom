@@ -44,19 +44,22 @@ let check_typing_error msg names f =
 let point =
   Alcotest.testable
     (fun fmt {abscissa; ordinate} ->
-       Format.fprintf fmt "(%d, %d)" abscissa ordinate)
+      Format.fprintf fmt "(%d, %d)" abscissa ordinate
+    )
     ( = )
 
 let binsum a b =
   Alcotest.testable
     (fun fmt -> function
-       | Inj1 x -> Format.fprintf fmt "Inj1 %a" (Alcotest.pp a) x
-       | Inj2 y -> Format.fprintf fmt "Inj2 %a" (Alcotest.pp b) y)
+      | Inj1 x -> Format.fprintf fmt "Inj1 %a" (Alcotest.pp a) x
+      | Inj2 y -> Format.fprintf fmt "Inj2 %a" (Alcotest.pp b) y
+    )
     (fun x y ->
-       match x, y with
-       | Inj1 x, Inj1 y -> Alcotest.equal a x y
-       | Inj2 x, Inj2 y -> Alcotest.equal b x y
-       | _ -> false)
+      match x, y with
+      | Inj1 x, Inj1 y -> Alcotest.equal a x y
+      | Inj2 x, Inj2 y -> Alcotest.equal b x y
+      | _ -> false
+    )
 
 (* Encoding *)
 
@@ -181,9 +184,7 @@ let test_decode_set () =
 
 let test_decode_optional () =
   Alcotest.(check bool) "absent bool" false (decode (bool "b") []);
-  Alcotest.(check bool)
-    "bool with any value" true
-    (decode (bool "b") ["b", "x"]);
+  Alcotest.(check bool) "bool with any value" true (decode (bool "b") ["b", "x"]);
   Alcotest.(check (option int))
     "empty int" None
     (decode (opt (int "i")) ["i", ""]);
@@ -200,20 +201,26 @@ let test_decode_optional () =
 let test_decode_errors () =
   check_wrong_parameter "missing parameter" (fun () -> decode (int "i") []);
   check_wrong_parameter "unexpected parameter" (fun () ->
-    decode (int "i") ["i", "1"; "j", "2"]);
+      decode (int "i") ["i", "1"; "j", "2"]
+  );
   check_wrong_parameter "unit with a parameter" (fun () ->
-    decode unit ["i", "1"]);
+      decode unit ["i", "1"]
+  );
   check_typing_error "not an int" ["i"] (fun () -> decode (int "i") ["i", "x"]);
   check_typing_error "not the JSON of an int" ["j"] (fun () ->
-    decode (ocaml "j" [%json: int]) ["j", "x"]);
+      decode (ocaml "j" [%json: int]) ["j", "x"]
+  );
   check_typing_error "all the errors of a product" ["a"; "b"] (fun () ->
-    decode (int "a" ** float "b") ["a", "x"; "b", "y"]);
+      decode (int "a" ** float "b") ["a", "x"; "b", "y"]
+  );
   check_typing_error "error in a list" ["l.x[1]"] (fun () ->
-    decode (list "l" (int "x")) ["l.x[0]", "1"; "l.x[1]", "z"]);
+      decode (list "l" (int "x")) ["l.x[0]", "1"; "l.x[1]", "z"]
+  );
   check_typing_error "rejected by the type checker" ["<type_check>"] (fun () ->
-    decode
-      (type_checker (fun i -> if i < 0 then failwith "negative") (int "i"))
-      ["i", "-1"])
+      decode
+        (type_checker (fun i -> if i < 0 then failwith "negative") (int "i"))
+        ["i", "-1"]
+  )
 
 let test_decode_suffix () =
   let typ = suffix (int "i" ** string "s") in
@@ -221,15 +228,19 @@ let test_decode_suffix () =
     "from the URL" (3, "x")
     (decode ~suffix:["3"; "x"] typ []);
   check_wrong_parameter "suffix too short" (fun () ->
-    decode ~suffix:["3"] typ []);
+      decode ~suffix:["3"] typ []
+  );
   check_wrong_parameter "suffix too long" (fun () ->
-    decode ~suffix:["3"; "x"; "y"] typ []);
+      decode ~suffix:["3"; "x"; "y"] typ []
+  );
   check_typing_error "not an int" ["<suffix>"] (fun () ->
-    decode ~suffix:["x"; "x"] typ []);
+      decode ~suffix:["x"; "x"] typ []
+  );
   check_wrong_parameter "wrong constant" (fun () ->
-    decode ~suffix:["a"; "other"; "2"]
-      (suffix (string "x" ** suffix_const "const" ** int "y"))
-      []);
+      decode ~suffix:["a"; "other"; "2"]
+        (suffix (string "x" ** suffix_const "const" ** int "y"))
+        []
+  );
   Alcotest.(check (pair int string))
     "version without suffix" (3, "x")
     (decode ~nosuffix:true typ ["i", "3"; "s", "x"]);
@@ -259,18 +270,24 @@ let test_invalid_suffix () =
   let not_last = "a list or a set must end the path" in
   rejected ~fn:"suffix_prod" "any"
     "it cannot contain Parameter.any (use all_suffix)" (fun () ->
-    suffix_prod any any);
+      suffix_prod any any
+  );
   rejected "unit" "it cannot contain unit" (fun () -> suffix (int "i" ** unit));
   rejected "list not last" not_last (fun () ->
-    suffix (list "l" (int "i") ** int "j"));
+      suffix (list "l" (int "i") ** int "j")
+  );
   rejected "list not last, in parentheses" not_last (fun () ->
-    suffix ((int "i" ** list "l" (int "j")) ** int "k"));
+      suffix ((int "i" ** list "l" (int "j")) ** int "k")
+  );
   rejected "optional list not last" not_last (fun () ->
-    suffix (opt (list "l" (int "i")) ** int "j"));
+      suffix (opt (list "l" (int "i")) ** int "j")
+  );
   rejected "list of lists" not_last (fun () ->
-    suffix (list "l" (list "m" (int "i"))));
+      suffix (list "l" (list "m" (int "i")))
+  );
   rejected "optional file" "it cannot contain a file" (fun () ->
-    suffix (opt (file "f")));
+      suffix (opt (file "f"))
+  );
   ignore (suffix (int "i" ** list "l" (int "j")) : _ params_type);
   ignore (suffix (int "i" ** opt (list "l" (int "j"))) : _ params_type);
   (* The parameters after the suffix are GET parameters, outside the path. *)
@@ -327,7 +344,8 @@ let test_non_localized () =
     (snd (encode (nl_prod (int "a") nl) (1, 2)));
   Alcotest.check_raises "dot in the name"
     (Failure "Non localized parameters names cannot contain dots.") (fun () ->
-    ignore (make_non_localized_parameters ~prefix:"app" ~name:"a.b" (int "i")))
+      ignore (make_non_localized_parameters ~prefix:"app" ~name:"a.b" (int "i"))
+  )
 
 let suite =
   ( "parameter"
@@ -346,4 +364,5 @@ let suite =
     ; Alcotest.test_case "decode whole suffix parameter" `Quick
         test_decode_whole_suffix_parameter
     ; Alcotest.test_case "names" `Quick test_names
-    ; Alcotest.test_case "non-localized" `Quick test_non_localized ] )
+    ; Alcotest.test_case "non-localized" `Quick test_non_localized
+    ] )

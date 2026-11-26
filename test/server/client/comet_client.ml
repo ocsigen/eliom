@@ -59,5 +59,6 @@ let request_stateless browser (c : Comet_info.t) position =
       Array.to_list
         (Array.map
            (fun (id, d) -> id, message (fun (s, i) -> unmarshal s, i) d)
-           m)
+           m
+        )
   | _ -> failwith "Comet: unexpected answer to a stateless request"

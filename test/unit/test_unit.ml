@@ -15,4 +15,5 @@ let () =
     ; Test_content.suite
     ; Test_config.suite
     ; Test_init_errors.suite
-    ; Test_reference.suite ]
+    ; Test_reference.suite
+    ]

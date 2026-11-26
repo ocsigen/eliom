@@ -10,7 +10,7 @@ val create : Eliom_test_server.Browser.t -> t
 (** [create b] is a new tab of [b], with no tab cookie. *)
 
 val get :
-   ?expecting_process_page:bool
+     ?expecting_process_page:bool
   -> t
   -> string
   -> Eliom_test_server.Browser.response Lwt.t
@@ -21,7 +21,7 @@ val get :
     program does when it changes page. *)
 
 val post :
-   t
+     t
   -> string
   -> (string * string) list
   -> Eliom_test_server.Browser.response Lwt.t

@@ -25,7 +25,7 @@ module type LINKS = sig
   type uri
 
   val make_uri :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> service:('get, unit, Service.get, _, _, _, _, _, _, unit, _) Service.t
@@ -120,7 +120,7 @@ module type LINKS = sig
       For other module, the function [f] is immediately applied. *)
 
   val css_link :
-     ?a:[< Html_types.link_attrib] attrib list
+       ?a:[< Html_types.link_attrib] attrib list
     -> uri:uri
     -> unit
     -> [> Html_types.link] elt
@@ -136,7 +136,7 @@ module type LINKS = sig
       attributes to the generated node.  *)
 
   val js_script :
-     ?a:[< Html_types.script_attrib] attrib list
+       ?a:[< Html_types.script_attrib] attrib list
     -> uri:uri
     -> unit
     -> [> Html_types.script] elt
@@ -152,23 +152,24 @@ module type LINKS = sig
       attributes to the generated node.  *)
 
   val a :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.a_attrib] attrib list
     -> service:
          ( 'get
-           , unit
-           , Service.get
-           , _
-           , _
-           , _
-           , _
-           , _
-           , _
-           , unit
-           , Service.non_ocaml )
-           Service.t
+         , unit
+         , Service.get
+         , _
+         , _
+         , _
+         , _
+         , _
+         , _
+         , unit
+         , Service.non_ocaml
+         )
+         Service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -228,7 +229,7 @@ module type S = sig
   val user : ('a -> string) -> 'a param
 
   val make_post_uri_components :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> service:('get, 'post, Service.post, _, _, _, _, _, _, _, _) Service.t
@@ -248,23 +249,24 @@ module type S = sig
       post parameters. *)
 
   val get_form :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( _
-           , unit
-           , Service.get
-           , _
-           , _
-           , _
-           , _
-           , _
-           , 'gn
-           , _
-           , Service.non_ocaml )
-           Service.t
+         , unit
+         , Service.get
+         , _
+         , _
+         , _
+         , _
+         , _
+         , 'gn
+         , _
+         , Service.non_ocaml
+         )
+         Service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -298,23 +300,24 @@ module type S = sig
       parameters.  *)
 
   val lwt_get_form :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( _
-           , unit
-           , Service.get
-           , _
-           , _
-           , _
-           , _
-           , _
-           , 'gn
-           , _
-           , Service.non_ocaml )
-           Service.t
+         , unit
+         , Service.get
+         , _
+         , _
+         , _
+         , _
+         , _
+         , 'gn
+         , _
+         , Service.non_ocaml
+         )
+         Service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -327,23 +330,24 @@ module type S = sig
       [<form>] content generation. *)
 
   val post_form :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( 'get
-           , _
-           , Service.post
-           , _
-           , _
-           , _
-           , _
-           , _
-           , _
-           , 'pn
-           , Service.non_ocaml )
-           Service.t
+         , _
+         , Service.post
+         , _
+         , _
+         , _
+         , _
+         , _
+         , _
+         , 'pn
+         , Service.non_ocaml
+         )
+         Service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -369,23 +373,24 @@ module type S = sig
       [~xhr] and see {!make_uri} for other optional parameters.  *)
 
   val lwt_post_form :
-     ?absolute:bool
+       ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( 'get
-           , _
-           , Service.post
-           , _
-           , _
-           , _
-           , _
-           , _
-           , _
-           , 'pn
-           , Service.non_ocaml )
-           Service.t
+         , _
+         , Service.post
+         , _
+         , _
+         , _
+         , _
+         , _
+         , _
+         , 'pn
+         , Service.non_ocaml
+         )
+         Service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -400,7 +405,7 @@ module type S = sig
       [<form>] content generation. *)
 
   val input :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> input_type:[< Html_types.input_type]
     -> ?name:[< 'a setoneradio] param_name
     -> ?value:'a
@@ -409,14 +414,14 @@ module type S = sig
   (** Creates an [<input>] tag. *)
 
   val file_input :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> name:[< file_info setoneradio] param_name
     -> unit
     -> [> Html_types.input] elt
   (** Creates an [<input>] tag for sending a file *)
 
   val image_input :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> name:[< coordinates oneradio] param_name
     -> ?src:uri
     -> unit
@@ -425,7 +430,7 @@ module type S = sig
       receives the coordinates that the user clicked on. *)
 
   val checkbox :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`Set of 'a] Parameter.param_name
     -> value:'a
@@ -436,7 +441,7 @@ module type S = sig
       service must declare a parameter of type [set]. *)
 
   val bool_checkbox_one :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`One of bool] Parameter.param_name
     -> unit
@@ -445,7 +450,7 @@ module type S = sig
       with the same [name] is allowed. *)
 
   val radio :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`Radio of 'a] param_name
     -> value:'a
@@ -454,7 +459,7 @@ module type S = sig
   (** Creates a radio [<input>] tag. *)
 
   val string_radio_required :
-     ?a:[< Html_types.input_attrib] attrib list
+       ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`One of string] param_name
     -> value:string
@@ -462,7 +467,7 @@ module type S = sig
     -> [> Html_types.input] elt
 
   val button :
-     ?a:[< Html_types.button_attrib] attrib list
+       ?a:[< Html_types.button_attrib] attrib list
     -> button_type:[< button_type]
     -> name:[< 'a setone] param_name
     -> value:'a
@@ -472,14 +477,14 @@ module type S = sig
   (** Creates a [<button>] tag. *)
 
   val button_no_value :
-     ?a:[< Html_types.button_attrib] attrib list
+       ?a:[< Html_types.button_attrib] attrib list
     -> button_type:[< button_type]
     -> Html_types.button_content elt list
     -> [> Html_types.button] elt
   (** Creates a [<button>] tag with no value. No value is sent. *)
 
   val textarea :
-     ?a:[< Html_types.textarea_attrib] attrib list
+       ?a:[< Html_types.textarea_attrib] attrib list
     -> name:[< string setoneradio] param_name
     -> ?value:string
     -> unit
@@ -511,7 +516,7 @@ module type S = sig
     | Option of 'a soption
 
   val select :
-     ?a:[< Html_types.select_attrib] attrib list
+       ?a:[< Html_types.select_attrib] attrib list
     -> ?required:Html_types.pcdata elt
     -> name:[`One of 'a] param_name
     -> 'a param
@@ -521,7 +526,7 @@ module type S = sig
   (** Creates a [<select>] tag. *)
 
   val multiple_select :
-     ?a:[< Html_types.select_attrib] attrib list
+       ?a:[< Html_types.select_attrib] attrib list
     -> ?required:Html_types.pcdata elt
     -> name:[`Set of 'a] param_name
     -> 'a param

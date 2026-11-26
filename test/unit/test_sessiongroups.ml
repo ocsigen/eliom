@@ -16,7 +16,7 @@ module Dlist = Ocsigen_base.Cache.Dlist
 type kind =
   { name : string
   ; add :
-      Common.sitedata
+         Common.sitedata
       -> string
       -> Common.cookie_level Common.sessgrp
       -> string Dlist.node
@@ -25,8 +25,9 @@ type kind =
   ; set_group_max : Common.cookie_level Common.sessgrp -> int -> unit
   ; size : Common.cookie_level Common.sessgrp -> int
   ; entry :
-      Common.cookie_level Common.sessgrp
-      -> Common.group_of_groups_entry Dlist.node option }
+         Common.cookie_level Common.sessgrp
+      -> Common.group_of_groups_entry Dlist.node option
+  }
 
 let service =
   { name = "service"
@@ -36,7 +37,8 @@ let service =
   ; set_group_max = Groups.Serv.set_group_max
   ; size = Groups.Serv.group_size
   ; entry =
-      (fun g -> Option.map snd (Groups.Serv.find_node_in_group_of_groups g)) }
+      (fun g -> Option.map snd (Groups.Serv.find_node_in_group_of_groups g))
+  }
 
 let data =
   { name = "data"
@@ -45,7 +47,8 @@ let data =
   ; set_max = Groups.Data.set_max
   ; set_group_max = Groups.Data.set_group_max
   ; size = Groups.Data.group_size
-  ; entry = Groups.Data.find_node_in_group_of_groups }
+  ; entry = Groups.Data.find_node_in_group_of_groups
+  }
 
 let other k = if k == service then data else service
 
@@ -69,7 +72,8 @@ type states =
   { b11 : string Dlist.node
   ; b12 : string Dlist.node
   ; t111 : string Dlist.node
-  ; t112 : string Dlist.node }
+  ; t112 : string Dlist.node
+  }
 
 let id k name = k.name ^ "-" ^ name
 
@@ -92,7 +96,8 @@ let snapshot sitedata k =
   ; "g2", k.size (group sitedata "g2")
   ; "b11 tabs", k.size (tabs sitedata (id k "b11"))
   ; "b12 tabs", k.size (tabs sitedata (id k "b12"))
-  ; "b21 tabs", k.size (tabs sitedata (id k "b21")) ]
+  ; "b21 tabs", k.size (tabs sitedata (id k "b21"))
+  ]
 
 let everything = ["g1", 2; "g2", 1; "b11 tabs", 2; "b12 tabs", 1; "b21 tabs", 1]
 
@@ -103,7 +108,8 @@ let expect sitedata k msg ~changed =
   let expected =
     List.map
       (fun (name, n) ->
-         name, Option.value (List.assoc_opt name changed) ~default:n)
+        name, Option.value (List.assoc_opt name changed) ~default:n
+      )
       everything
   in
   Alcotest.(check (list (pair string int)))
@@ -185,7 +191,8 @@ let scenarios =
   ; "evict a group", evict_group
   ; "limit the tabs of a browser session", limit_tabs
   ; "limit the browser sessions of a group", limit_browser_sessions
-  ; "limit the groups of a site", limit_groups ]
+  ; "limit the groups of a site", limit_groups
+  ]
 
 (* The sessions without a group of a site are in one group, which is not a
    group of the site: when the site has too many groups, they are not closed
@@ -231,20 +238,23 @@ let persistent_up () =
      (* A request of a session that has left the group, during its
         closing, does not put it back. *)
      let* () = Groups.Pers.up "s1" g in
-     check "left the group" ["s2"])
+     check "left the group" ["s2"]
+    )
 
 let suite =
   ( "session groups"
   , List.concat_map
       (fun k ->
-         Alcotest.test_case
-           (Printf.sprintf "sessions without a group (%s)" k.name)
-           `Quick (without_group k)
-         :: List.map
-              (fun (name, f) ->
-                 Alcotest.test_case
-                   (Printf.sprintf "%s (%s)" name k.name)
-                   `Quick (run name f k))
-              scenarios)
+        Alcotest.test_case
+          (Printf.sprintf "sessions without a group (%s)" k.name)
+          `Quick (without_group k)
+        :: List.map
+             (fun (name, f) ->
+               Alcotest.test_case
+                 (Printf.sprintf "%s (%s)" name k.name)
+                 `Quick (run name f k)
+             )
+             scenarios
+      )
       [service; data]
     @ [Alcotest.test_case "persistent group, use" `Quick persistent_up] )

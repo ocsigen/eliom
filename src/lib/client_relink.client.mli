@@ -30,14 +30,13 @@ val relink_request_nodes : Dom_html.element Js.t -> unit
     with the nodes already known under the same id. *)
 
 val relink_page_but_client_values :
-   Dom_html.element Js.t
-  -> Mod_dom.selected_nodes
+  Dom_html.element Js.t -> Mod_dom.selected_nodes
 (** Relinks the links, forms and process nodes below the given root.
     The selected nodes are returned, so that the closure and attribute
     nodes can be relinked once the client values are initialised. *)
 
 val relink_closure_nodes :
-   Dom_html.element Js.t
+     Dom_html.element Js.t
   -> Runtime.RawXML.event_handler_table
   -> Dom_html.element Dom.nodeList Js.t
   -> unit
@@ -48,7 +47,7 @@ val relink_closure_nodes :
     [false]. *)
 
 val relink_attribs :
-   Dom_html.element Js.t
+     Dom_html.element Js.t
   -> Runtime.RawXML.client_attrib_table
   -> Dom_html.element Dom.nodeList Js.t
   -> unit

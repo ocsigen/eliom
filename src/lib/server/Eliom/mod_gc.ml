@@ -45,7 +45,7 @@ let gc_timeouted_services now tables =
     match !direltr with
     | Common.Dir r ->
         let* () = empty_one r in
-        (match !r with
+        ( match !r with
         | Common.Empty -> (
           match !t with
           | Common.Empty -> ()
@@ -53,61 +53,68 @@ let gc_timeouted_services now tables =
               let newr = String.Table.remove filename tr in
               if String.Table.is_empty newr
               then t := Common.Empty
-              else t := Common.Table newr)
-        | _ -> ());
+              else t := Common.Table newr
+        )
+        | _ -> ()
+        );
         Lwt.return_unit
     | Common.File ptr ->
         let* () =
           Common.Serv_Table.fold
             (*VVV not tail recursive: may be a problem if lots of coservices *)
             (fun ptk (`Ptc (nodeopt, l)) thr ->
-               let* _ = thr in
-               (* we wait for the previous one to be completed *)
-               (match nodeopt, l with
-               | Some node, {Common.s_expire = Some (_, e); _} :: _
-               (* it is an anonymous coservice.  The list should
+              let* _ = thr in
+              (* we wait for the previous one to be completed *)
+              ( match nodeopt, l with
+              | Some node, {Common.s_expire = Some (_, e); _} :: _
+              (* it is an anonymous coservice.  The list should
                        have length 1 here *)
-                 when !e < now ->
-                   Ocsigen_base.Cache.Dlist.remove node
-               | Some node, [] (* should not occur *) ->
-                   Ocsigen_base.Cache.Dlist.remove node
-               | _ -> (
-                 (* We find the data associated to ptk once again,
+                when !e < now ->
+                  Ocsigen_base.Cache.Dlist.remove node
+              | Some node, [] (* should not occur *) ->
+                  Ocsigen_base.Cache.Dlist.remove node
+              | _ -> (
+                (* We find the data associated to ptk once again,
                          because it may have changed, then we update it
                          (without cooperation)
                          (it's ok because the list is probably not large) *)
-                 try
-                   let `Ptc (nodeopt, l), ll =
-                     ( Common.Serv_Table.find ptk !ptr
-                     , Common.Serv_Table.remove ptk !ptr )
-                   in
-                   if nodeopt = None
-                   then
-                     match
-                       List.fold_right
-                         (fun ({Common.s_expire; _} as a) foll ->
-                            match s_expire with
-                            | Some (_, e) when !e < now -> foll
-                            | _ -> a :: foll)
-                         l []
-                     with
-                     | [] -> ptr := ll
-                     | newl ->
-                         ptr :=
-                           Common.Serv_Table.add ptk (`Ptc (nodeopt, newl)) ll
-                 with Not_found -> ()));
-               Lwt.pause ())
+                try
+                  let `Ptc (nodeopt, l), ll =
+                    ( Common.Serv_Table.find ptk !ptr
+                    , Common.Serv_Table.remove ptk !ptr )
+                  in
+                  if nodeopt = None
+                  then
+                    match
+                      List.fold_right
+                        (fun ({Common.s_expire; _} as a) foll ->
+                          match s_expire with
+                          | Some (_, e) when !e < now -> foll
+                          | _ -> a :: foll
+                        )
+                        l []
+                    with
+                    | [] -> ptr := ll
+                    | newl ->
+                        ptr :=
+                          Common.Serv_Table.add ptk (`Ptc (nodeopt, newl)) ll
+                with Not_found -> ()
+              )
+              );
+              Lwt.pause ()
+            )
             !ptr Lwt.return_unit
         in
-        (if Common.Serv_Table.is_empty !ptr
-         then
-           match !t with
-           | Common.Empty -> ()
-           | Common.Table tr ->
-               let newr = String.Table.remove filename tr in
-               if String.Table.is_empty newr
-               then t := Common.Empty
-               else t := Common.Table newr);
+        ( if Common.Serv_Table.is_empty !ptr
+          then
+            match !t with
+            | Common.Empty -> ()
+            | Common.Table tr ->
+                let newr = String.Table.remove filename tr in
+                if String.Table.is_empty newr
+                then t := Common.Empty
+                else t := Common.Table newr
+        );
         Lwt.return_unit
   and empty_one t =
     match !t with
@@ -116,7 +123,8 @@ let gc_timeouted_services now tables =
         if String.Table.is_empty r
         then (
           t := Common.Empty;
-          Lwt.return_unit)
+          Lwt.return_unit
+        )
         else
           let* () = String.Table.fold (aux t) r Lwt.return_unit in
           match !t with
@@ -124,7 +132,8 @@ let gc_timeouted_services now tables =
           | Common.Empty -> Lwt.return_unit
           | Common.Table r ->
               if String.Table.is_empty r then t := Common.Empty;
-              Lwt.return_unit)
+              Lwt.return_unit
+      )
   in
   let* () =
     Lwt_list.iter_s
@@ -144,20 +153,24 @@ let gc_timeouted_naservices now tr =
       if Common.NAserv_Table.is_empty t
       then (
         tr := Common.AEmpty;
-        Lwt.return_unit)
+        Lwt.return_unit
+      )
       else
         Common.NAserv_Table.fold
           (fun k {Common.na_expiry = expdate; na_node = nodeopt; _} thr ->
-             let* () = thr in
-             (match expdate with
-             | Some (_, e) when !e < now -> (
-               match nodeopt with
-               | Some node ->
-                   Ocsigen_base.Cache.Dlist.remove node
-                   (* will remove from the table automatically *)
-               | _ -> tr := Common.remove_naservice_table !tr k)
-             | _ -> ());
-             Lwt.pause ())
+            let* () = thr in
+            ( match expdate with
+            | Some (_, e) when !e < now -> (
+              match nodeopt with
+              | Some node ->
+                  Ocsigen_base.Cache.Dlist.remove node
+                  (* will remove from the table automatically *)
+              | _ -> tr := Common.remove_naservice_table !tr k
+            )
+            | _ -> ()
+            );
+            Lwt.pause ()
+          )
           t Lwt.return_unit
 
 let collect_service_sessions sitedata =
@@ -179,51 +192,54 @@ let collect_service_sessions sitedata =
   (* private continuation tables: *)
   Common.SessionCookies.fold
     (fun k
-      { Common.Service_cookie.session_table = tables
-      ; expiry
-      ; session_group
-      ; session_group_node
-      ; _ }
-      thr ->
-       let* () = thr in
-       let* () =
-         match !expiry with
-         | Some exp when exp < now ->
-             Mod_sessiongroups.Serv.remove session_group_node;
-             Lwt.return_unit
-         | _ ->
-             let* () =
-               if tables.Common.table_contains_services_with_timeout
-               then gc_timeouted_services now tables
-               else Lwt.return_unit
-             in
-             let* () =
-               if tables.Common.table_contains_naservices_with_timeout
-               then gc_timeouted_naservices now tables.Common.table_naservices
-               else Lwt.return_unit
-             in
-             (match !session_group with
-             | {Common.sg_group = Common.No_group; _}
-             (* no group *)
-             (*VVV check this *)
-               when Mod_sessiongroups.Serv.group_size
-                      { Common.sg_site_dir = Common.get_site_dir_string sitedata
-                      ; sg_level = `Client_process
-                      ; sg_group = Common.Group_name k }
-                    = 0
-                    (* no tab sessions *)
-                    && Common.service_tables_are_empty tables ->
-                 (* The session is not used in any table
+         { Common.Service_cookie.session_table = tables
+         ; expiry
+         ; session_group
+         ; session_group_node
+         ; _
+         } thr ->
+      let* () = thr in
+      let* () =
+        match !expiry with
+        | Some exp when exp < now ->
+            Mod_sessiongroups.Serv.remove session_group_node;
+            Lwt.return_unit
+        | _ ->
+            let* () =
+              if tables.Common.table_contains_services_with_timeout
+              then gc_timeouted_services now tables
+              else Lwt.return_unit
+            in
+            let* () =
+              if tables.Common.table_contains_naservices_with_timeout
+              then gc_timeouted_naservices now tables.Common.table_naservices
+              else Lwt.return_unit
+            in
+            ( match !session_group with
+            | {Common.sg_group = Common.No_group; _}
+            (* no group *)
+            (*VVV check this *)
+              when Mod_sessiongroups.Serv.group_size
+                     { Common.sg_site_dir = Common.get_site_dir_string sitedata
+                     ; sg_level = `Client_process
+                     ; sg_group = Common.Group_name k
+                     }
+                   = 0
+                   (* no tab sessions *)
+                   && Common.service_tables_are_empty tables ->
+                (* The session is not used in any table
                    and is not in a group
                    (scope must be `Session,
                    as all tab sessions are in a group),
                    and is not associated to any tab session.
                    We can remove it. *)
-                 Mod_sessiongroups.Serv.remove session_group_node
-             | _ -> () (*VVV enough? *));
-             Lwt.return_unit
-       in
-       Lwt.pause ())
+                Mod_sessiongroups.Serv.remove session_group_node
+            | _ -> () (*VVV enough? *)
+            );
+            Lwt.return_unit
+      in
+      Lwt.pause ()
+    )
     service_cookie_table Lwt.return_unit
 
 (* [every t collect] runs [collect ()] every [t] seconds, for ever. *)
@@ -248,44 +264,48 @@ let collect_data_sessions sitedata =
   Logs.info ~src:section (fun fmt -> fmt "GC of session data");
   (* private continuation tables: *)
   Common.SessionCookies.fold
-    (fun k
-      {Common.Data_cookie.expiry; session_group; session_group_node; _}
-      thr ->
-       let* () = thr in
-       let* () =
-         match !expiry with
-         | Some exp when exp < now ->
-             Mod_sessiongroups.Data.remove session_group_node;
-             Lwt.return_unit
-         | _ -> (
-           match !session_group with
-           | {Common.sg_level = scope; sg_group = Common.No_group; _}
-           (* no group *)
-             when Mod_sessiongroups.Data.group_size
-                    { Common.sg_site_dir = Common.get_site_dir_string sitedata
-                    ; sg_level = `Client_process
-                    ; sg_group = Common.Group_name k }
-                  = 0
-                  (* no tab sessions *)
-                  && not_bound_in_data_tables k ->
-               (* The session is not used in any table
+    (fun k {Common.Data_cookie.expiry; session_group; session_group_node; _} thr
+       ->
+      let* () = thr in
+      let* () =
+        match !expiry with
+        | Some exp when exp < now ->
+            Mod_sessiongroups.Data.remove session_group_node;
+            Lwt.return_unit
+        | _ -> (
+          match !session_group with
+          | {Common.sg_level = scope; sg_group = Common.No_group; _}
+          (* no group *)
+            when Mod_sessiongroups.Data.group_size
+                   { Common.sg_site_dir = Common.get_site_dir_string sitedata
+                   ; sg_level = `Client_process
+                   ; sg_group = Common.Group_name k
+                   }
+                 = 0
+                 (* no tab sessions *)
+                 && not_bound_in_data_tables k ->
+              (* The session is not used in any table
                           and is not in a group
                           (scope must be `Session,
                           as all tab sessions are in a group),
                           and is not associated to any tab session.
                           We can remove it. *)
-               if scope <> `Session
-               then
-                 Logs.err ~src:section (fun fmt ->
-                   fmt
-                     "Eliom: Group of the sessions without a group has scope different from `Session. Please report the problem.");
-               Mod_sessiongroups.Data.remove session_group_node;
-               (* See also the finalisers in Mod_sessiongroups
+              if scope <> `Session
+              then
+                Logs.err ~src:section (fun fmt ->
+                    fmt
+                      "Eliom: Group of the sessions without a group has scope \
+                       different from `Session. Please report the problem."
+                );
+              Mod_sessiongroups.Data.remove session_group_node;
+              (* See also the finalisers in Mod_sessiongroups
                           and Mod_main.ml *)
-               Lwt.return_unit
-           | _ -> Lwt.return_unit)
-       in
-       Lwt.pause ())
+              Lwt.return_unit
+          | _ -> Lwt.return_unit
+        )
+      in
+      Lwt.pause ()
+    )
     data_cookie_table Lwt.return_unit
 
 (* This is a thread that will work for example every hour. *)
@@ -299,17 +319,19 @@ let collect_persistent_sessions sitedata =
   let now = Unix.gettimeofday () in
   let log_hash c = Common.Hashed_cookies.(sha256 c) in
   let do_gc_cookie cookie {Mod_cookies.full_state_name; expiry; session_group; _}
-    =
+      =
     let scope = full_state_name.Common.user_scope in
     match expiry with
     | Some exp when exp <= now ->
         Logs.info ~src:section (fun fmt ->
-          fmt "remove expired cookie %s" (log_hash cookie));
+            fmt "remove expired cookie %s" (log_hash cookie)
+        );
         Mod_persess.close_persistent_state_of_cookie ~scope sitedata
           session_group cookie
     | _ ->
         Logs.info ~src:section (fun fmt ->
-          fmt "cookie not expired: %s" (log_hash cookie));
+            fmt "cookie not expired: %s" (log_hash cookie)
+        );
         Lwt.return_unit
   in
   let gc_cookie c =
@@ -319,9 +341,11 @@ let collect_persistent_sessions sitedata =
       (function
         | Not_found ->
             Logs.info ~src:section (fun fmt ->
-              fmt "cookie does not exist: %s" (log_hash c));
+                fmt "cookie does not exist: %s" (log_hash c)
+            );
             Lwt.return_unit
-        | exn -> Lwt.fail exn)
+        | exn -> Lwt.fail exn
+        )
   in
   Logs.info ~src:section (fun fmt -> fmt "GC of persistent sessions");
   Mod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie

@@ -7,20 +7,22 @@ let of_down down =
 
 let of_up up =
   let service, _ =
-    (Page.receive up
-     : ( unit
-         , _
-         , Eliom.Service.post
-         , _
-         , _
-         , _
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , [`One of _] Eliom.Parameter.param_name
-         , _ )
-         Eliom.Service.t
-       * _)
+    ( Page.receive up
+      : ( unit
+        , _
+        , Eliom.Service.post
+        , _
+        , _
+        , _
+        , _
+        , [`WithoutSuffix]
+        , unit
+        , [`One of _] Eliom.Parameter.param_name
+        , _
+        )
+        Eliom.Service.t
+        * _
+    )
   in
   Service_info.of_service service
 

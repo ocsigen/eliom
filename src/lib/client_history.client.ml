@@ -42,7 +42,8 @@ let section = Client_core.section
 type state =
   { (* TODO store cookies_info in state... *)
     template : string option
-  ; position : Mod_dom.position }
+  ; position : Mod_dom.position
+  }
 [@@deriving json]
 
 type state_id = {session_id : int; state_index : int (* point in history *)}
@@ -60,7 +61,8 @@ let random_int =
     fun () ->
       let a =
         Js.Unsafe.global##.crypto##(getRandomValues
-                                      (new%js Typed_array.int16Array 2))
+                                      (new%js Typed_array.int16Array 2)
+                                   )
       in
       (Typed_array.unsafe_get a 0 lsl 16) lor Typed_array.unsafe_get a 1
   else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
@@ -90,7 +92,8 @@ type page =
   ; mutable previous_page : int option
   ; set_page_status : ?step:React.step -> Page_status_t.t -> unit
   ; mutable dom : Dom_html.bodyElement Js.t option
-  ; mutable reload_function : (unit -> unit -> Service.result Lwt.t) option }
+  ; mutable reload_function : (unit -> unit -> Service.result Lwt.t) option
+  }
 
 let string_of_page p =
   Printf.sprintf "%d/%d %s %s %d %b" p.page_unique_id p.page_id.state_index
@@ -101,8 +104,9 @@ let string_of_page p =
 
 let set_page_status p st =
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Set page status %d/%d: %s" p.page_unique_id p.page_id.state_index
-      (Page_status_t.to_string st));
+      fmt "Set page status %d/%d: %s" p.page_unique_id p.page_id.state_index
+        (Page_status_t.to_string st)
+  );
   p.set_page_status st
 
 let retire_page p =
@@ -121,30 +125,33 @@ let last_page_id = ref (-1)
 let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   incr last_page_id;
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Create page %d/%d" !last_page_id state_id.state_index);
+      fmt "Create page %d/%d" !last_page_id state_id.state_index
+  );
   let page_status, set_page_status = React.S.create status in
   (* protect page_status from React.S.stop ~strong:true *)
   ignore @@ React.S.map (fun _ -> ()) page_status;
   { page_unique_id = !last_page_id
   ; page_id = state_id
   ; url =
-      (match url with
+      ( match url with
       | Some u -> u
       | None ->
           fst
-            (Url.split_fragment
-               (Js.to_string Dom_html.window##.location##.href)))
+            (Url.split_fragment (Js.to_string Dom_html.window##.location##.href))
+      )
   ; page_status
   ; previous_page
   ; set_page_status
   ; dom = None
-  ; reload_function = None }
+  ; reload_function = None
+  }
 
 let active_page = ref @@ mk_page ~status:Active ()
 
 let set_active_page p =
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Set active page %d/%d" p.page_unique_id p.page_id.state_index);
+      fmt "Set active page %d/%d" p.page_unique_id p.page_id.state_index
+  );
   retire_page !active_page;
   active_page := p;
   set_page_status !active_page Active
@@ -207,7 +214,8 @@ module Page_status = struct
     if now && React.S.value (signal ()) = Active
     then (
       action ();
-      if not once then on_event ())
+      if not once then on_event ()
+    )
     else on_event ()
 
   let oncached ?(once = false) ?stop action =
@@ -236,8 +244,9 @@ module History = struct
     let history = ref [!active_page] in
     let set h =
       Logs.debug ~src:section (fun fmt ->
-        fmt "setting history:\n%s"
-          (String.concat "\n" @@ List.map string_of_page !history));
+          fmt "setting history:\n%s"
+            (String.concat "\n" @@ List.map string_of_page !history)
+      );
       history := h
     in
     (fun () -> !history), set
@@ -313,7 +322,8 @@ module History = struct
               if !num_doms > max_num_doms
               then (
                 p.dom <- None;
-                set_page_status p Dead)
+                set_page_status p Dead
+              )
         in
         List.iter maybe_delete_dom pages_ordered_by_distance_from_present
 end
@@ -323,10 +333,12 @@ let advance_page () =
   if new_page != !active_page
   then (
     new_page.previous_page <- Some !active_page.page_id.state_index;
-    (match History.find_by_state_index new_page.page_id.state_index with
+    ( match History.find_by_state_index new_page.page_id.state_index with
     | Some _ -> ()
-    | None -> History.advance new_page);
-    set_active_page new_page)
+    | None -> History.advance new_page
+    );
+    set_active_page new_page
+  )
 
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
@@ -336,10 +348,12 @@ let get_state state_id : state =
     (Js.Optdef.case
        Dom_html.window##.sessionStorage
        (fun () ->
-          (* Session storage is available wherever the History API
+         (* Session storage is available wherever the History API
              is. *)
-          raise_error ~section "sessionStorage not available")
-       (fun s -> s##(getItem (state_key state_id))))
+         raise_error ~section "sessionStorage not available"
+       )
+       (fun s -> s##(getItem (state_key state_id)))
+    )
     (fun () -> raise Not_found)
     (fun s -> of_json ~typ:[%json: state] (Js.to_string s))
 
@@ -348,9 +362,11 @@ let set_state i (v : state) =
     Dom_html.window##.sessionStorage
     (fun () -> ())
     (fun s ->
-       s##(setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v))))
+      s##(setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v)))
+    )
 
 let update_state () =
   set_state !active_page.page_id
     { template = Request_info.get_request_template ()
-    ; position = Mod_dom.getDocumentScroll () }
+    ; position = Mod_dom.getDocumentScroll ()
+    }

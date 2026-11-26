@@ -69,21 +69,14 @@ module Page_status : sig
   end
 
   val onactive :
-     ?now:bool
-    -> ?once:bool
-    -> ?stop:unit React.E.t
-    -> (unit -> unit)
-    -> unit
+    ?now:bool -> ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
 
   val oncached : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
   val ondead : ?stop:unit React.E.t -> (unit -> unit) -> unit
   val oninactive : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
 
   val while_active :
-     ?now:bool
-    -> ?stop:unit React.E.t
-    -> (unit -> unit Lwt.t)
-    -> unit
+    ?now:bool -> ?stop:unit React.E.t -> (unit -> unit Lwt.t) -> unit
 end
 
 type page =
@@ -94,8 +87,9 @@ type page =
   ; mutable previous_page : int option
   ; set_page_status : ?step:React.step -> Page_status.t -> unit
   ; mutable dom : Dom_html.bodyElement Js.t option
-    (** The DOM of the page, when it is cached *)
-  ; mutable reload_function : (unit -> unit -> Service.result Lwt.t) option }
+        (** The DOM of the page, when it is cached *)
+  ; mutable reload_function : (unit -> unit -> Service.result Lwt.t) option
+  }
 
 val active_page : page ref
 (** The page being displayed. *)
@@ -108,7 +102,7 @@ val get_this_page : unit -> page
     of a page generation. *)
 
 val with_new_page :
-   ?state_id:state_id
+     ?state_id:state_id
   -> ?old_page:page
   -> replace:bool
   -> unit

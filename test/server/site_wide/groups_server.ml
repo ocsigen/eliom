@@ -20,20 +20,23 @@ let () =
   string
     (get ["service"; "join"] P.(string "name"))
     (fun name () ->
-       State.set_service_session_group ~scope:session_scope name;
-       let service =
-         Service.create_attached_get ~fallback ~get_params:P.unit ()
-       in
-       Registration.String.register ~scope:session_scope ~service (fun () () ->
-         text "coservice");
-       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      State.set_service_session_group ~scope:session_scope name;
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~scope:session_scope ~service (fun () () ->
+          text "coservice"
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+    )
 
 let () =
   string
     (get ["service"; "max_groups"] P.(int "n"))
     (fun n () ->
-       State.set_max_service_states_in_parent ~scope:group_scope n;
-       text "set")
+      State.set_max_service_states_in_parent ~scope:group_scope n;
+      text "set"
+    )
 
 (* Data: the browser joins a group of data, then sets a session reference,
    and sets the limit of groups *)
@@ -42,15 +45,17 @@ let () =
   string
     (get ["data"; "join"] P.(string "name" ** string "v"))
     (fun (name, v) () ->
-       State.set_volatile_data_session_group ~scope:session_scope name;
-       V.set Services.session_value v;
-       text "joined")
+      State.set_volatile_data_session_group ~scope:session_scope name;
+      V.set Services.session_value v;
+      text "joined"
+    )
 
 let () =
   string
     (get ["data"; "max_groups"] P.(int "n"))
     (fun n () ->
-       State.set_max_volatile_data_states_in_parent ~scope:group_scope n;
-       text "set")
+      State.set_max_volatile_data_states_in_parent ~scope:group_scope n;
+      text "set"
+    )
 
 let () = Services.start ()

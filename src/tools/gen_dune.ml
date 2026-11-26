@@ -14,25 +14,27 @@ let scan_mli_only dir =
   let has_impl_for modname suffixes =
     List.exists
       (fun f ->
-         module_name f = modname
-         && List.exists (fun s -> Filename.check_suffix f s) suffixes)
+        module_name f = modname
+        && List.exists (fun s -> Filename.check_suffix f s) suffixes
+      )
       files
   in
   List.iter
     (fun f ->
-       let modname = module_name f in
-       if
-         Filename.check_suffix f ".server.mli"
-         || Filename.check_suffix f ".shared.mli"
-       then
-         if not (has_impl_for modname [".server.ml"; ".shared.ml"; ".eliom"])
-         then Hashtbl.replace mli_only_server modname true;
-       if
-         Filename.check_suffix f ".client.mli"
-         || Filename.check_suffix f ".shared.mli"
-       then
-         if not (has_impl_for modname [".client.ml"; ".shared.ml"; ".eliom"])
-         then Hashtbl.replace mli_only_client modname true)
+      let modname = module_name f in
+      if
+        Filename.check_suffix f ".server.mli"
+        || Filename.check_suffix f ".shared.mli"
+      then
+        if not (has_impl_for modname [".server.ml"; ".shared.ml"; ".eliom"])
+        then Hashtbl.replace mli_only_server modname true;
+      if
+        Filename.check_suffix f ".client.mli"
+        || Filename.check_suffix f ".shared.mli"
+      then
+        if not (has_impl_for modname [".client.ml"; ".shared.ml"; ".eliom"])
+        then Hashtbl.replace mli_only_client modname true
+    )
     files
 
 let subdir_copy src dst =
@@ -51,7 +53,14 @@ let copy_interface ~mli_only nm extension =
 
 let client_eliom_rule nm =
   pf
-    "(subdir Eliom\n\ (rule (target %s.ml)\n\  (deps ../../%s.eliom (file ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
+    "(subdir Eliom\n\
+    \ (rule (target %s.ml)\n\
+    \  (deps ../../%s.eliom (file \
+     ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\
+    \  (action\n\
+    \    (with-stdout-to %%{target}\n\
+    \      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo \
+     server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
     nm nm
     (String.capitalize_ascii nm)
     (String.capitalize_ascii nm)
@@ -59,12 +68,22 @@ let client_eliom_rule nm =
 
 let server_eliom_rule nm =
   pf
-    "(subdir Eliom\n\ (rule (target %s.ml) (deps ../../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl %s.eliom))))))\n"
+    "(subdir Eliom\n\
+    \ (rule (target %s.ml) (deps ../../%s.eliom)\n\
+    \  (action\n\
+    \    (with-stdout-to %%{target}\n\
+    \      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl \
+     %s.eliom))))))\n"
     nm nm nm
 
 let eliomi_rule ~side nm =
   pf
-    "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_%s --as-pp -internal --intf %s.eliomi))))))\n"
+    "(subdir Eliom\n\
+    \ (rule (target %s.mli) (deps ../../%s.eliomi)\n\
+    \  (action\n\
+    \    (with-stdout-to %%{target}\n\
+    \      (chdir ../.. (run ppx_eliom_%s --as-pp -internal --intf \
+     %s.eliomi))))))\n"
     nm nm side nm
 
 (* Print the rules for file [nm] on the given side ("client" or "server") *)
@@ -97,7 +116,8 @@ let () =
   scan_mli_only dir;
   Sys.readdir dir |> Array.to_list |> List.sort compare
   |> List.iter
-       (match Sys.argv.(1) with
+       ( match Sys.argv.(1) with
        | "--server" -> handle_file_server
        | "--client" -> handle_file_client
-       | _ -> assert false)
+       | _ -> assert false
+       )

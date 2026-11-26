@@ -6,8 +6,7 @@ let path = Alcotest.(list string)
 
 let test_relative_path () =
   let check msg expected src dest =
-    Alcotest.check path msg expected
-      (Uri.reconstruct_relative_url_path src dest)
+    Alcotest.check path msg expected (Uri.reconstruct_relative_url_path src dest)
   in
   check "same directory" ["c"] ["a"; "b"] ["a"; "c"];
   check "same page" ["b"] ["a"; "b"] ["a"; "b"];
@@ -44,7 +43,8 @@ let test_proto_prefix () =
       msg expected
       (Uri.make_proto_prefix ~hostname:"example.org"
          ~port:(if https then 443 else 80)
-         https)
+         https
+      )
   in
   check "http" "http://example.org/" ~https:false;
   check "https" "https://example.org/" ~https:true;
@@ -94,9 +94,10 @@ let test_extern () =
     Fun.protect
       ~finally:(fun () -> Eliom.Syntax.set_global false)
       (fun () ->
-         Service.preapply
-           ~service:(extern Parameter.(int "i" ** string "s"))
-           (1, "x"))
+        Service.preapply
+          ~service:(extern Parameter.(int "i" ** string "s"))
+          (1, "x")
+      )
   in
   check "preapplied"
     ("http://example.org/a/b", ["i", "1"; "s", "x"], None)
@@ -108,14 +109,15 @@ let test_extern () =
   check "non-localized parameters"
     ("http://example.org/a/b", ["__nl_n_app-n.i", "7"], None)
     (components
-       ~nl_params:
-         (Parameter.add_nl_parameter Parameter.empty_nl_params_set nl 7)
-       (extern Parameter.unit) ());
+       ~nl_params:(Parameter.add_nl_parameter Parameter.empty_nl_params_set nl 7)
+       (extern Parameter.unit) ()
+    );
   Alcotest.(check string)
     "string URI" "http://example.org/a/b?i=1#top"
     (Uri.make_string_uri ~https:false ~fragment:"top"
        ~service:(extern (Parameter.int "i"))
-       1)
+       1
+    )
 
 let suite =
   ( "uri"
@@ -123,4 +125,5 @@ let suite =
     ; Alcotest.test_case "actual path" `Quick test_actual_path
     ; Alcotest.test_case "from components" `Quick test_from_components
     ; Alcotest.test_case "protocol prefix" `Quick test_proto_prefix
-    ; Alcotest.test_case "external services" `Quick test_extern ] )
+    ; Alcotest.test_case "external services" `Quick test_extern
+    ] )

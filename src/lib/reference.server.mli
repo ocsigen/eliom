@@ -39,7 +39,7 @@ exception Eref_not_initialized
     that has not been initaliazed, when we don't want to initialize it. *)
 
 val eref :
-   scope:[< Common.all_scope]
+     scope:[< Common.all_scope]
   -> ?secure:bool
   -> ?persistent:string * 'a Deriving_Json.t
   -> 'a
@@ -90,7 +90,7 @@ val eref :
 *)
 
 val eref_from_fun :
-   scope:[< Common.all_scope]
+     scope:[< Common.all_scope]
   -> ?secure:bool
   -> ?persistent:string * 'a Deriving_Json.t
   -> (unit -> 'a)
@@ -171,10 +171,7 @@ module Volatile : sig
   val eref : scope:[< Common.all_scope] -> ?secure:bool -> 'a -> 'a eref
 
   val eref_from_fun :
-     scope:[< Common.all_scope]
-    -> ?secure:bool
-    -> (unit -> 'a)
-    -> 'a eref
+    scope:[< Common.all_scope] -> ?secure:bool -> (unit -> 'a) -> 'a eref
 
   val get : 'a eref -> 'a
   val set : 'a eref -> 'a -> unit
@@ -190,8 +187,9 @@ module Volatile : sig
     *)
 
     val get :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
+         ( [< `Session_group | `Session | `Client_process]
+         , [< `Data]
+         )
          State.Ext.state
       -> 'a eref
       -> 'a
@@ -201,16 +199,18 @@ module Volatile : sig
     *)
 
     val set :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
+         ( [< `Session_group | `Session | `Client_process]
+         , [< `Data]
+         )
          State.Ext.state
       -> 'a eref
       -> 'a
       -> unit
 
     val modify :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
+         ( [< `Session_group | `Session | `Client_process]
+         , [< `Data]
+         )
          State.Ext.state
       -> 'a eref
       -> ('a -> 'a)
@@ -218,8 +218,9 @@ module Volatile : sig
     (** Warning: the function will be executed with the current context *)
 
     val unset :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
+         ( [< `Session_group | `Session | `Client_process]
+         , [< `Data]
+         )
          State.Ext.state
       -> 'a eref
       -> unit
@@ -234,8 +235,9 @@ end
 *)
 module Ext : sig
   val get :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
+       ( [< `Session_group | `Session | `Client_process]
+       , [< `Data | `Pers]
+       )
        State.Ext.state
     -> 'a eref
     -> 'a Lwt.t
@@ -245,16 +247,18 @@ module Ext : sig
   *)
 
   val set :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
+       ( [< `Session_group | `Session | `Client_process]
+       , [< `Data | `Pers]
+       )
        State.Ext.state
     -> 'a eref
     -> 'a
     -> unit Lwt.t
 
   val modify :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
+       ( [< `Session_group | `Session | `Client_process]
+       , [< `Data | `Pers]
+       )
        State.Ext.state
     -> 'a eref
     -> ('a -> 'a)
@@ -262,8 +266,9 @@ module Ext : sig
   (** Warning: the function will be executed with the current context *)
 
   val unset :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
+       ( [< `Session_group | `Session | `Client_process]
+       , [< `Data | `Pers]
+       )
        State.Ext.state
     -> 'a eref
     -> unit Lwt.t

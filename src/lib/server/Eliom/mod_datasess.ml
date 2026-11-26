@@ -57,7 +57,7 @@ let close_data_state ~scope ~secure_o ?sp () =
            remove it from the session group table.
            It will remove all the data table entries
            and also the entry in the session table *)
-        (match scope with
+        ( match scope with
         | `Session_group _ -> (
           match !(c.Common.dc_session_group) with
           | {Common.sg_group = Common.Group_name _; _} as group -> (
@@ -66,18 +66,22 @@ let close_data_state ~scope ~secure_o ?sp () =
             match Mod_sessiongroups.Data.find_node_in_group_of_groups group with
             | None ->
                 Logs.err ~src:eliom_logs_src (fun fmt ->
-                  fmt "No group of groups. Please report this problem.")
-            | Some g -> Mod_sessiongroups.Data.remove g)
+                    fmt "No group of groups. Please report this problem."
+                )
+            | Some g -> Mod_sessiongroups.Data.remove g
+          )
           | {Common.sg_group = Common.No_group; _} ->
               (* Without a session group, the session is counted with the
                  sessions without a group of the site, which belong to other
                  users: the session is its own group, as for the data of the
                  group scope. *)
-              Mod_sessiongroups.Data.remove c.Common.dc_session_group_node)
+              Mod_sessiongroups.Data.remove c.Common.dc_session_group_node
+        )
         | `Session _ | `Client_process _ ->
             (* If we want to close a (tab/browser) session, the node is found
                  in the cookie info: *)
-            Mod_sessiongroups.Data.remove c.Common.dc_session_group_node);
+            Mod_sessiongroups.Data.remove c.Common.dc_session_group_node
+        );
         ior := Common.SCNo_data
     | _ -> ()
   with Not_found -> ()
@@ -87,12 +91,7 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     ~sitedata:sp.Common.sp_sitedata set_session_group
 
 let rec find_or_create_data_cookie
-          ?set_session_group
-          ~(cookie_scope : Common.cookie_scope)
-          ~secure_o
-          ?sp
-          ()
-  =
+    ?set_session_group ~(cookie_scope : Common.cookie_scope) ~secure_o ?sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
@@ -130,14 +129,16 @@ let rec find_or_create_data_cookie
       ; expiry = serverexp
       ; timeout = usertimeout
       ; session_group = fullsessgrpref
-      ; session_group_node = node };
+      ; session_group_node = node
+      };
     { Common.dc_hvalue = hc
     ; Common.dc_set_value = Some c
     ; Common.dc_timeout = usertimeout
     ; Common.dc_exp = serverexp
     ; Common.dc_cookie_exp = ref (Common.default_client_cookie_exp ())
     ; Common.dc_session_group = fullsessgrpref
-    ; Common.dc_session_group_node = node }
+    ; Common.dc_session_group_node = node
+    }
   in
   let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
@@ -160,7 +161,7 @@ let rec find_or_create_data_cookie
         ior := Common.SC v;
         v
     | Common.SC c ->
-        (match set_session_group with
+        ( match set_session_group with
         | None -> ()
         | Some _session_group ->
             let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
@@ -169,7 +170,8 @@ let rec find_or_create_data_cookie
                 c.Common.dc_session_group_node fullsessgrp
             in
             c.Common.dc_session_group_node <- node;
-            c.Common.dc_session_group := fullsessgrp);
+            c.Common.dc_session_group := fullsessgrp
+        );
         c
   with Not_found ->
     let v =
@@ -182,19 +184,20 @@ let rec find_or_create_data_cookie
     v
 
 let find_or_create_data_cookie =
-  (find_or_create_data_cookie
-    : ?set_session_group:string
+  ( find_or_create_data_cookie
+    :    ?set_session_group:string
       -> cookie_scope:Common.cookie_scope
       -> secure_o:bool option
       -> ?sp:Common.server_params
       -> unit
       -> Common.one_data_cookie_info
-    :> ?set_session_group:string
+    :>    ?set_session_group:string
        -> cookie_scope:[< Common.cookie_scope]
        -> secure_o:bool option
        -> ?sp:Common.server_params
        -> unit
-       -> Common.one_data_cookie_info)
+       -> Common.one_data_cookie_info
+  )
 
 let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
@@ -230,17 +233,20 @@ let create_volatile_table_during_session ~scope ~secure sitedata =
       (* In session group tables, keys may be either group names,
           or a cookie values when no group name has been set. *)
       old_remove_session_data cookie;
-      Common.SessionCookies.remove t cookie);
+      Common.SessionCookies.remove t cookie
+    );
   let old_not_bound_in_data_tables = sitedata.Common.not_bound_in_data_tables in
   sitedata.Common.not_bound_in_data_tables <-
     (fun cookie ->
       old_not_bound_in_data_tables cookie
-      && not (Common.SessionCookies.mem t cookie));
+      && not (Common.SessionCookies.mem t cookie)
+    );
   counttableelements :=
     (fun () -> Common.SessionCookies.length t) :: !counttableelements;
   { Common.table_scope = (scope :> Common.user_scope)
   ; table_secure = secure
-  ; table = t }
+  ; table = t
+  }
 
 let create_volatile_table ~scope ~secure =
   create_volatile_table_during_session ~scope ~secure

@@ -43,7 +43,9 @@ let create_buffer () =
       (fun () ->
         let res = get () in
         elts := [];
-        res) }
+        res
+      )
+  }
 
 (* == Closure *)
 
@@ -110,9 +112,7 @@ module Injection : sig
   val get : ?ident:string -> ?pos:pos -> name:string -> _
 
   val initialize :
-     compilation_unit_id:string
-    -> Client_value.injection_datum
-    -> unit
+    compilation_unit_id:string -> Client_value.injection_datum -> unit
 end = struct
   let table = Jstable.create ()
 
@@ -122,21 +122,24 @@ end = struct
       (Js.Optdef.get
          (Jstable.find table (Js.string name))
          (fun () ->
-            let name =
-              match ident, pos with
-              | None, None -> Printf.sprintf "%s" name
-              | None, Some pos ->
-                  Printf.sprintf "%s at %s" name (Lib.pos_to_string pos)
-              | Some i, None -> Printf.sprintf "%s (%s)" name i
-              | Some i, Some pos ->
-                  Printf.sprintf "%s (%s at %s)" name i (Lib.pos_to_string pos)
-            in
-            raise_error "Did not find injection %s" name))
+           let name =
+             match ident, pos with
+             | None, None -> Printf.sprintf "%s" name
+             | None, Some pos ->
+                 Printf.sprintf "%s at %s" name (Lib.pos_to_string pos)
+             | Some i, None -> Printf.sprintf "%s (%s)" name i
+             | Some i, Some pos ->
+                 Printf.sprintf "%s (%s at %s)" name i (Lib.pos_to_string pos)
+           in
+           raise_error "Did not find injection %s" name
+         )
+      )
 
   let initialize ~compilation_unit_id {Runtime.injection_id; injection_value; _}
-    =
+      =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Initialize injection %d" injection_id);
+        fmt "Initialize injection %d" injection_id
+    );
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
     Jstable.add table
@@ -148,14 +151,16 @@ end
 
 type compilation_unit_global_data =
   { mutable server_section : Runtime.client_value_datum array list
-  ; mutable client_section : Runtime.injection_datum array list }
+  ; mutable client_section : Runtime.injection_datum array list
+  }
 
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Do next client value data section in compilation unit %s"
-      compilation_unit_id);
+      fmt "Do next client value data section in compilation unit %s"
+        compilation_unit_id
+  );
   try
     let data = String_map.find compilation_unit_id !global_data in
     match data.server_section with
@@ -164,15 +169,17 @@ let do_next_server_section_data ~compilation_unit_id =
         Array.iter Client_value_registry.initialize l
     | [] ->
         raise_error ~section
-          "Queue of client value data for compilation unit %s is empty (is it linked on the server?)"
+          "Queue of client value data for compilation unit %s is empty (is it \
+           linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
 (* Client-only compilation unit *)
 
 let do_next_client_section_data ~compilation_unit_id =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Do next injection data section in compilation unit %s"
-      compilation_unit_id);
+      fmt "Do next injection data section in compilation unit %s"
+        compilation_unit_id
+  );
   try
     let data = String_map.find compilation_unit_id !global_data in
     match data.client_section with
@@ -181,7 +188,8 @@ let do_next_client_section_data ~compilation_unit_id =
         Array.iter (fun i -> Injection.initialize ~compilation_unit_id i) l
     | [] ->
         raise_error ~section
-          "Queue of injection data for compilation unit %s is empty (is it linked on the server?)"
+          "Queue of injection data for compilation unit %s is empty (is it \
+           linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
 (* Client-only compilation unit *)
@@ -203,12 +211,14 @@ let register_process_node, find_process_node =
   let process_nodes : Dom.node Js.t Jstable.t = Jstable.create () in
   let find id =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Find process node %s" (Js.to_string id));
+        fmt "Find process node %s" (Js.to_string id)
+    );
     Jstable.find process_nodes id
   in
   let register id node =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Register process node %s" (Js.to_string id));
+        fmt "Register process node %s" (Js.to_string id)
+    );
     let node =
       if node##.nodeName##toLowerCase == Js.string "script"
       then
@@ -226,8 +236,9 @@ let getElementById id =
   Js.Optdef.case
     (find_process_node (Js.string id))
     (fun () ->
-       Logs.warn ~src:section (fun fmt -> fmt "getElementById %s: Not_found" id);
-       raise Not_found)
+      Logs.warn ~src:section (fun fmt -> fmt "getElementById %s: Not_found" id);
+      raise Not_found
+    )
     (fun pnode -> pnode)
 
 (* == Request nodes
@@ -238,7 +249,8 @@ let register_request_node, find_request_node, reset_request_nodes =
   let find id = Jstable.find !request_nodes id in
   let register id node =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Register request node %s" (Js.to_string id));
+        fmt "Register request node %s" (Js.to_string id)
+    );
     Jstable.add !request_nodes id node
   in
   let reset () =
@@ -268,12 +280,14 @@ let with_load_mutex f =
     if !locked
     then (
       locked := false;
-      Lwt_mutex.unlock load_mutex)
+      Lwt_mutex.unlock load_mutex
+    )
   in
   Lwt.catch
     (fun () ->
-       let* () = Lwt_mutex.lock load_mutex in
-       f unlock)
+      let* () = Lwt_mutex.lock load_mutex in
+      f unlock
+    )
     (fun exn -> unlock (); Lwt.fail exn)
 
 let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
@@ -298,20 +312,19 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
 (* forward declaration... *)
 let change_page_uri_ :
-  (?cookies_info:Runtime.RawXML.cookie_info -> ?tmpl:string -> string -> unit)
-    ref
-  =
+    (?cookies_info:Runtime.RawXML.cookie_info -> ?tmpl:string -> string -> unit)
+    ref =
   ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 
 let change_page_get_form_ :
-  (?cookies_info:Runtime.RawXML.cookie_info
-   -> ?tmpl:string
-   -> ?submitter:Dom_html.element Js.t
-   -> Dom_html.formElement Js.t
-   -> string
-   -> unit)
-    ref
-  =
+    (   ?cookies_info:Runtime.RawXML.cookie_info
+     -> ?tmpl:string
+     -> ?submitter:Dom_html.element Js.t
+     -> Dom_html.formElement Js.t
+     -> string
+     -> unit
+    )
+    ref =
   ref (fun ?cookies_info:_ ?tmpl:_ ?submitter:_ _form _href -> assert false)
 
 let change_page_post_form_ =
@@ -330,11 +343,12 @@ let raw_a_handler node cookies_info tmpl ev =
   middleClick ev
   || ((not !Common.is_client_app) && changes_protocol https)
   ||
-  ((* If a link is clicked, we do not want to continue propagation
+  ( (* If a link is clicked, we do not want to continue propagation
        (for example if the link is in a wider clickable area)  *)
-   Dom_html.stopPropagation ev;
-   !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
-   false)
+    Dom_html.stopPropagation ev;
+    !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
+    false
+  )
 
 let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
   let action = Js.to_string form##.action in
@@ -360,15 +374,18 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     | Some submitter ->
         List.exists
           (fun attribute ->
-             Js.to_bool (submitter##hasAttribute (Js.string attribute)))
+            Js.to_bool (submitter##hasAttribute (Js.string attribute))
+          )
           ["formaction"; "formmethod"; "formenctype"; "formtarget"]
   in
   let f () =
     if overrides_form
     then
       Logs.warn ~src:section (fun fmt ->
-        fmt
-          "the formaction, formmethod, formenctype and formtarget attributes of a button are ignored in a client application");
+          fmt
+            "the formaction, formmethod, formenctype and formtarget attributes \
+             of a button are ignored in a client application"
+      );
     Lwt.async @@ fun () ->
     let* b = client_form_handler ev in
     if not b then change_page_form ?cookies_info ?tmpl ?submitter form action;
@@ -396,21 +413,25 @@ let reify_caml_event name node ce =
           (fun ev ->
             let node =
               Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-                raise_error ~section "not an anchor element")
+                  raise_error ~section "not an anchor element"
+              )
             in
-            raw_a_handler node cookies_info tmpl ev) )
+            raw_a_handler node cookies_info tmpl ev
+          ) )
   | Xml.CE_call_service
-      (Some (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr))
-    ->
+      (Some (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr)
+      ) ->
       ( name
       , `Other
           (fun ev ->
             let form =
               Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-                raise_error ~section "not a form element")
+                  raise_error ~section "not a form element"
+              )
             in
             raw_form_handler form kind cookies_info tmpl ev
-              (Lib.from_poly client_hdlr : client_form_handler)) )
+              (Lib.from_poly client_hdlr : client_form_handler)
+          ) )
   | Xml.CE_client_closure f ->
       name, `Other (fun ev -> try f ev; true with Client_value.False -> false)
   | Xml.CE_client_closure_keyboard f ->
@@ -513,7 +534,9 @@ let iter_prop node name f =
 
 let iter_prop_protected node name f =
   match get_prop node name with
-  | Some n -> ( try f n with _ -> ())
+  | Some n -> (
+    try f n with _ -> ()
+  )
   | None -> ()
 
 let space_re = Regexp.regexp " "
@@ -562,24 +585,30 @@ let rec rebuild_rattrib node ra =
                | None ->
                    node##(removeAttribute name);
                    iter_prop_protected node name (fun name ->
-                     Js.Unsafe.set node name Js.null)
+                       Js.Unsafe.set node name Js.null
+                   )
                | Some v ->
                    let v = rebuild_attrib_val v in
                    node##(setAttribute name v);
                    iter_prop_protected node name (fun name ->
-                     Js.Unsafe.set node name v))
-             s)
+                       Js.Unsafe.set node name v
+                   )
+               )
+             s
+          )
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
       node##(setAttribute (Js.string (Xml.aname ra)) (Js.string s))
   | Xml.RALazyStrL (Xml.Space, l) ->
       node##(setAttribute
                (Js.string (Xml.aname ra))
-               (Js.string (String.concat " " l)))
+               (Js.string (String.concat " " l))
+            )
   | Xml.RALazyStrL (Xml.Comma, l) ->
       node##(setAttribute
                (Js.string (Xml.aname ra))
-               (Js.string (String.concat "," l)))
+               (Js.string (String.concat "," l))
+            )
   | Xml.RAClient (_, _, value) ->
       rebuild_rattrib node (Lib.from_poly (Lib.to_poly value) : Xml.attrib)
 
@@ -666,9 +695,11 @@ end = struct
         Js.Opt.case dom'##.parentNode
           (fun () -> (* no parent -> no replace needed *) ())
           (fun parent ->
-             Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
-               (* really update the dom *)
-               ignore (Dom_html.element parent)##(replaceChild dom dom')))
+            Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+                (* really update the dom *)
+                ignore (Dom_html.element parent)##(replaceChild dom dom')
+            )
+          )
 end
 
 type content_ns = [`HTML5 | `SVG]
@@ -687,18 +718,19 @@ let parse_html ns parent s =
     match parent, ns with
     | Some parent, _ -> parent
     | None, `HTML5 ->
-        (Dom_html.document##(createElement (Js.string "template"))
-          :> Dom.node Js.t)
+        ( Dom_html.document##(createElement (Js.string "template"))
+          :> Dom.node Js.t
+        )
     | None, `SVG ->
-        (Dom_html.document##(createElementNS svg_ns (Js.string "svg"))
-          :> Dom.node Js.t)
+        ( Dom_html.document##(createElementNS svg_ns (Js.string "svg"))
+          :> Dom.node Js.t
+        )
   in
   let range = Dom_html.document##createRange in
   range##selectNodeContents context;
   let fragment = range##(createContextualFragment (Js.string s)) in
   match Js.Opt.to_option fragment##.firstChild with
-  | None ->
-      (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
+  | None -> (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
   | Some node when not (Js.Opt.test node##.nextSibling) -> node
   | Some _ -> (fragment :> Dom.node Js.t)
 
@@ -706,13 +738,17 @@ let parse_html ns parent s =
    again to update them, or to manipulate them as a D or global element. In a
    reactive list, they also shift the positions of the following children. *)
 let tracked what (node : Dom.node Js.t) =
-  (match node##.nodeType with
+  ( match node##.nodeType with
   | Dom.DOCUMENT_FRAGMENT ->
       Logs.warn ~src:section (fun fmt ->
-        fmt
-          "Raw HTML with several top-level nodes used as %s: updates of these nodes, or of the following children of a reactive list, are lost. Wrap it in an element."
-          what)
-  | _ -> ());
+          fmt
+            "Raw HTML with several top-level nodes used as %s: updates of \
+             these nodes, or of the following children of a reactive list, are \
+             lost. Wrap it in an element."
+            what
+      )
+  | _ -> ()
+  );
   node
 
 let rec rebuild_node' ?parent ns elt =
@@ -725,22 +761,26 @@ let rec rebuild_node' ?parent ns elt =
       Js_of_ocaml_tyxml.Tyxml_js.Util.update_children dom
         (ReactiveData.RList.map
            (fun elt ->
-              tracked "a child of a reactive list"
-                (rebuild_node' ~parent:dom ns elt))
-           elts);
+             tracked "a child of a reactive list"
+               (rebuild_node' ~parent:dom ns elt)
+           )
+           elts
+        );
       Xml.set_dom_node elt dom;
       dom
   | Xml.ReactNode signal ->
       let dom =
         ReactState.start_signal (fun state ->
-          React.S.map
-            (fun elt' ->
-               let dom =
-                 tracked "a reactive node" (rebuild_node' ?parent ns elt')
-               in
-               Xml.set_dom_node elt dom;
-               ReactState.change_dom state dom)
-            signal)
+            React.S.map
+              (fun elt' ->
+                let dom =
+                  tracked "a reactive node" (rebuild_node' ?parent ns elt')
+                in
+                Xml.set_dom_node elt dom;
+                ReactState.change_dom state dom
+              )
+              signal
+        )
       in
       Xml.set_dom_node elt dom; dom
   | Xml.TyXMLNode raw_elt -> (
@@ -757,13 +797,15 @@ let rec rebuild_node' ?parent ns elt =
         let id = Js.string id in
         Js.Optdef.case (find_process_node id)
           (fun () ->
-             let node =
-               tracked "a global element"
-                 (raw_rebuild_node ?parent ns (Xml.content elt))
-             in
-             register_process_node id node;
-             node)
-          (fun n -> (n :> Dom.node Js.t)))
+            let node =
+              tracked "a global element"
+                (raw_rebuild_node ?parent ns (Xml.content elt))
+            in
+            register_process_node id node;
+            node
+          )
+          (fun n -> (n :> Dom.node Js.t))
+  )
 
 and raw_rebuild_node ?parent ns = function
   | Xml.Empty | Xml.Comment _ ->
@@ -802,9 +844,10 @@ let is_before_initial_load, set_initial_load =
 
 let rebuild_node_ns ns context elt' =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Rebuild node %s (%s)"
-      (Content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
-      context);
+      fmt "Rebuild node %s (%s)"
+        (Content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
+        context
+  );
   if is_before_initial_load ()
   then (
     log_inspect (rebuild_node' ns elt');
@@ -814,7 +857,9 @@ let rebuild_node_ns ns context elt' =
         match get_node_id elt' with
         | NoId -> " "
         | RequestId id -> " on request node " ^ id
-        | ProcessId id -> " on global node " ^ id));
+        | ProcessId id -> " on global node " ^ id
+      )
+  );
   let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script (); node
 

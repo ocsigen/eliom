@@ -38,21 +38,25 @@ let get_set_js_serverside_value r name =
           Js.Optdef.case
             (Js.def (Js.Unsafe.get Js.Unsafe.global (Js.string name)))
             (fun () ->
-               failwith
-                 (name
-                ^ " not defined. A client Eliom application must either be sent by an Eliom server application or you must call Client.init_client_app."
-                 ))
+              failwith
+                (name
+               ^ " not defined. A client Eliom application must either be sent \
+                  by an Eliom server application or you must call \
+                  Client.init_client_app."
+                )
+            )
             (fun var ->
-               let s = unmarshal_js var in
-               r := Some s;
-               s))
+              let s = unmarshal_js var in
+              r := Some s;
+              s
+            )
+    )
   , fun () -> r := None )
 
 let ( set_sitedata
     , is_set_sitedata
     , (get_sitedata : unit -> Types.sitedata)
-    , reset_sitedata )
-  =
+    , reset_sitedata ) =
   get_set_js_serverside_value Common.sitedata "__eliom_appl_sitedata"
 
 let ignored_get_params = ref []
@@ -68,22 +72,19 @@ let set_ignored_params get post =
 let ( set_info
     , is_set_info
     , (get_info : unit -> Common.client_process_info)
-    , reset_info )
-  =
+    , reset_info ) =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
 
 let ( set_request_cookies
     , is_set_request_cookies
     , (get_request_cookies : unit -> Ocsigen_cookie_map.t)
-    , reset_request_cookies )
-  =
+    , reset_request_cookies ) =
   get_set_js_serverside_value (ref None) "__eliom_request_cookies"
 
 let ( set_request_template
     , is_set_request_template
     , (get_request_template : unit -> string option)
-    , reset_request_template )
-  =
+    , reset_request_template ) =
   get_set_js_serverside_value (ref None) "__eliom_request_template"
 
 let appl_name =
@@ -95,9 +96,11 @@ let appl_name =
           For mobile apps, we set the cookie from JS variable. *)
        Ocsigen_cookie_map.Map_inner.find Common.appl_name_cookie_name
          (Ocsigen_cookie_map.Map_path.find (get_sitedata ()).Types.site_dir
-            (Mod_cookies.get_table (Some (get_info ()).cpi_hostname)))
+            (Mod_cookies.get_table (Some (get_info ()).cpi_hostname))
+         )
      in
-     v)
+     v
+    )
 
 let set_base_url, get_base_url =
   let r : string option ref = ref None in
@@ -117,7 +120,8 @@ let get_application_name () =
   match !appl_name_r with
   | None -> (
     try !!appl_name
-    with Not_found -> raise_error ~section "Application name not defined")
+    with Not_found -> raise_error ~section "Application name not defined"
+  )
   | Some n -> n
 
 let client_side = true

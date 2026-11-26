@@ -11,7 +11,8 @@ module Client = Eliom_test_client
 let record stream =
   let received = ref [] in
   Lwt.async (fun () ->
-    Lwt_stream.iter (fun v -> received := v :: !received) stream);
+      Lwt_stream.iter (fun v -> received := v :: !received) stream
+  );
   received
 
 let received_service name received =
@@ -46,7 +47,8 @@ let down name ?scope () =
   string
     (get [name; "info"] P.unit)
     (fun () () ->
-       text (Client.Comet_info.to_string (Client.React_info.of_down d)));
+      text (Client.Comet_info.to_string (Client.React_info.of_down d))
+    );
   string (get [name; "send"] P.(string "v")) (fun v () -> send v; text "sent")
 
 (* A scope of client processes of another hierarchy, with a service to
@@ -57,8 +59,8 @@ let () =
   string
     (get ["other"; "discard"] P.unit)
     (fun () () ->
-       Lwt.bind (State.discard ~scope:other_scope ()) (fun () ->
-         text "discarded"))
+      Lwt.bind (State.discard ~scope:other_scope ()) (fun () -> text "discarded")
+    )
 
 let () =
   down "down" ();
@@ -74,10 +76,12 @@ let signal name ?scope () =
   string
     (get [name; "info"] P.unit)
     (fun () () ->
-       let info, value = Client.React_info.of_signal_down d in
-       text
-         (Deriving_Json.to_string [%json: string * string]
-            (Client.Comet_info.to_string info, value)));
+      let info, value = Client.React_info.of_signal_down d in
+      text
+        (Deriving_Json.to_string [%json: string * string]
+           (Client.Comet_info.to_string info, value)
+        )
+    );
   string (get [name; "set"] P.(string "v")) (fun v () -> set v; text "set")
 
 let () =
@@ -95,13 +99,15 @@ let () =
   Lwt_react.E.keep
     (React.E.map
        (fun v -> up_received := v :: !up_received)
-       (Eliom_react.Up.to_react up))
+       (Eliom_react.Up.to_react up)
+    )
 
 let () =
   string
     (get ["up"; "info"] P.unit)
     (fun () () ->
-       text (Client.Service_info.to_string (Client.React_info.of_up up)));
+      text (Client.Service_info.to_string (Client.React_info.of_up up))
+    );
   received_service "up" up_received
 
 (* A full major collection, to check that nothing needed is collected *)

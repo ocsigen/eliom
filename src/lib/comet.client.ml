@@ -48,14 +48,16 @@ module Configuration = struct
            (we take the min of all values, for a given t)
       *)
       time_after_unfocus : float
-    ; time_between_request : float }
+    ; time_between_request : float
+    }
 
   let default_configuration =
     { active_until_timeout = false
     ; time_between_request_unfocused =
         Some [{slope = 0.5; offset = 60.; cap = 600.}]
     ; time_after_unfocus = 180.
-    ; time_between_request = 0. }
+    ; time_between_request = 0.
+    }
 
   type t = int
 
@@ -65,12 +67,13 @@ module Configuration = struct
   let config_min c1 c2 =
     { active_until_timeout = c1.active_until_timeout || c2.active_until_timeout
     ; time_between_request_unfocused =
-        (match
-           c1.time_between_request_unfocused, c2.time_between_request_unfocused
-         with
+        ( match
+            c1.time_between_request_unfocused, c2.time_between_request_unfocused
+          with
         | Some l1, Some l2 -> Some (l1 @ l2)
         | Some v, None | None, Some v -> Some v
-        | None, None -> None)
+        | None, None -> None
+        )
     ; time_after_unfocus = max c1.time_after_unfocus c2.time_after_unfocus
     ; time_between_request = min c1.time_between_request c2.time_between_request
     }
@@ -78,7 +81,8 @@ module Configuration = struct
   let get_configuration () =
     Hashtbl.fold
       (fun _ c acc ->
-         Some (match acc with None -> c | Some acc -> config_min c acc))
+        Some (match acc with None -> c | Some acc -> config_min c acc)
+      )
       configuration_table None
     |> Option.value ~default:default_configuration
 
@@ -117,9 +121,11 @@ module Configuration = struct
 
   let set_always_active conf v =
     set_fun conf (fun c ->
-      { c with
-        time_between_request_unfocused =
-          (if v then Some [always_active] else None) })
+        { c with
+          time_between_request_unfocused =
+            (if v then Some [always_active] else None)
+        }
+    )
 
   let set_timeout conf v =
     set_fun conf (fun c -> {c with time_after_unfocus = v})
@@ -132,7 +138,8 @@ module Configuration = struct
 
   let set_time_between_requests_when_idle conf (slope, offset, cap) =
     set_fun conf (fun c ->
-      {c with time_between_request_unfocused = Some [{slope; offset; cap}]})
+        {c with time_between_request_unfocused = Some [{slope; offset; cap}]}
+    )
 
   let sleep_before_next_request focused is_idle active_waiter =
     let time = Sys.time () in
@@ -159,7 +166,8 @@ module Configuration = struct
         Lwt.pick
           [ Js_of_ocaml_lwt.Lwt_js.sleep t
           ; !update_configuration_waiter
-          ; active_waiter () ]
+          ; active_waiter ()
+          ]
       in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
       if remaining_time > 0. then aux remaining_time else Lwt.return_unit
@@ -177,21 +185,25 @@ let handle_exn, set_handle_exn_function =
   let closed = ref false in
   let r =
     ref (fun ?exn () ->
-      let s =
-        "Unknown exception during comet. Customize this with Comet.set_handle_exn_function. "
-      in
-      match exn with
-      | Some exn -> raise_error ~section ~exn "%s" s
-      | None ->
-          Logs.debug ~src:section (fun fmt -> fmt "%s" s);
-          Lwt.return_unit)
+        let s =
+          "Unknown exception during comet. Customize this with \
+           Comet.set_handle_exn_function. "
+        in
+        match exn with
+        | Some exn -> raise_error ~section ~exn "%s" s
+        | None ->
+            Logs.debug ~src:section (fun fmt -> fmt "%s" s);
+            Lwt.return_unit
+    )
   in
   ( (fun ?exn () ->
       if not !closed
       then (
         closed := true;
-        !r ?exn ())
-      else Lwt.return_unit)
+        !r ?exn ()
+      )
+      else Lwt.return_unit
+    )
   , fun f -> r := f )
 
 type chan_id = string
@@ -202,7 +214,8 @@ type stateless_message = (chan_id * (string * int) Ecb.channel_data) list
 type message =
   { msg_chan_id : chan_id
   ; msg_index : int option
-  ; msg_data : string Ecb.channel_data }
+  ; msg_data : string Ecb.channel_data
+  }
 
 module Service_handler : sig
   type 'a t
@@ -224,28 +237,26 @@ module Service_handler : sig
   val add_channel_stateful : stateful t -> chan_id -> unit
 
   val add_channel_stateless :
-     stateless t
-    -> chan_id
-    -> Ecb.stateless_kind
-    -> unit
+    stateless t -> chan_id -> Ecb.stateless_kind -> unit
 
   val close : 'a t -> chan_id -> unit
 end = struct
   type activity =
     { mutable active : [`Inactive | `Active | `Idle]
-      (** [!hd.active] is true when the [hd] channel handler is
+          (** [!hd.active] is true when the [hd] channel handler is
             receiving data.
             Idle means that the window is not active but we want to
             keep updated from time to time. *)
     ; mutable focused : float option
-      (** [focused] is None when the page is visible and Some [t]
+          (** [focused] is None when the page is visible and Some [t]
             when the page became hidden at time [t] (in ms) *)
     ; mutable active_waiter : unit Lwt.t
-      (** [active_waiter] terminates when the page get visible *)
+          (** [active_waiter] terminates when the page get visible *)
     ; mutable active_wakener : unit Lwt.u
     ; mutable restart_waiter : Ecb.answer Lwt.t
     ; mutable restart_wakener : Ecb.answer Lwt.u
-    ; mutable active_channels : Lib.String.Set.t }
+    ; mutable active_channels : Lib.String.Set.t
+    }
 
   type stateful_state = int ref (* id of the next request *)
   type stateless_state_ = {count : int; position : Ecb.position}
@@ -267,7 +278,8 @@ end = struct
   type 'a t =
     { hd_service : Ecb.comet_service
     ; hd_state : channel_state
-    ; hd_activity : activity }
+    ; hd_activity : activity
+    }
 
   let add_listener target event f =
     let listener = Dom_html.handler (fun _ -> f (); Js._true) in
@@ -310,7 +322,8 @@ end = struct
       if handler.hd_activity.focused <> None
       then (
         handler.hd_activity.focused <- None;
-        set_activity handler `Active)
+        set_activity handler `Active
+      )
     in
     let suspend_activity () =
       if handler.hd_activity.focused = None
@@ -357,7 +370,8 @@ end = struct
           Some
             (now_ms ()
             -. ((Configuration.get ()).Configuration.time_after_unfocus *. 1000.)
-            ))
+            )
+    )
     else hd.hd_activity.focused <- None;
     set_activity hd (expected_activity hd)
 
@@ -390,7 +404,8 @@ end = struct
         then (
           queue := [];
           Client.call_service ~service ()
-            (false, Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q)))))
+            (false, Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q))))
+        )
         else Lwt.return ""
     | _ ->
         let* () = Client.wait_load_end () in
@@ -422,9 +437,12 @@ end = struct
             | _chan_id, Ecb.Data _ -> ()
             | _chan_id, Ecb.Closed ->
                 Logs.warn ~src:section (fun fmt ->
-                  fmt
-                    "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it")
-            | chan_id, Ecb.Full -> stop_waiting hd chan_id)
+                    fmt
+                      "update_stateful_state: received Closed: should not \
+                       happen, this is an eliom bug, please report it"
+                )
+            | chan_id, Ecb.Full -> stop_waiting hd chan_id
+            )
           message
     | Stateless_state _ ->
         raise (Comet_error "update_stateful_state on stateless one")
@@ -444,7 +462,8 @@ end = struct
     Lib.String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
     Lib.String.Set.fold
       (fun chan_id l ->
-         {msg_chan_id = chan_id; msg_index = None; msg_data = Ecb.Closed} :: l)
+        {msg_chan_id = chan_id; msg_index = None; msg_data = Ecb.Closed} :: l
+      )
       s []
 
   let update_stateless_state hd (message : stateless_message) =
@@ -453,20 +472,23 @@ end = struct
         let table =
           List.fold_left
             (fun table -> function
-               | chan_id, Ecb.Data (_, index) -> (
-                 try
-                   let state = Lib.String.Table.find chan_id table in
-                   if position_value state.position < index + 1
-                   then
-                     Lib.String.Table.add chan_id
-                       { state with
-                         position = set_position state.position (index + 1) }
-                       table
-                   else table
-                 with Not_found -> table)
-               | chan_id, Ecb.Closed | chan_id, Ecb.Full ->
-                   stop_waiting hd chan_id;
-                   Lib.String.Table.remove chan_id table)
+              | chan_id, Ecb.Data (_, index) -> (
+                try
+                  let state = Lib.String.Table.find chan_id table in
+                  if position_value state.position < index + 1
+                  then
+                    Lib.String.Table.add chan_id
+                      { state with
+                        position = set_position state.position (index + 1)
+                      }
+                      table
+                  else table
+                with Not_found -> table
+              )
+              | chan_id, Ecb.Closed | chan_id, Ecb.Full ->
+                  stop_waiting hd chan_id;
+                  Lib.String.Table.remove chan_id table
+            )
             !r message
         in
         r := table
@@ -474,8 +496,7 @@ end = struct
         raise (Comet_error "update_stateless_state on stateful one")
 
   let call_service
-        ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd)
-    =
+      ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd) =
     let* () =
       Configuration.sleep_before_next_request
         (fun () -> hd_activity.focused)
@@ -499,13 +520,15 @@ end = struct
 
   let add_no_index =
     List.map (fun (chan, m) ->
-      {msg_chan_id = chan; msg_index = None; msg_data = m})
+        {msg_chan_id = chan; msg_index = None; msg_data = m}
+    )
 
   let update_activity ?(timeout = false) hd =
     if
       hd.hd_activity.active <> `Inactive
       && (timeout
-         || not (Configuration.get ()).Configuration.active_until_timeout)
+         || not (Configuration.get ()).Configuration.active_until_timeout
+         )
     then set_activity hd (expected_activity hd)
 
   let wait_data hd : message list Lwt.t =
@@ -518,39 +541,43 @@ end = struct
         Lwt.try_bind
           (fun () -> Lwt.pick [call_service hd; hd.hd_activity.restart_waiter])
           (fun s ->
-             match s with
-             | Ecb.Timeout ->
-                 update_activity ~timeout:true hd;
-                 aux 0
-             | Ecb.State_closed -> Lwt.return (close_all_channels hd)
-             | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
-             | Ecb.Stateless_messages l ->
-                 let l = Array.to_list l in
-                 update_stateless_state hd l;
-                 Lwt.return (drop_message_index l)
-             | Ecb.Stateful_messages l ->
-                 let l = Array.to_list l in
-                 update_stateful_state hd l;
-                 Lwt.return (add_no_index l))
+            match s with
+            | Ecb.Timeout ->
+                update_activity ~timeout:true hd;
+                aux 0
+            | Ecb.State_closed -> Lwt.return (close_all_channels hd)
+            | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
+            | Ecb.Stateless_messages l ->
+                let l = Array.to_list l in
+                update_stateless_state hd l;
+                Lwt.return (drop_message_index l)
+            | Ecb.Stateful_messages l ->
+                let l = Array.to_list l in
+                update_stateful_state hd l;
+                Lwt.return (add_no_index l)
+          )
           (fun e ->
-             match e with
-             | Request.Failed_request (0 | 502 | 504) ->
-                 if retries > max_retries
-                 then (
-                   Logs.warn ~src:section (fun fmt -> fmt "connection failure");
-                   set_activity hd `Inactive;
-                   aux 0)
-                 else
-                   let* () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
-                   aux (retries + 1)
-             | Restart ->
-                 Logs.info ~src:section (fun fmt -> fmt "restart");
-                 aux 0
-             | exn ->
-                 Logs.warn ~src:section (fun fmt ->
-                   fmt "connection failure@\n%s" (Printexc.to_string exn));
-                 let* () = handle_exn ~exn () in
-                 Lwt.fail exn)
+            match e with
+            | Request.Failed_request (0 | 502 | 504) ->
+                if retries > max_retries
+                then (
+                  Logs.warn ~src:section (fun fmt -> fmt "connection failure");
+                  set_activity hd `Inactive;
+                  aux 0
+                )
+                else
+                  let* () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
+                  aux (retries + 1)
+            | Restart ->
+                Logs.info ~src:section (fun fmt -> fmt "restart");
+                aux 0
+            | exn ->
+                Logs.warn ~src:section (fun fmt ->
+                    fmt "connection failure@\n%s" (Printexc.to_string exn)
+                );
+                let* () = handle_exn ~exn () in
+                Lwt.fail exn
+          )
     in
     update_activity hd; aux 0
 
@@ -558,12 +585,16 @@ end = struct
     ignore
       (Lwt.catch
          (fun () ->
-            call_service_after_load_end srv queue
-              (false, Ecb.Stateful (Ecb.Commands command)))
+           call_service_after_load_end srv queue
+             (false, Ecb.Stateful (Ecb.Commands command))
+         )
          (fun exn ->
-            Logs.warn ~src:section (fun fmt ->
-              fmt "request failed@\n%s" (Printexc.to_string exn));
-            Lwt.return ""))
+           Logs.warn ~src:section (fun fmt ->
+               fmt "request failed@\n%s" (Printexc.to_string exn)
+           );
+           Lwt.return ""
+         )
+      )
 
   let close hd chan_id =
     match hd.hd_state with
@@ -582,7 +613,9 @@ end = struct
               !map
       with Not_found ->
         Logs.info ~src:section (fun fmt ->
-          fmt "trying to close a non existent channel: %s" chan_id))
+            fmt "trying to close a non existent channel: %s" chan_id
+        )
+    )
 
   let add_channel_stateful hd chan_id =
     hd.hd_activity.active_channels <-
@@ -616,7 +649,8 @@ end = struct
              {count = old_state.count + 1; position = pos}
            with Not_found -> {count = 1; position = pos}
          in
-         map := Lib.String.Table.add chan_id state !map);
+         map := Lib.String.Table.add chan_id state !map
+        );
         restart hd
 
   let init_activity () =
@@ -628,7 +662,8 @@ end = struct
     ; active_wakener
     ; restart_waiter
     ; restart_wakener
-    ; active_channels = Lib.String.Set.empty }
+    ; active_channels = Lib.String.Set.empty
+    }
 
   let make hd_service hd_kind =
     let hd_state =
@@ -646,19 +681,19 @@ type 'a handler =
 let handler_stream hd =
   Lwt_stream.flatten
     (Lwt_stream.from (fun () ->
-       Lwt.try_bind
-         (fun () -> Service_handler.wait_data hd)
-         (fun s -> Lwt.return_some s)
-         (fun _ -> Lwt.return_none)))
+         Lwt.try_bind
+           (fun () -> Service_handler.wait_data hd)
+           (fun s -> Lwt.return_some s)
+           (fun _ -> Lwt.return_none)
+     )
+    )
 
 let stateful_handler_table :
-  (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
-  =
+    (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t =
   Hashtbl.create 1
 
 let stateless_handler_table :
-  (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
-  =
+    (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t =
   Hashtbl.create 1
 
 let init (service : Ecb.comet_service) kind table =
@@ -669,15 +704,13 @@ let init (service : Ecb.comet_service) kind table =
   hd
 
 let get_stateful_hd (service : Ecb.comet_service) :
-  Service_handler.stateful handler
-  =
+    Service_handler.stateful handler =
   try Hashtbl.find stateful_handler_table service
   with Not_found ->
     init service Service_handler.stateful stateful_handler_table
 
 let get_stateless_hd (service : Ecb.comet_service) :
-  Service_handler.stateless handler
-  =
+    Service_handler.stateless handler =
   try Hashtbl.find stateless_handler_table service
   with Not_found ->
     init service Service_handler.stateless stateless_handler_table
@@ -739,8 +772,10 @@ let check_and_update_position position msg_pos data =
         if match relation with Equal -> j = i | Greater -> j >= i
         then (
           r := Some (j + 1);
-          true)
-        else false)
+          true
+        )
+        else false
+  )
 
 (* stateless channels are registered with a position: when a channel
    is registered more than one time, it is possible to receive old
@@ -755,18 +790,22 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
           match data with
           | Ecb.Full -> Lwt.fail Channel_full
           | Ecb.Closed -> Lwt.fail Channel_closed
-          | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
-        | _ -> Lwt.return_none)
+          | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a)
+        )
+        | _ -> Lwt.return_none
+        )
       (Lwt_stream.clone hd.hd_stream)
   in
   let protect_and_close t =
     let t' = Lwt.protected t in
     Lwt.on_cancel t' (fun () ->
-      Service_handler.close hd.hd_service_handler chan_id);
+        Service_handler.close hd.hd_service_handler chan_id
+    );
     t'
   in
   (* protect the stream from cancels *)
-  Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream))
+  Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)
+  )
 
 let register_stateful ?(wake = true) service chan_id =
   let hd = get_stateful_hd service in
@@ -808,7 +847,8 @@ let is_active () =
     max active (fun () -> Service_handler.is_active hd.hd_service_handler)
   in
   max (Hashtbl.fold f stateless_handler_table `Active) (fun () ->
-    Hashtbl.fold f stateful_handler_table `Active)
+      Hashtbl.fold f stateful_handler_table `Active
+  )
 
 module Channel = struct
   type 'a t = 'a Lwt_stream.t

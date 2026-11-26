@@ -22,7 +22,7 @@ val cookieset_to_json : Ocsigen_cookie_map.t -> string
 val make_new_session_id : unit -> string
 
 val get_cookie_info :
-   float
+     float
   -> Common.sitedata
   -> Common.state_cookies
   -> Common.state_cookies
@@ -32,13 +32,13 @@ val new_service_cookie_table : unit -> Common.tables Common.Service_cookie.table
 val new_data_cookie_table : unit -> Common.Data_cookie.table
 
 val compute_cookies_to_send :
-   Common.sitedata
+     Common.sitedata
   -> Common.tables Common.cookie_info
   -> Ocsigen_cookie_map.t
   -> Ocsigen_cookie_map.t Lwt.t
 
 val compute_new_ri_cookies :
-   float
+     float
   -> string list
   -> string Ocsigen_cookie_map.Map_inner.t
   -> Common.tables Common.cookie_info
@@ -51,7 +51,8 @@ type cookie =
   { full_state_name : Common.full_state_name
   ; expiry : date option
   ; timeout : Common.timeout
-  ; session_group : Common.perssessgrp option }
+  ; session_group : Common.perssessgrp option
+  }
 
 module Persistent_cookies : sig
   module Cookies :
@@ -67,7 +68,7 @@ module Persistent_cookies : sig
   val add : string -> cookie -> unit Lwt.t
 
   val update :
-     string
+       string
     -> expiry:date option
     -> timeout:Common.timeout
     -> ?session_group:Common.perssessgrp option
@@ -84,7 +85,5 @@ module Persistent_cookies : sig
       request. *)
 
   val garbage_collect :
-     section:Logs.src
-    -> (Cookies.key -> unit Lwt.t)
-    -> unit Lwt.t
+    section:Logs.src -> (Cookies.key -> unit Lwt.t) -> unit Lwt.t
 end

@@ -38,16 +38,13 @@ exception Client_value_creation_invalid_context of string
 (**/**)
 
 val create_client_value :
-   loc:Lib.pos option
-  -> instance_id:int
-  -> _ Runtime.Client_value_server_repr.t
+  loc:Lib.pos option -> instance_id:int -> _ Runtime.Client_value_server_repr.t
 
 val client_value_from_server_repr :
-   'a Runtime.Client_value_server_repr.t
-  -> 'a t
+  'a Runtime.Client_value_server_repr.t -> 'a t
 
 val client_value_datum :
-   closure_id:string
+     closure_id:string
   -> args:Ocsigen_base.Lib.poly
   -> value:'a t
   -> Runtime.client_value_datum

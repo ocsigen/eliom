@@ -108,24 +108,30 @@ let cases =
   ; case "subnormal" 5e-324 show_float
   ; case "float array" [|1.; 2.5|] show_floats
   ; case "long float array" (Array.init 300 float_of_int) (fun a ->
-      Printf.sprintf "%d floats, last %h" (Array.length a) a.(299))
+        Printf.sprintf "%d floats, last %h" (Array.length a) a.(299)
+    )
   ; case "float record" {x = 1.; y = -2.} (fun {x; y} ->
-      Printf.sprintf "{x = %h; y = %h}" x y)
+        Printf.sprintf "{x = %h; y = %h}" x y
+    )
   ; (* Strings, at the limits of each encoding *)
     case "empty string" "" (Printf.sprintf "%S")
   ; case "string of 31 bytes" (String.make 31 'a') (fun s ->
-      Printf.sprintf "%d bytes" (String.length s))
+        Printf.sprintf "%d bytes" (String.length s)
+    )
   ; case "string of 32 bytes" (String.make 32 'b') (fun s ->
-      Printf.sprintf "%d bytes" (String.length s))
+        Printf.sprintf "%d bytes" (String.length s)
+    )
   ; case "string of 256 bytes" (String.make 256 'c') (fun s ->
-      Printf.sprintf "%d bytes" (String.length s))
+        Printf.sprintf "%d bytes" (String.length s)
+    )
   ; case "UTF-8" "é漢🙂" (Printf.sprintf "%S")
   ; case "all bytes" all_bytes (fun s -> string_of_bool (s = all_bytes))
   ; (* Blocks *)
     case "list" [1; 2; 3] (show_list string_of_int)
   ; case "option" (Some "x") (function
       | None -> "None"
-      | Some s -> Printf.sprintf "Some %S" s)
+      | Some s -> Printf.sprintf "Some %S" s
+    )
   ; case "variants"
       [Constant; Other_constant; Args (1, "a"); Record {i = 2; s = "b"; f = 3.}]
       (show_list show_variant)
@@ -146,28 +152,35 @@ let cases =
       ; C13 13
       ; C14 14
       ; C15 15
-      ; C16 16 ]
+      ; C16 16
+      ]
       (show_list show_many)
   ; case "8 fields" (1, 2, 3, 4, 5, 6, 7, 8) (fun (a, b, c, d, e, f, g, h) ->
-      show_list string_of_int [a; b; c; d; e; f; g; h])
+        show_list string_of_int [a; b; c; d; e; f; g; h]
+    )
   ; case "polymorphic variants"
       [`A; `B 1; `C ("c", 2.)]
       (show_list (function
-         | `A -> "`A"
-         | `B n -> Printf.sprintf "`B %d" n
-         | `C (s, f) -> Printf.sprintf "`C (%S, %h)" s f))
+        | `A -> "`A"
+        | `B n -> Printf.sprintf "`B %d" n
+        | `C (s, f) -> Printf.sprintf "`C (%S, %h)" s f
+      ))
   ; (* Sharing and cycles *)
     (let l = [1; 2] in
      case "sharing" (l, l) (fun (a, b) ->
-       Printf.sprintf "%s, shared: %b" (show_list string_of_int a) (a == b)))
+         Printf.sprintf "%s, shared: %b" (show_list string_of_int a) (a == b)
+     )
+    )
   ; (* CODE_SHARED16: a reference to an object read more than 255 objects
        before *)
     (let l = [0] in
      case "far sharing"
        (l, List.init 300 Fun.id, l)
        (fun (a, between, b) ->
-          Printf.sprintf "%d objects between, shared: %b" (List.length between)
-            (a == b)))
+         Printf.sprintf "%d objects between, shared: %b" (List.length between)
+           (a == b)
+       )
+    )
   ; (* Each kind of object counts in the table of shared objects. Under
        js_of_ocaml, [==] compares the strings, the floats and the int32 by
        value: a miscounted object is still detected, as the references to the
@@ -182,16 +195,23 @@ let cases =
      and int64 = 1L in
      case "objects shared"
        ( (short, medium, long, float, floats, long_floats, int32, int64)
-       , (short, medium, long, float, floats, long_floats, int32, int64) )
+       , (short, medium, long, float, floats, long_floats, int32, int64)
+       )
        (fun ((a, b, c, d, e, f, g, h), (a', b', c', d', e', f', g', h')) ->
-          Printf.sprintf "%d %d %d %h %h %d %ld %Ld, shared: %b"
-            (String.length a) (String.length b) (String.length c) d e.(1)
-            (Array.length f) g h
-            (a == a' && b == b' && c == c' && d == d' && e == e' && f == f'
-           && g == g' && h == h')))
+         Printf.sprintf "%d %d %d %h %h %d %ld %Ld, shared: %b"
+           (String.length a) (String.length b) (String.length c) d e.(1)
+           (Array.length f) g h
+           (a == a' && b == b' && c == c' && d == d' && e == e' && f == f'
+          && g == g' && h == h'
+           )
+       )
+    )
   ; (let rec l = 1 :: 2 :: l in
      case "cycle" l (fun l ->
-       Printf.sprintf "cycle of 2: %b" (List.tl (List.tl l) == l))) ]
+         Printf.sprintf "cycle of 2: %b" (List.tl (List.tl l) == l)
+     )
+    )
+  ]
 
 type float_object = Boxed of float | Float_array of float array
 
@@ -201,17 +221,19 @@ let big_endian =
   let l = [0] in
   let around name x show =
     case name (l, x, l) (fun (a, x, b) ->
-      Printf.sprintf "%s, shared: %b" (show x) (a == b))
+        Printf.sprintf "%s, shared: %b" (show x) (a == b)
+    )
   in
   let show_array a =
     Printf.sprintf "%d floats, last %h" (Array.length a) a.(Array.length a - 1)
   in
   List.map
     (fun (name, floats) ->
-       ( floats
-       , match floats with
-         | Boxed f -> around name f show_float
-         | Float_array a -> around name a show_array ))
+      ( floats
+      , match floats with
+        | Boxed f -> around name f show_float
+        | Float_array a -> around name a show_array )
+    )
     [ "big-endian float", Boxed 1.5
     ; "big-endian float array", Float_array [|1.; 2.5|]
     ; "big-endian long float array", Float_array (Array.init 256 float_of_int)

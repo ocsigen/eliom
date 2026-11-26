@@ -37,7 +37,14 @@ let pp_list () l =
 
 let gen_usage_msg l =
   Printf.sprintf
-    "Welcome to the Eliom distillery!\n\nThis program generates the scaffold for your Eliom application\nfrom a template.\nAvailable templates: %a.\n\nCall it like this\n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\n\  $ %s -dir \nwhere"
+    "Welcome to the Eliom distillery!\n\n\
+     This program generates the scaffold for your Eliom application\n\
+     from a template.\n\
+     Available templates: %a.\n\n\
+     Call it like this\n\
+    \  $ %s -name <name> [-template <template>] [-target-directory <dest>]\n\
+    \  $ %s -dir \n\
+     where"
     pp_list l
     (Filename.basename Sys.argv.(0))
     (Filename.basename Sys.argv.(0))
@@ -70,17 +77,20 @@ let mkdir_p path_str =
     | [] -> ()
     | snippet :: rest ->
         let sofar' = snippet :: sofar in
-        (if sofar' <> [""]
-         then
-           let dir = join_path (List.rev sofar') in
-           if Sys.file_exists dir
-           then (
-             if not (Sys.is_directory dir)
-             then
-               raise
-                 (File_error
-                    (sprintf "Cannot create directory %S, it's a file" dir)))
-           else Unix.mkdir dir 0o775);
+        ( if sofar' <> [""]
+          then
+            let dir = join_path (List.rev sofar') in
+            if Sys.file_exists dir
+            then (
+              if not (Sys.is_directory dir)
+              then
+                raise
+                  (File_error
+                     (sprintf "Cannot create directory %S, it's a file" dir)
+                  )
+            )
+            else Unix.mkdir dir 0o775
+        );
         aux sofar' rest
   in
   aux [] (split_path path_str)
@@ -109,7 +119,8 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
     let preds =
       List.map
         (fun pred ->
-           pred, Str.(regexp ("^ *%%%ifdef +" ^ quote pred ^ "%%% *$")))
+          pred, Str.(regexp ("^ *%%%ifdef +" ^ quote pred ^ "%%% *$"))
+        )
         preds
     in
     fun line ->
@@ -128,7 +139,8 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
           if Str.string_match ifdef_regexp line 0
           then (
             ifdef_stack := false :: !ifdef_stack;
-            false)
+            false
+          )
           else if Str.string_match endif_regexp line 0
           then
             match !ifdef_stack with
@@ -140,7 +152,9 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
                   (Preprocessing_error
                      (Printf.sprintf
                         "Cannot match %%%%endif%%%% in line %i in file %S"
-                        !line_counter src_name))
+                        !line_counter src_name
+                     )
+                  )
           else List.for_all Fun.id !ifdef_stack
   in
   let replace_in_line =
@@ -162,19 +176,22 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
     then (
       let src = open_in src_name in
       let dst = open_out dst_name in
-      (try
-         while true do
-           let line = input_line src in
-           incr line_counter;
-           if include_line line
-           then (
-             output_string dst (replace_in_line line);
-             output_char dst '\n')
-         done
-       with End_of_file -> ());
+      ( try
+          while true do
+            let line = input_line src in
+            incr line_counter;
+            if include_line line
+            then (
+              output_string dst (replace_in_line line);
+              output_char dst '\n'
+            )
+          done
+        with End_of_file -> ()
+      );
       close_in src;
       close_out dst;
-      printf "Generated %s\n%!" dst_name)
+      printf "Generated %s\n%!" dst_name
+    )
   with
   | Sys_error _ as exc ->
       eprintf "Error generating %s: %s.\n%!" dst_name (Printexc.to_string exc)
@@ -203,21 +220,24 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
   if not (Sys.is_directory dest_dir)
   then (
     eprintf "Destination directory %S is a file!" dest_dir;
-    exit 1);
+    exit 1
+  );
   Array.iter
     (fun src_file ->
-       if List.mem src_file eliom_ignore_files
-       then ()
-       else if List.mem src_file eliom_verbatim_files
-       then (
-         let src_path = Filename.concat source_dir src_file
-         and dst_path = expand_dest_path ~name ~dest_dir src_file in
-         copy_file_plain src_path dst_path;
-         printf "Generated %s\n%!" dst_path)
-       else
-         let src_path = Filename.concat source_dir src_file
-         and dst_path = expand_dest_path ~name ~dest_dir src_file in
-         copy_file ?preds ~env src_path dst_path)
+      if List.mem src_file eliom_ignore_files
+      then ()
+      else if List.mem src_file eliom_verbatim_files
+      then (
+        let src_path = Filename.concat source_dir src_file
+        and dst_path = expand_dest_path ~name ~dest_dir src_file in
+        copy_file_plain src_path dst_path;
+        printf "Generated %s\n%!" dst_path
+      )
+      else
+        let src_path = Filename.concat source_dir src_file
+        and dst_path = expand_dest_path ~name ~dest_dir src_file in
+        copy_file ?preds ~env src_path dst_path
+    )
     (Sys.readdir source_dir)
 
 let env name =
@@ -231,7 +251,8 @@ let env name =
   in
   [ "PROJECT_NAME", name
   ; "MODULE_NAME", String.capitalize_ascii name
-  ; "PROJECT_DB", db ]
+  ; "PROJECT_DB", db
+  ]
 
 let get_templatedirs () =
   let distillery_path_dirs =
@@ -307,8 +328,8 @@ let main () =
       align
         [ ( "-dir"
           , Set dir
-          , " Display the template directories (set through $ELIOM_DISTILLERY_PATH)"
-          )
+          , " Display the template directories (set through \
+             $ELIOM_DISTILLERY_PATH)" )
         ; ( "-y"
           , Set without_asking
           , " Create the project directory without confirmation." )
@@ -323,8 +344,10 @@ let main () =
           , " List all available templates" )
         ; ( "-target-directory"
           , String (fun s -> dest_dir := Some s)
-          , "<dir> Generate the project in directory <dir> (the project's name by default)"
-          ) ])
+          , "<dir> Generate the project in directory <dir> (the project's name \
+             by default)" )
+        ]
+    )
   in
   Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
   if !dir

@@ -19,21 +19,21 @@
  *)
 
 val close_persistent_state_of_cookie :
-   scope:Common.user_scope
+     scope:Common.user_scope
   -> Common.sitedata
   -> Common.perssessgrp option
   -> string
   -> unit Lwt.t
 
 val close_persistent_state :
-   scope:[< Common.user_scope]
+     scope:[< Common.user_scope]
   -> secure_o:bool option
   -> ?sp:Common.server_params
   -> unit
   -> unit Lwt.t
 
 val find_or_create_persistent_cookie :
-   ?set_session_group:string
+     ?set_session_group:string
   -> cookie_scope:[< Common.cookie_scope]
   -> secure_o:bool option
   -> ?sp:Common.server_params
@@ -41,7 +41,7 @@ val find_or_create_persistent_cookie :
   -> Common.one_persistent_cookie_info Lwt.t
 
 val find_persistent_cookie_only :
-   cookie_scope:[< Common.cookie_scope]
+     cookie_scope:[< Common.cookie_scope]
   -> secure_o:bool option
   -> ?sp:Common.server_params
   -> unit

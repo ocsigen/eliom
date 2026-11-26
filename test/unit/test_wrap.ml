@@ -100,7 +100,8 @@ let test_exception () =
   let control = Gc.get () in
   let v = boxed "a" (fun _ -> failwith "wrapper") in
   Alcotest.check_raises "propagated" (Failure "wrapper") (fun () ->
-    ignore (Wrap.wrap v));
+      ignore (Wrap.wrap v)
+  );
   Alcotest.(check bool) "GC settings restored" true (Gc.get () = control)
 
 let test_immediate_results () =
@@ -145,7 +146,8 @@ let js_unescape s =
       if s.[i] <> '\\'
       then (
         Buffer.add_char b s.[i];
-        loop (i + 1))
+        loop (i + 1)
+      )
       else
         match s.[i + 1] with
         | '0' ->
@@ -217,4 +219,5 @@ let suite =
     ; Alcotest.test_case "wrapper exception" `Quick test_exception
     ; Alcotest.test_case "immediate results" `Quick test_immediate_results
     ; Alcotest.test_case "eliom data" `Quick test_eliom_data
-    ; Alcotest.test_case "string escape" `Quick test_string_escape ] )
+    ; Alcotest.test_case "string escape" `Quick test_string_escape
+    ] )

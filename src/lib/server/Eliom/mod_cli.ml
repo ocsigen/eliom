@@ -27,17 +27,22 @@ let fresh_id =
 let client_sitedata sp =
   let s = Request_info.get_sitedata_sp ~sp in
   { Types.site_dir = Common.get_site_dir s
-  ; Types.site_dir_string = Common.get_site_dir_string s }
+  ; Types.site_dir_string = Common.get_site_dir_string s
+  }
 
 let client_si s =
   (* we force all lazys before serialization *)
   { s with
     Common.si_na_get_params =
       (let r = Lazy.force s.Common.si_na_get_params in
-       lazy r)
+       lazy r
+      )
   ; Common.si_persistent_nl_get_params =
       (let r = Lazy.force s.Common.si_persistent_nl_get_params in
-       lazy r)
+       lazy r
+      )
   ; Common.si_all_get_but_na_nl =
       (let r = Lazy.force s.Common.si_all_get_but_na_nl in
-       lazy r) }
+       lazy r
+      )
+  }
