@@ -43,6 +43,15 @@ depends: [
   "conduit-lwt-unix" {with-test}
   "odoc" {with-doc}
 ]
+dev-repo: "git+https://github.com/ocsigen/eliom.git"
+x-maintenance-intent: ["(latest)"]
+# these distributions don't offer a recent enough binaryen for wasm_of_ocaml
+x-ci-accept-failures: ["centos-10" "opensuse-15.6" "opensuse-16.0"]
+
+# The default build without "@doc" {with-doc}: the server and client
+# libraries define the same modules, so dune's @doc fails with
+# "Multiple rules generated". The published docs are built by odoc_driver.
+# Keep in sync with the build dune generates by default.
 build: [
   ["dune" "subst"] {dev}
   [
@@ -54,10 +63,5 @@ build: [
     jobs
     "@install"
     "@runtest" {with-test}
-    "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/ocsigen/eliom.git"
-x-maintenance-intent: ["(latest)"]
-# these distributions don't offer a recent enough binaryen for wasm_of_ocaml
-x-ci-accept-failures: ["centos-10" "opensuse-15.6" "opensuse-16.0"]

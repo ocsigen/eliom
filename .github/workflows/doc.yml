@@ -91,10 +91,8 @@ jobs:
 
       - name: Install eliom
         # Always: eliom's own sources change on every push, so odoc_driver must
-        # document the freshly-built package. eliom is installed WITHOUT --with-doc:
-        # its server and client libraries share module names, so building eliom's
-        # own @doc collides ("Multiple rules for .../eliom/Eliom_bus/index.html").
-        # wodoc builds the docs via `odoc_driver --remap` instead.
+        # document the freshly-built package. wodoc builds the docs via
+        # `odoc_driver --remap`, so --with-doc is not needed.
         run: opam install .
 
       - name: Build documentation (dev)
