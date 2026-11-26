@@ -2,12 +2,14 @@
 
 ; Install the distillery templates into lib/eliom/templates/<name>/
 ; so that eliom-distillery picks them up at the standard location.
+; List the dotfiles explicitly: `*` alone skips .ocamlformat, .gitignore,
+; .eliomignore, .eliomverbatim and .eliomreserve.
 
 (install
  (package eliom)
  (section lib_root)
  (files
   (glob_files_rec
-   (templates/app/* with_prefix eliom/templates/app))
+   (templates/app/{*,.*} with_prefix eliom/templates/app))
   (glob_files_rec
-   (templates/basic.ppx/* with_prefix eliom/templates/basic.ppx))))
+   (templates/basic.ppx/{*,.*} with_prefix eliom/templates/basic.ppx))))

@@ -1,3 +1,7 @@
+===== dev =====
+* Distillery: install the dotfiles of the templates (.ocamlformat,
+  .gitignore, ...): generated projects did not get them.
+
 ===== 13.0.0 (2026-11-01) =====
 * Dependencies
 ** Requires OCaml >= 4.14, Ocsigen Server >= 8.0 (wrapped module names),
