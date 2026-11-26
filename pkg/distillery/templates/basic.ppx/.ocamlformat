@@ -1,0 +1,4 @@
+version=0.30.0
+profile=ocsigen
+parse-docstrings=false
+wrap-comments=false

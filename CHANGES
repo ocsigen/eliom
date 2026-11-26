@@ -1,9 +1,9 @@
 ===== dev =====
 * Distillery: install the dotfiles of the templates (.ocamlformat,
   .gitignore, ...): generated projects did not get them.
-* Distillery template app: formatted with the ocsigen profile of
-  OCamlformat 0.30.0, which the .ocamlformat of generated projects
-  selects.
+* Distillery templates app and basic.ppx: formatted with the ocsigen
+  profile of OCamlformat 0.30.0, which the .ocamlformat of generated
+  projects selects.
 
 ===== 13.0.0 (2026-11-01) =====
 * Dependencies

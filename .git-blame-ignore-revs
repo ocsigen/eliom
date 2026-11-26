@@ -4,3 +4,5 @@ ff2ff447a42f0208005321b33b20914668b4d14a
 fa71eb78ffa855ca5e3c01f97ba72f4c42560a29
 # Template app: use OCamlformat 0.30.0 with the ocsigen profile
 4e89a5862857ce9251ef4e114eb2f19539483af7
+# Template basic.ppx: use OCamlformat 0.30.0 with the ocsigen profile
+9981e9130d677c07fe7bbd4816d2f153818088fc
