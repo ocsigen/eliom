@@ -26,7 +26,8 @@ let find_sitedata fun_name =
   | None -> (
     match Common.global_register_allowed () with
     | Some get_current_sitedata -> get_current_sitedata ()
-    | _ -> raise (Common.Site_information_not_available fun_name))
+    | _ -> raise (Common.Site_information_not_available fun_name)
+  )
 
 (*****************************************************************************)
 let get_http_method () =
@@ -151,7 +152,8 @@ let get_ssl () =
 let get_accept_language_sp sp =
   Ocsigen_http.Header.Accept_language.parse
     (Ocsigen.Request.header_multi sp.Common.sp_request.request_info
-       Ocsigen_http.Header.Name.accept_language)
+       Ocsigen_http.Header.Name.accept_language
+    )
 
 let get_accept_language () =
   let sp = Common.get_sp () in

@@ -87,48 +87,44 @@ module type S = sig
   (** {2 Basic types of pages parameters} *)
 
   val int :
-     string
-    -> (int, [`WithoutSuffix], [`One of int] param_name) params_type
+    string -> (int, [`WithoutSuffix], [`One of int] param_name) params_type
   (** [int s] means that the service takes an integer as the parameter
       named [s]. *)
 
   val int32 :
-     string
-    -> (int32, [`WithoutSuffix], [`One of int32] param_name) params_type
+    string -> (int32, [`WithoutSuffix], [`One of int32] param_name) params_type
   (** [int32 s] means that the service takes a 32-bit integer as the
       parameter named [s]. *)
 
   val int64 :
-     string
-    -> (int64, [`WithoutSuffix], [`One of int64] param_name) params_type
+    string -> (int64, [`WithoutSuffix], [`One of int64] param_name) params_type
   (** [int64 s] means that the service takes a 64-bit integer as the
       parameter named [s]. *)
 
   val float :
-     string
-    -> (float, [`WithoutSuffix], [`One of float] param_name) params_type
+    string -> (float, [`WithoutSuffix], [`One of float] param_name) params_type
   (** [float s] means that the service takes a float as the parameter
       named [s]. *)
 
   val string :
-     string
+       string
     -> (string, [`WithoutSuffix], [`One of string] param_name) params_type
   (** [string s] means that the service takes a string as the parameter
       named [s]. *)
 
   val bool :
-     string
-    -> (bool, [`WithoutSuffix], [`One of bool] param_name) params_type
+    string -> (bool, [`WithoutSuffix], [`One of bool] param_name) params_type
   (** [bool s] means that the service takes a Boolean as the parameter
       named [s]. (To be used, for example, with Boolean
       checkboxes.) *)
 
   val file :
-     string
+       string
     -> ( Lib.file_info
-         , [`WithoutSuffix]
-         , [`One of Lib.file_info] param_name )
-         params_type
+       , [`WithoutSuffix]
+       , [`One of Lib.file_info] param_name
+       )
+       params_type
   (** [file s] means that the service takes a file as the parameter
       named [s]. *)
 
@@ -141,18 +137,19 @@ module type S = sig
       type="image" ...>]. *)
 
   val coordinates :
-     string
+       string
     -> ( coordinates
-         , [`WithoutSuffix]
-         , [`One of coordinates] param_name )
-         params_type
+       , [`WithoutSuffix]
+       , [`One of coordinates] param_name
+       )
+       params_type
   (** [coordinates s] means that the service takes as parameters the
       coordinates of a point in an [<input type="image" ...>]. *)
 
   (** {2 Composing types of pages parameters} *)
 
   val ( ** ) :
-     ('a, [`WithoutSuffix], 'b) params_type
+       ('a, [`WithoutSuffix], 'b) params_type
     -> ('c, ([< `WithoutSuffix | `Endsuffix] as 'e), 'd) params_type
     -> ('a * 'c, 'e, 'b * 'd) params_type
   (** The combinator [p1 ** p2] allows one to define a service that
@@ -160,31 +157,31 @@ module type S = sig
       should expect a pair [(p1, p2)]. *)
 
   val prod :
-     ('a, [`WithoutSuffix], 'b) params_type
+       ('a, [`WithoutSuffix], 'b) params_type
     -> ('c, ([< `WithoutSuffix | `Endsuffix] as 'e), 'd) params_type
     -> ('a * 'c, 'e, 'b * 'd) params_type
   (** Same as {!(**)}. *)
 
   val sum :
-     ('a, [`WithoutSuffix], 'b) params_type
+       ('a, [`WithoutSuffix], 'b) params_type
     -> ('c, [`WithoutSuffix], 'd) params_type
     -> (('a, 'c) binsum, [`WithoutSuffix], 'b * 'd) params_type
   (** The combinator [sum p1 p2] allows one to define service that
       expect either the parameter [p1] or the parameter [p2].  *)
 
   val opt :
-     ('a, [`WithoutSuffix], 'b) params_type
+       ('a, [`WithoutSuffix], 'b) params_type
     -> ('a option, [`WithoutSuffix], 'b) params_type
   (** The combinator [opt p] allows defining optional parameters. *)
 
   val neopt :
-     ('a, [`WithoutSuffix], 'b) params_type
+       ('a, [`WithoutSuffix], 'b) params_type
     -> ('a option, [`WithoutSuffix], 'b) params_type
   (** The combinator [neopt p] allows defining an optional parameter
       assumed to be None if empty. *)
 
   val radio :
-     (string -> ('a, [`WithoutSuffix], [`One of 'b] param_name) params_type)
+       (string -> ('a, [`WithoutSuffix], [`One of 'b] param_name) params_type)
     -> string
     -> ('a option, [`WithoutSuffix], [`Radio of 'b] param_name) params_type
   (** A parameter as [radio f s] specifies that the service takes an
@@ -199,7 +196,7 @@ module type S = sig
       (see {!all_suffix}). *)
 
   val set :
-     (string -> ('a, [`WithoutSuffix], [`One of 'b] param_name) params_type)
+       (string -> ('a, [`WithoutSuffix], [`One of 'b] param_name) params_type)
     -> string
     -> ('a list, [`WithoutSuffix], [`Set of 'b] param_name) params_type
   (** Use this if you want your service to take several parameters
@@ -211,7 +208,7 @@ module type S = sig
       unspecified.  *)
 
   val list :
-     string
+       string
     -> ('a, [`WithoutSuffix], 'b) params_type
     -> ('a list, [`WithoutSuffix], 'b listnames) params_type
   (** The service takes a list of parameters. The first parameter of
@@ -221,7 +218,7 @@ module type S = sig
       for each value. *)
 
   val suffix :
-     ?redirect_if_not_suffix:bool
+       ?redirect_if_not_suffix:bool
     -> ('s, [< `WithoutSuffix | `Endsuffix], 'sn) params_type
     -> ('s, [`WithSuffix], 'sn) params_type
   (** Tells that the parameter of the service handler is the suffix of
@@ -248,20 +245,19 @@ module type S = sig
       argument, outside the path, has no such restriction. *)
 
   val all_suffix :
-     string
+       string
     -> (string list, [`Endsuffix], [`One of string list] param_name) params_type
   (** Takes the whole suffix, as long as possible, as a (slash
       separated) string list. The slashes of the segments, even encoded ones
       ([%2F]), separate the elements, and [..] segments are removed. *)
 
   val all_suffix_string :
-     string
-    -> (string, [`Endsuffix], [`One of string] param_name) params_type
+    string -> (string, [`Endsuffix], [`One of string] param_name) params_type
   (** Takes the whole suffix, as long as possible, as a string, without
       [..] segments (see {!all_suffix}). *)
 
   val suffix_prod :
-     ?redirect_if_not_suffix:bool
+       ?redirect_if_not_suffix:bool
     -> ('s, [< `WithoutSuffix | `Endsuffix], 'sn) params_type
     -> ('a, [`WithoutSuffix], 'an) params_type
     -> ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
@@ -274,8 +270,7 @@ module type S = sig
       320)] to the service handler.  *)
 
   val suffix_const :
-     string
-    -> (unit, [`WithoutSuffix], [`One of unit] param_name) params_type
+    string -> (unit, [`WithoutSuffix], [`One of unit] param_name) params_type
   (** [suffix_const v] is used only inside suffixes. It does nothing
       for regular parameters. It specifies that the service takes a
       constant parameter inside the suffix, whose value must be [v].
@@ -287,7 +282,7 @@ module type S = sig
   (** marshaled OCaml values of type 'a *)
 
   val ocaml :
-     string
+       string
     -> 'a Deriving_Json.t
     -> ('a, [`WithoutSuffix], [`One of 'a ocaml] param_name) params_type
   (** [ocaml s] tells that the service is expecting some caml (client
@@ -309,7 +304,7 @@ module type S = sig
   type ('a, +'b, 'names) non_localized_params constraint 'b = [< suff]
 
   val make_non_localized_parameters :
-     prefix:string
+       prefix:string
     -> name:string
     -> ?persistent:bool
     -> ('a, [`WithoutSuffix], 'b) params_type
@@ -332,14 +327,13 @@ module type S = sig
   val empty_nl_params_set : nl_params_set
 
   val add_nl_parameter :
-     nl_params_set
+       nl_params_set
     -> ('a, [< `WithSuffix | `WithoutSuffix], _) non_localized_params
     -> 'a
     -> nl_params_set
 
   val get_nl_params_names :
-     (_, [< `WithSuffix | `WithoutSuffix], 'a) non_localized_params
-    -> 'a
+    (_, [< `WithSuffix | `WithoutSuffix], 'a) non_localized_params -> 'a
 
   val get_to_and_of : ('a, 'b, 'c) params_type -> 'a to_and_of
   (** Given a parameter type, get the two functions that converts from
@@ -354,7 +348,7 @@ module type S = sig
   (**/**)
 
   val walk_parameter_tree :
-     [`One of string] param_name
+       [`One of string] param_name
     -> ('a, 'b, 'c) params_type
     -> 'a to_and_of option
 
@@ -362,14 +356,12 @@ module type S = sig
   val contains_suffix : ('a, 'b, 'c) params_type -> bool option
 
   val add_pref_params :
-     string
-    -> ('a, 'b, 'c) params_type
-    -> ('a, 'b, 'c) params_type
+    string -> ('a, 'b, 'c) params_type -> ('a, 'b, 'c) params_type
 
   type params = (string * Mod_parameters.param) list
 
   val construct_params :
-     params Lib.String.Table.t
+       params Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> 'a
     -> string list option * string
@@ -377,19 +369,19 @@ module type S = sig
   val construct_params_string : params -> string
 
   val construct_params_list_raw :
-     params Lib.String.Table.t
+       params Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> 'a
     -> string list option * params Lib.String.Table.t * params
 
   val construct_params_list :
-     params Lib.String.Table.t
+       params Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> 'a
     -> string list option * params
 
   val reconstruct_params :
-     sp:Common.server_params
+       sp:Common.server_params
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'c) params_type
     -> (string * string) list Lwt.t option
     -> (string * Lib.file_info) list Lwt.t option
@@ -403,12 +395,12 @@ module type S = sig
   val string_of_param_name : 'a param_name -> string
 
   val nl_prod :
-     ('a, 'su, 'an) params_type
+       ('a, 'su, 'an) params_type
     -> ('s, [`WithoutSuffix], 'sn) non_localized_params
     -> ('a * 's, 'su, 'an * 'sn) params_type
 
   val remove_from_nlp :
-     (string * 'c) list Lib.String.Table.t
+       (string * 'c) list Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> (string * 'c) list Lib.String.Table.t
 

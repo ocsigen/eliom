@@ -20,16 +20,19 @@ let test_dates () =
   (* Dates written by Ocsigen Server, around leap days and centuries *)
   List.iter
     (fun t ->
-       let s = Ocsigen_base.Lib.Date.to_string t in
-       Alcotest.(check (option (float 0.))) s (Some t) (Cookie_jar.parse_date s))
+      let s = Ocsigen_base.Lib.Date.to_string t in
+      Alcotest.(check (option (float 0.))) s (Some t) (Cookie_jar.parse_date s)
+    )
     [ 951782400. (* 2000-02-29 *)
     ; 951868800. (* 2000-03-01 *)
     ; 1709164799. (* 2024-02-28 23:59:59 *)
     ; 1790512496. (* 2026-09-27 12:34:56 *)
-    ; 4107542400. (* 2100-03-01 *) ];
+    ; 4107542400. (* 2100-03-01 *)
+    ];
   List.iter
     (fun s ->
-       Alcotest.(check (option (float 0.))) s None (Cookie_jar.parse_date s))
+      Alcotest.(check (option (float 0.))) s None (Cookie_jar.parse_date s)
+    )
     ["tomorrow"; "Thu, 01 Foo 1970 00:00:00 GMT"; "Thu, 01 Jan 1970 00:00"]
 
 let test_paths () =
@@ -70,7 +73,8 @@ let test_expiry () =
   let j =
     jar ~path:"/"
       [ "a=1; Path=/; Max-Age=10; Expires=" ^ past
-      ; "b=2; Path=/; Expires=" ^ past ^ "; Max-Age=10" ]
+      ; "b=2; Path=/; Expires=" ^ past ^ "; Max-Age=10"
+      ]
   in
   check_header "max-age first" (Some "a=1; b=2") ~path:"/" j;
   (* A wrong Max-Age is ignored. *)
@@ -95,8 +99,7 @@ let test_attributes () =
   check_header "secure" None ~path:"/" (jar ~path:"/" ["a=1; Path=/; Secure"]);
   check_header "no name or no value" None ~path:"/"
     (jar ~path:"/" ["novalue; Path=/"; "=x; Path=/"]);
-  check_header "empty value" (Some "a=") ~path:"/"
-    (jar ~path:"/" ["a=; Path=/"])
+  check_header "empty value" (Some "a=") ~path:"/" (jar ~path:"/" ["a=; Path=/"])
 
 let () =
   Alcotest.run "eliom-cookie-jar"
@@ -106,4 +109,6 @@ let () =
         ; Alcotest.test_case "default path" `Quick test_default_path
         ; Alcotest.test_case "expiry" `Quick test_expiry
         ; Alcotest.test_case "replacement" `Quick test_replacement
-        ; Alcotest.test_case "attributes" `Quick test_attributes ] ) ]
+        ; Alcotest.test_case "attributes" `Quick test_attributes
+        ] )
+    ]

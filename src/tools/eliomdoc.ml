@@ -7,10 +7,12 @@ let usage () =
     (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n%!";
   Printf.eprintf
-    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
+    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories \
+     (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
-    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, \
+     lwt, js_of_ocaml, tyxml)\n";
   Printf.eprintf
     "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf
@@ -48,7 +50,9 @@ let compile_ml flag file =
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [flag; file]))
+       @ [flag; file]
+       )
+    )
 
 let compile_intf = compile_ml "-intf"
 let compile_impl = compile_ml "-impl"
@@ -78,7 +82,9 @@ let compile_eliom ~impl_intf file =
        (preprocess_opt ~kind:!kind (pp_opt impl_intf)
        @ !args @ get_default_args () @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
+       @ [impl_intf_opt impl_intf; file']
+       )
+    )
 
 let generate_doc () =
   match !acc_file with

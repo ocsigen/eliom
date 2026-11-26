@@ -5,7 +5,8 @@ type t =
   { meth : [`GET | `POST]
   ; action : string  (** The path and query of the URL of the form *)
   ; fields : (string * string) list
-    (** The name and value of each field, in the order of the page *) }
+        (** The name and value of each field, in the order of the page *)
+  }
 (** A form, with the values that a browser submits when nothing is changed:
     text and hidden inputs, checked checkboxes and radio buttons, selected
     options (the first one of a select without selected option) and text

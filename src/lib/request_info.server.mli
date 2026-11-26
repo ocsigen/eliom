@@ -101,7 +101,7 @@ val get_suffix : unit -> Lib.Url.path option
 (** returns the suffix of the current URL *)
 
 val get_cookies :
-   ?cookie_level:Common.cookie_level
+     ?cookie_level:Common.cookie_level
   -> unit
   -> string Ocsigen_cookie_map.Map_inner.t
 (** returns the cookies sent by the browser *)
@@ -126,8 +126,7 @@ val get_link_too_old : unit -> bool
 *)
 
 val get_expired_service_sessions :
-   unit
-  -> Common.full_state_name list * Common.full_state_name list
+  unit -> Common.full_state_name list * Common.full_state_name list
 (** returns the list of names of service sessions expired for the current
     request, for browser sessions and tab sessions. *)
 
@@ -147,7 +146,7 @@ val get_original_filename : Ocsigen.Extensions.file_info -> string
 (** returns the name the file had on the client when it has been sent. *)
 
 val get_file_content_type :
-   Ocsigen.Extensions.file_info
+     Ocsigen.Extensions.file_info
   -> ((string * string) * (string * string) list) option
 (** returns the content type sent by the browser with the file
     (if any). *)
@@ -188,8 +187,7 @@ val get_nl_get_params : unit -> (string * string) list Lib.String.Table.t
 (** returns non localized parameters in the URL. *)
 
 val get_persistent_nl_get_params :
-   unit
-  -> (string * string) list Lib.String.Table.t
+  unit -> (string * string) list Lib.String.Table.t
 (** returns persistent non localized parameters in the URL. *)
 
 val get_nl_post_params : unit -> (string * string) list Lib.String.Table.t
@@ -318,15 +316,12 @@ val get_user_tab_cookies : unit -> Ocsigen_cookie_map.t
 val get_sp_client_appl_name : unit -> string option
 
 val get_sp_client_process_info_sp :
-   Common.server_params
-  -> Common.client_process_info
+  Common.server_params -> Common.client_process_info
 
 val get_sp_client_process_info : unit -> Common.client_process_info
 
 val set_site_handler :
-   Common.sitedata
-  -> (exn -> Ocsigen.Response.t Lwt.t)
-  -> unit
+  Common.sitedata -> (exn -> Ocsigen.Response.t Lwt.t) -> unit
 
 val get_request_sp : Common.server_params -> Ocsigen.Extensions.request
 val get_site_dir_sp : Common.server_params -> Lib.Url.path
@@ -335,16 +330,13 @@ val get_full_url_sp : Common.server_params -> string
 val get_other_get_params_sp : Common.server_params -> (string * string) list
 
 val get_nl_get_params_sp :
-   Common.server_params
-  -> (string * string) list Lib.String.Table.t
+  Common.server_params -> (string * string) list Lib.String.Table.t
 
 val get_persistent_nl_get_params_sp :
-   Common.server_params
-  -> (string * string) list Lib.String.Table.t
+  Common.server_params -> (string * string) list Lib.String.Table.t
 
 val get_nl_post_params_sp :
-   Common.server_params
-  -> (string * string) list Lib.String.Table.t
+  Common.server_params -> (string * string) list Lib.String.Table.t
 
 val get_original_full_path_sp : Common.server_params -> Lib.Url.path
 val get_original_full_path_string_sp : Common.server_params -> string
@@ -353,11 +345,10 @@ val get_ssl_sp : Common.server_params -> bool
 val get_ri_sp : Common.server_params -> Ocsigen.Request.t
 
 val get_post_params_sp :
-   Common.server_params
-  -> (string * string) list Lwt.t option
+  Common.server_params -> (string * string) list Lwt.t option
 
 val get_files_sp :
-   Common.server_params
+     Common.server_params
   -> (string * Ocsigen.Extensions.file_info) list Lwt.t option
 
 val get_suffix_sp : Common.server_params -> Lib.Url.path option

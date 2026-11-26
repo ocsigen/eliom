@@ -30,8 +30,9 @@ let print_table () =
   Eliom.Mod_cookies.get_table (Some host)
   |> Ocsigen_cookie_map.Map_path.bindings
   |> List.concat_map (fun (path, cookies) ->
-    Ocsigen_cookie_map.Map_inner.bindings cookies
-    |> List.map (fun (name, _) -> String.concat "/" path ^ ":" ^ name))
+      Ocsigen_cookie_map.Map_inner.bindings cookies
+      |> List.map (fun (name, _) -> String.concat "/" path ^ ":" ^ name)
+  )
   |> String.concat " "
   |> Printf.printf "table: %s\n"
 
@@ -53,7 +54,8 @@ let () =
   Eliom.Mod_cookies.set_table (Some host)
     (Ocsigen_cookie_map.Poly.add ~path:[] "old"
        (Some (now -. 1.), "old_value", false)
-       (Eliom.Mod_cookies.get_table (Some host)));
+       (Eliom.Mod_cookies.get_table (Some host))
+    );
   print_cookies ~https:false ["page"];
   print_table ()
 
@@ -62,10 +64,11 @@ let () =
 let () =
   let data = Eliom.Request_info.get_request_data () in
   Lwt.async (fun () ->
-    Eliom.Request_info.set_session_info
-      ~uri:
-        (String.concat "/" (Eliom.Request_info.get_csp_original_full_path ()))
-      data.ejs_sess_info Lwt.return)
+      Eliom.Request_info.set_session_info
+        ~uri:
+          (String.concat "/" (Eliom.Request_info.get_csp_original_full_path ()))
+        data.ejs_sess_info Lwt.return
+  )
 
 let () =
   let server_urls : Js.js_string Js.t Js.js_array Js.t =
@@ -74,10 +77,13 @@ let () =
   let server_urls = Array.map Js.to_string (Js.to_array server_urls) in
   List.iteri
     (fun n (name, url) ->
-       match server_urls.(n) with
-       | on_server when on_server = url -> Printf.printf "%s: %s\n" name url
-       | on_server ->
-           Printf.printf "%s: %s, NOT %s on the server\n" name url on_server)
+      match server_urls.(n) with
+      | on_server when on_server = url -> Printf.printf "%s: %s\n" name url
+      | on_server ->
+          Printf.printf "%s: %s, NOT %s on the server\n" name url on_server
+    )
     (Urls.cases
        (Eliom.Unwrap.unwrap_js
-          (Js.Unsafe.get Js.Unsafe.global (Js.string "services"))))
+          (Js.Unsafe.get Js.Unsafe.global (Js.string "services"))
+       )
+    )

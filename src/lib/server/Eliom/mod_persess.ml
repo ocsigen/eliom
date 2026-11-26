@@ -37,11 +37,7 @@ let compute_cookie_info sitedata secure_o {Common.ci_unsecure; ci_secure} =
   (if secure then ci_secure else ci_unsecure).Common.ci_persistent, secure
 
 let close_persistent_state_of_cookie
-      ~(scope : [< Common.user_scope])
-      sitedata
-      sg
-      v
-  =
+    ~(scope : [< Common.user_scope]) sitedata sg v =
   (* check *)
   match scope with
   | `Session_group _ ->
@@ -56,42 +52,42 @@ let close_persistent_state ~scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   Lwt.catch
     (fun () ->
-       let cookie_level = Common.cookie_level_of_user_scope scope in
-       let cookie_info = Common.get_cookie_info sp cookie_level in
-       let sitedata = Request_info.get_sitedata_sp ~sp in
-       let cookie_info, secure =
-         compute_cookie_info sitedata secure_o cookie_info
-       in
-       (* The states of a scope are found through the cookie of its level: a
+      let cookie_level = Common.cookie_level_of_user_scope scope in
+      let cookie_info = Common.get_cookie_info sp cookie_level in
+      let sitedata = Request_info.get_sitedata_sp ~sp in
+      let cookie_info, secure =
+        compute_cookie_info sitedata secure_o cookie_info
+      in
+      (* The states of a scope are found through the cookie of its level: a
        session group has the cookie of its browser sessions. *)
-       let full_st_name =
-         Common.make_full_state_name ~sp ~secure
-           ~scope:(Common.cookie_scope_of_user_scope scope)
-       in
-       let* _, ior =
-         Lazy.force
-           (Common.Full_state_name_table.find full_st_name !cookie_info)
-       in
-       match !ior with
-       | Common.SC c ->
-           let scope =
-             match
-               (scope :> Common.user_scope), !(c.Common.pc_session_group)
-             with
-             | (`Session_group _ as scope), None ->
-                 (* Without a session group, the session is its own group
+      let full_st_name =
+        Common.make_full_state_name ~sp ~secure
+          ~scope:(Common.cookie_scope_of_user_scope scope)
+      in
+      let* _, ior =
+        Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
+      in
+      match !ior with
+      | Common.SC c ->
+          let scope =
+            match
+              (scope :> Common.user_scope), !(c.Common.pc_session_group)
+            with
+            | (`Session_group _ as scope), None ->
+                (* Without a session group, the session is its own group
                     (see Mod_datasess.close_data_state). *)
-                 (Common.cookie_scope_of_user_scope scope :> Common.user_scope)
-             | scope, _ -> scope
-           in
-           let* () =
-             close_persistent_state_of_cookie ~scope sp.Common.sp_sitedata
-               !(c.Common.pc_session_group)
-               Common.(Hashed_cookies.to_string c.pc_hvalue)
-           in
-           ior := Common.SCNo_data;
-           Lwt.return_unit
-       | _ -> Lwt.return_unit)
+                (Common.cookie_scope_of_user_scope scope :> Common.user_scope)
+            | scope, _ -> scope
+          in
+          let* () =
+            close_persistent_state_of_cookie ~scope sp.Common.sp_sitedata
+              !(c.Common.pc_session_group)
+              Common.(Hashed_cookies.to_string c.pc_hvalue)
+          in
+          ior := Common.SCNo_data;
+          Lwt.return_unit
+      | _ -> Lwt.return_unit
+    )
     (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
 let fullsessgrp ~cookie_level ~sp session_group =
@@ -100,12 +96,7 @@ let fullsessgrp ~cookie_level ~sp session_group =
     session_group
 
 let rec find_or_create_persistent_cookie_
-          ?set_session_group
-          ~cookie_scope
-          ~secure_o
-          ~sp
-          ()
-  =
+    ?set_session_group ~cookie_scope ~secure_o ~sp () =
   (* if it exists, do not create it, but returns its value *)
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
   let new_persistent_cookie sitedata full_state_name =
@@ -128,17 +119,15 @@ let rec find_or_create_persistent_cookie_
     let hc_string = Common.Hashed_cookies.to_string hc in
     (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
-    let usertimeout =
-      ref Common.TGlobal
-      (* See global table *)
-    in
+    let usertimeout = ref Common.TGlobal (* See global table *) in
     let* () =
       Mod_cookies.Persistent_cookies.add hc_string
         { Mod_cookies.full_state_name
         ; expiry = None
         ; (* exp on server - We'll change it later *)
           timeout = Common.TGlobal
-        ; session_group = fullsessgrp }
+        ; session_group = fullsessgrp
+        }
     in
     let default_max =
       match cookie_level with
@@ -153,7 +142,8 @@ let rec find_or_create_persistent_cookie_
       Lwt_list.iter_p
         (close_persistent_state_of_cookie
            ~scope:(cookie_scope :> Common.user_scope)
-           sitedata None)
+           sitedata None
+        )
         l
     in
     Lwt.return
@@ -162,7 +152,8 @@ let rec find_or_create_persistent_cookie_
       ; Common.pc_timeout = usertimeout
       ; Common.pc_cookie_exp =
           ref (Common.default_client_cookie_exp ()) (* exp on client *)
-      ; Common.pc_session_group = ref fullsessgrp }
+      ; Common.pc_session_group = ref fullsessgrp
+      }
   in
   let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
@@ -172,19 +163,19 @@ let rec find_or_create_persistent_cookie_
   in
   Lwt.catch
     (fun () ->
-       let* _old, ior =
-         Lazy.force
-           (Common.Full_state_name_table.find full_st_name !cookie_info)
-       in
-       match !ior with
-       | Common.SCData_session_expired
-         (* We do not trust the value sent by the client,
+      let* _old, ior =
+        Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
+      in
+      match !ior with
+      | Common.SCData_session_expired
+        (* We do not trust the value sent by the client,
              for security reasons *)
-       | Common.SCNo_data ->
-           let* v = new_persistent_cookie sitedata full_st_name in
-           ior := Common.SC v;
-           Lwt.return v
-       | Common.SC v -> Lwt.return v)
+      | Common.SCNo_data ->
+          let* v = new_persistent_cookie sitedata full_st_name in
+          ior := Common.SC v;
+          Lwt.return v
+      | Common.SC v -> Lwt.return v
+    )
     (function
       | Not_found ->
           let* v = new_persistent_cookie sitedata full_st_name in
@@ -193,33 +184,30 @@ let rec find_or_create_persistent_cookie_
               (Lazy.from_val (Lwt.return (None, ref (Common.SC v))))
               !cookie_info;
           Lwt.return v
-      | e -> Lwt.fail e)
+      | e -> Lwt.fail e
+      )
 
 let find_or_create_persistent_cookie
-      ?set_session_group
-      ~cookie_scope
-      ~secure_o
-      ?sp
-      ()
-  =
+    ?set_session_group ~cookie_scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   find_or_create_persistent_cookie_ ?set_session_group ~cookie_scope ~secure_o
     ~sp ()
 
 let find_or_create_persistent_cookie =
-  (find_or_create_persistent_cookie
-    : ?set_session_group:string
+  ( find_or_create_persistent_cookie
+    :    ?set_session_group:string
       -> cookie_scope:Common.cookie_scope
       -> secure_o:bool option
       -> ?sp:Common.server_params
       -> unit
       -> Common.one_persistent_cookie_info Lwt.t
-    :> ?set_session_group:string
+    :>    ?set_session_group:string
        -> cookie_scope:[< Common.cookie_scope]
        -> secure_o:bool option
        -> ?sp:Common.server_params
        -> unit
-       -> Common.one_persistent_cookie_info Lwt.t)
+       -> Common.one_persistent_cookie_info Lwt.t
+  )
 
 let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.

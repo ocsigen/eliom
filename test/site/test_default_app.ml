@@ -17,7 +17,8 @@ let () = Eliom.Syntax.set_global true
 
 let () =
   Eliom.Registration.Html_text.register ~service:(service ["registered"])
-    (fun () () -> Lwt.return "")
+    (fun () () -> Lwt.return ""
+  )
 
 let _unregistered = service ["unregistered"]
 let () = Eliom.Syntax.set_global false
@@ -43,8 +44,9 @@ let test_unregistered () =
       Alcotest.(check int) "non-attached coservices" 0 (List.length na)
 
 let test_config_defaults () =
-  (try ignore (Lazy.force run : Ocsigen.Extensions.extension)
-   with Eliom.Common.Eliom_there_are_unregistered_services _ -> ());
+  ( try ignore (Lazy.force run : Ocsigen.Extensions.extension)
+    with Eliom.Common.Eliom_there_are_unregistered_services _ -> ()
+  );
   Alcotest.(check bool) "secure cookies" true default_site.secure_cookies;
   Alcotest.(check (option string))
     "HTML content type" (Some "text/x-test") default_site.html_content_type
@@ -53,5 +55,6 @@ let () =
   Alcotest.run "eliom-default-app"
     [ ( "default application"
       , [ Alcotest.test_case "unregistered" `Quick test_unregistered
-        ; Alcotest.test_case "defaults of Config" `Quick test_config_defaults ]
-      ) ]
+        ; Alcotest.test_case "defaults of Config" `Quick test_config_defaults
+        ] )
+    ]

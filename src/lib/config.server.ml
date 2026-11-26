@@ -148,7 +148,8 @@ let get_config () =
   | Some _ -> (
     match !Mod_main.config with
     | Some c -> c
-    | None -> failwith "No config file. Is it a statically linked executable?")
+    | None -> failwith "No config file. Is it a statically linked executable?"
+  )
   | None -> raise (Common.Site_information_not_available "Config.get_config")
 
 let parse_config ?pcdata ?other_elements elements =

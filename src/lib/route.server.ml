@@ -4,85 +4,88 @@ open Ocsigen.Extensions
 include Route_base
 
 include Route_base.Make (struct
-    type site_data = Common.sitedata
-    type info = Common.info
+  type site_data = Common.sitedata
+  type info = Common.info
 
-    let sess_info_of_info {Common.session_info; _} = session_info
+  let sess_info_of_info {Common.session_info; _} = session_info
 
-    let meth_of_info {Common.request; _} =
-      match Ocsigen.Request.meth request.request_info with
-      | `GET -> `Get
-      | `POST -> `Post
-      | `PUT -> `Put
-      | `DELETE -> `Delete
-      | _ -> `Other
+  let meth_of_info {Common.request; _} =
+    match Ocsigen.Request.meth request.request_info with
+    | `GET -> `Get
+    | `POST -> `Post
+    | `PUT -> `Put
+    | `DELETE -> `Delete
+    | _ -> `Other
 
-    let subpath_of_info {Common.request; _} =
-      Common.sub_path request.request_info
+  let subpath_of_info {Common.request; _} = Common.sub_path request.request_info
 
-    module Container = struct
-      type t = Common.tables
+  module Container = struct
+    type t = Common.tables
 
-      let set t v = t.Common.table_services <- v
-      let get {Common.table_services; _} = table_services
-      let dlist_add ?sp tables lr = tables.Common.service_dlist_add ?sp lr
+    let set t v = t.Common.table_services <- v
+    let get {Common.table_services; _} = table_services
+    let dlist_add ?sp tables lr = tables.Common.service_dlist_add ?sp lr
 
-      let set_contains_timeout tables b =
-        tables.Common.table_contains_services_with_timeout <- b
-    end
+    let set_contains_timeout tables b =
+      tables.Common.table_contains_services_with_timeout <- b
+  end
 
-    type params = Common.server_params
-    type result = Ocsigen.Response.t
+  type params = Common.server_params
+  type result = Ocsigen.Response.t
 
-    module Node = struct
-      type t =
-        ( Common.page_table ref * Common.page_table_key
-          , Common.na_key_serv )
-          Either.t
-          Ocsigen_base.Cache.Dlist.node
+  module Node = struct
+    type t =
+      ( Common.page_table ref * Common.page_table_key
+      , Common.na_key_serv
+      )
+      Either.t
+      Ocsigen_base.Cache.Dlist.node
 
-      let up = Ocsigen_base.Cache.Dlist.up
-      let remove = Ocsigen_base.Cache.Dlist.remove
-    end
+    let up = Ocsigen_base.Cache.Dlist.up
+    let remove = Ocsigen_base.Cache.Dlist.remove
+  end
 
-    module Table = struct
-      type t = Common.page_table
+  module Table = struct
+    type t = Common.page_table
 
-      let remove = Common.Serv_Table.remove
-      let add k v t = Common.Serv_Table.add k (`Ptc v) t
+    let remove = Common.Serv_Table.remove
+    let add k v t = Common.Serv_Table.add k (`Ptc v) t
 
-      let find k t =
-        let (`Ptc v) = Common.Serv_Table.find k t in
-        v
+    let find k t =
+      let (`Ptc v) = Common.Serv_Table.find k t in
+      v
 
-      let empty () = Common.Serv_Table.empty
-    end
+    let empty () = Common.Serv_Table.empty
+  end
 
-    let make_params = Common.make_server_params
+  let make_params = Common.make_server_params
 
-    let handle_directory {Common.request = r; _} =
-      Lwt.fail
-      @@ Ocsigen.Extensions.Ocsigen_is_dir
-           (Ocsigen.Extensions.new_url_of_directory_request r)
+  let handle_directory {Common.request = r; _} =
+    Lwt.fail
+    @@ Ocsigen.Extensions.Ocsigen_is_dir
+         (Ocsigen.Extensions.new_url_of_directory_request r)
 
-    let get_number_of_reloads () = Ocsigen.Extensions.get_numberofreloads ()
-  end)
+  let get_number_of_reloads () = Ocsigen.Extensions.get_numberofreloads ()
+end)
 
 let find_aux now sitedata info _ sci : Ocsigen.Response.t Lwt.t =
   Common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
-       Lwt.catch
-         (fun () -> beg)
-         (function
-           | Common.Eliom_404 | Common.Eliom_Wrong_parameter -> (
-             match !r with
-             | Common.SCData_session_expired
-             | Common.SCNo_data (* cookie removed *) ->
-                 beg
-             | Common.SC c ->
-                 find_service now !(c.Common.sc_table) (Some fullsessname)
-                   sitedata info)
-           | e -> Lwt.fail e))
+      Lwt.catch
+        (fun () -> beg)
+        (function
+          | Common.Eliom_404 | Common.Eliom_Wrong_parameter -> (
+            match !r with
+            | Common.SCData_session_expired
+            | Common.SCNo_data (* cookie removed *) ->
+                beg
+            | Common.SC c ->
+                find_service now !(c.Common.sc_table) (Some fullsessname)
+                  sitedata info
+          )
+          | e -> Lwt.fail e
+          )
+    )
     sci
     (Lwt.fail Common.Eliom_404)
 
@@ -94,7 +97,8 @@ let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
   [ !(tab_secure.ci_service), "secure tab session table"
   ; !(tab_unsecure.ci_service), "tab session table"
   ; !(ci_secure.ci_service), "secure session table"
-  ; !(ci_unsecure.ci_service), "session table" ]
+  ; !(ci_unsecure.ci_service), "session table"
+  ]
 
 (* The service tables of the session groups of the browser sessions of the
    request, secure ones first, with the state names of the groups. A browser
@@ -103,20 +107,23 @@ let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
 let group_tables {Common.all_cookie_info = {Common.ci_unsecure; ci_secure}; _} =
   List.concat_map
     (fun ci ->
-       Common.Full_state_name_table.fold
-         (fun fullsessname (_, r) acc ->
-            match !r, fullsessname.Common.user_scope with
-            | Common.SC c, `Session h -> (
-              match
-                Mod_sessiongroups.Serv.find_node_in_group_of_groups
-                  !(c.Common.sc_session_group)
-              with
-              | Some (t, _) ->
-                  (!t, {fullsessname with Common.user_scope = `Session_group h})
-                  :: acc
-              | None -> acc)
-            | _ -> acc)
-         !(ci.Common.ci_service) [])
+      Common.Full_state_name_table.fold
+        (fun fullsessname (_, r) acc ->
+          match !r, fullsessname.Common.user_scope with
+          | Common.SC c, `Session h -> (
+            match
+              Mod_sessiongroups.Serv.find_node_in_group_of_groups
+                !(c.Common.sc_session_group)
+            with
+            | Some (t, _) ->
+                (!t, {fullsessname with Common.user_scope = `Session_group h})
+                :: acc
+            | None -> acc
+          )
+          | _ -> acc
+        )
+        !(ci.Common.ci_service) []
+    )
     [ci_secure; ci_unsecure]
 
 let drop_most_params ri si =
@@ -124,47 +131,57 @@ let drop_most_params ri si =
     ~get_params_flat:si.Common.si_other_get_params
 
 let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
-  : Ocsigen.Response.t Lwt.t
-  =
+    : Ocsigen.Response.t Lwt.t =
   let tables = session_tables info in
   let next p f =
     Lwt.catch
       (fun () -> p)
       (function
         | Common.Eliom_404 | Common.Eliom_Wrong_parameter -> f ()
-        | e -> Lwt.fail e)
+        | e -> Lwt.fail e
+        )
   in
   Lwt.catch
     (fun () ->
-       let in_sessions =
-         List.fold_left
-           (fun beg (table, table_name) ->
-              next beg (fun () ->
-                Logs.info ~src:section (fun fmt ->
-                  fmt "Looking for %s in the %s:"
-                    (Url.string_of_url_path ~encode:true
-                       (Common.sub_path ri.request_info))
-                    table_name);
-                find_aux now sitedata info Common.Eliom_404 table))
-           (Lwt.fail Common.Eliom_404)
-           tables
-       in
-       (* then in the tables of the session groups *)
-       List.fold_left
-         (fun beg (table, group) ->
+      let in_sessions =
+        List.fold_left
+          (fun beg (table, table_name) ->
             next beg (fun () ->
+                Logs.info ~src:section (fun fmt ->
+                    fmt "Looking for %s in the %s:"
+                      (Url.string_of_url_path ~encode:true
+                         (Common.sub_path ri.request_info)
+                      )
+                      table_name
+                );
+                find_aux now sitedata info Common.Eliom_404 table
+            )
+          )
+          (Lwt.fail Common.Eliom_404)
+          tables
+      in
+      (* then in the tables of the session groups *)
+      List.fold_left
+        (fun beg (table, group) ->
+          next beg (fun () ->
               Logs.info ~src:section (fun fmt ->
-                fmt "Looking in the table of a session group:");
-              find_service now table (Some group) sitedata info))
-         in_sessions (group_tables info))
+                  fmt "Looking in the table of a session group:"
+              );
+              find_service now table (Some group) sitedata info
+          )
+        )
+        in_sessions (group_tables info)
+    )
     (function
       | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
           Lwt.catch (* then in the global table *)
             (fun () ->
-               Logs.info ~src:section (fun fmt ->
-                 fmt "Searching in the global table:");
-               find_service now sitedata.Common.global_services None sitedata
-                 info)
+              Logs.info ~src:section (fun fmt ->
+                  fmt "Searching in the global table:"
+              );
+              find_service now sitedata.Common.global_services None sitedata
+                info
+            )
             (function
               | (Common.Eliom_404 | Common.Eliom_Wrong_parameter) as exn -> (
                 (* If not found with the state, try without it *)
@@ -175,7 +192,8 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                           We remove it, and remove POST parameters.
                     *)
                     Logs.info ~src:section (fun fmt ->
-                      fmt "Link too old. Try without POST parameters:");
+                        fmt "Link too old. Try without POST parameters:"
+                    );
                     Polytables.set
                       ~table:(Ocsigen.Request.request_cache ri.request_info)
                       ~key:Common.eliom_link_too_old ~value:true;
@@ -183,11 +201,13 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                       { ri with
                         request_info =
                           Ocsigen.Request.update ri.request_info ~post_data:None
-                            ~meth:`GET }
+                            ~meth:`GET
+                      }
                     and session_info =
                       { si with
                         Common.si_nonatt_info = Common.RNa_no
-                      ; Common.si_state_info = g, Common.RAtt_no }
+                      ; Common.si_state_info = g, Common.RAtt_no
+                      }
                     in
                     Lwt.fail
                     @@ Common.Eliom_retry_with
@@ -199,26 +219,33 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                      and remove POST parameters.
                     *)
                     Logs.info ~src:section (fun fmt ->
-                      fmt
-                        "Link to old. Trying without GET state parameters and POST parameters:");
+                        fmt
+                          "Link to old. Trying without GET state parameters \
+                           and POST parameters:"
+                    );
                     Polytables.set
                       ~table:(Ocsigen.Request.request_cache ri.request_info)
                       ~key:Common.eliom_link_too_old ~value:true;
                     let request =
                       { ri with
-                        request_info = drop_most_params ri.request_info si }
+                        request_info = drop_most_params ri.request_info si
+                      }
                     and session_info =
                       let open Common in
                       { si with
                         si_nonatt_info = RNa_no
                       ; si_state_info = RAtt_no, RAtt_no
-                      ; si_other_get_params = [] }
+                      ; si_other_get_params = []
+                      }
                     in
                     Lwt.fail
                     @@ Common.Eliom_retry_with
-                         {info with Common.request; session_info})
-              | e -> Lwt.fail e)
-      | e -> Lwt.fail e)
+                         {info with Common.request; session_info}
+              )
+              | e -> Lwt.fail e
+              )
+      | e -> Lwt.fail e
+      )
 
 let add_naservice_table at (key, elt) =
   match at with
@@ -234,34 +261,38 @@ let find_naservice_table at k =
 let add_naservice tables name (max_use, expdate, naservice) =
   let sp = Common.get_sp_option () in
   let generation = Ocsigen.Extensions.get_numberofreloads () in
-  (if sp = None (* not duringsession *)
-   then
-     try
-       let {Common.na_generation = g; _} =
-         find_naservice_table !(tables.Common.table_naservices) name
-       in
-       if g = generation
-       then
-         match name with
-         | Common.SNa_no | Common.SNa_get' _ | Common.SNa_post' _ ->
-             raise
-               (Common.Eliom_duplicate_registration "<non-attached coservice>")
-         | Common.SNa_get_ n ->
-             raise
-               (Common.Eliom_duplicate_registration
-                  ("GET non-attached service " ^ n))
-         | Common.SNa_post_ n ->
-             raise
-               (Common.Eliom_duplicate_registration
-                  ("POST non-attached service " ^ n))
-         | Common.SNa_void_dontkeep | Common.SNa_void_keep ->
-             raise (Common.Eliom_duplicate_registration "<void coservice>")
-         | Common.SNa_get_csrf_safe _ | Common.SNa_post_csrf_safe _ ->
-             assert false
-     with Not_found -> ());
-  (match expdate with
+  ( if sp = None (* not duringsession *)
+    then
+      try
+        let {Common.na_generation = g; _} =
+          find_naservice_table !(tables.Common.table_naservices) name
+        in
+        if g = generation
+        then
+          match name with
+          | Common.SNa_no | Common.SNa_get' _ | Common.SNa_post' _ ->
+              raise
+                (Common.Eliom_duplicate_registration "<non-attached coservice>")
+          | Common.SNa_get_ n ->
+              raise
+                (Common.Eliom_duplicate_registration
+                   ("GET non-attached service " ^ n)
+                )
+          | Common.SNa_post_ n ->
+              raise
+                (Common.Eliom_duplicate_registration
+                   ("POST non-attached service " ^ n)
+                )
+          | Common.SNa_void_dontkeep | Common.SNa_void_keep ->
+              raise (Common.Eliom_duplicate_registration "<void coservice>")
+          | Common.SNa_get_csrf_safe _ | Common.SNa_post_csrf_safe _ ->
+              assert false
+      with Not_found -> ()
+  );
+  ( match expdate with
   | Some _ -> tables.Common.table_contains_naservices_with_timeout <- true
-  | _ -> ());
+  | _ -> ()
+  );
   let node =
     match name with
     | Common.SNa_get' _ | Common.SNa_post' _ ->
@@ -276,7 +307,9 @@ let add_naservice tables name (max_use, expdate, naservice) =
         ; na_max_use = max_use
         ; na_expiry = expdate
         ; na_handler = naservice
-        ; na_node = node } )
+        ; na_node = node
+        }
+      )
 
 let remove_naservice_ tables name nodeopt =
   match nodeopt with
@@ -293,13 +326,15 @@ let find_naservice now tables name =
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
       Logs.info ~src:section (fun fmt ->
-        fmt "Non attached service expired. Removing it");
+          fmt "Non attached service expired. Removing it"
+      );
       remove_naservice_ tables name nodeopt;
       raise Not_found
   | _ ->
-      (match nodeopt with
+      ( match nodeopt with
       | Some node -> Ocsigen_base.Cache.Dlist.up node
-      | None -> ());
+      | None -> ()
+      );
       p
 
 let remove_naservice tables name =
@@ -309,27 +344,28 @@ let remove_naservice tables name =
   remove_naservice_ tables name nodeopt
 
 let make_naservice
-      now
-      ({Common.request = ri; session_info = si; _} as info)
-      sitedata
-  =
+    now ({Common.request = ri; session_info = si; _} as info) sitedata =
   let find_aux sci =
     match
       Common.Full_state_name_table.fold
         (fun fullsessname (_, r) beg ->
-           match beg with
-           | Some _ -> beg
-           | None -> (
-             match !r with
-             | Common.SCNo_data | Common.SCData_session_expired -> beg
-             | Common.SC c -> (
-               try
-                 Some
-                   ( find_naservice now !(c.Common.sc_table)
-                       (Common.na_key_serv_of_req si.Common.si_nonatt_info)
-                   , !(c.Common.sc_table)
-                   , Some fullsessname )
-               with Not_found -> beg)))
+          match beg with
+          | Some _ -> beg
+          | None -> (
+            match !r with
+            | Common.SCNo_data | Common.SCData_session_expired -> beg
+            | Common.SC c -> (
+              try
+                Some
+                  ( find_naservice now !(c.Common.sc_table)
+                      (Common.na_key_serv_of_req si.Common.si_nonatt_info)
+                  , !(c.Common.sc_table)
+                  , Some fullsessname
+                  )
+              with Not_found -> beg
+            )
+          )
+        )
         sci None
     with
     | Some v -> v
@@ -340,18 +376,20 @@ let make_naservice
          ; na_expiry = expdate
          ; na_handler = naservice
          ; na_node = node
-         ; _ }
+         ; _
+         }
        , tablewhereithasbeenfound
-       , fullsessname )
-    =
+       , fullsessname ) =
     try
       try
         let rec f = function
           | [] -> raise Not_found
           | (table, table_name) :: l -> (
               Logs.info ~src:section (fun fmt ->
-                fmt "Looking for a non attached service in the %s:" table_name);
-              try Lwt.return (find_aux table) with Not_found -> f l)
+                  fmt "Looking for a non attached service in the %s:" table_name
+              );
+              try Lwt.return (find_aux table) with Not_found -> f l
+            )
         in
         try f tables
         with Not_found ->
@@ -361,20 +399,25 @@ let make_naservice
             | [] -> raise Not_found
             | (table, group) :: l -> (
                 Logs.info ~src:section (fun fmt ->
-                  fmt
-                    "Looking for a non attached service in the table of a session group:");
+                    fmt
+                      "Looking for a non attached service in the table of a \
+                       session group:"
+                );
                 try Lwt.return (find_naservice now table key, table, Some group)
-                with Not_found -> g l)
+                with Not_found -> g l
+              )
           in
           g (group_tables info)
       with Not_found ->
         Logs.info ~src:section (fun fmt ->
-          fmt "Looking for a non attached service in the global table");
+            fmt "Looking for a non attached service in the global table"
+        );
         Lwt.return
           ( find_naservice now sitedata.Common.global_services
               (Common.na_key_serv_of_req si.Common.si_nonatt_info)
           , sitedata.Common.global_services
-          , None )
+          , None
+          )
     with Not_found -> (
       (* The non-attached service has not been found.
       We call the same URL without non-attached parameters.
@@ -384,8 +427,10 @@ let make_naservice
       | Common.RNa_post_ _ | Common.RNa_post' _ ->
           (*VVV (Some, Some) or (_, Some)? *)
           Logs.info ~src:section (fun fmt ->
-            fmt
-              "Link too old to a non-attached POST coservice. Try without POST parameters:");
+              fmt
+                "Link too old to a non-attached POST coservice. Try without \
+                 POST parameters:"
+          );
           Polytables.set
             ~table:(Ocsigen.Request.request_cache ri.request_info)
             ~key:Common.eliom_link_too_old ~value:true;
@@ -394,7 +439,8 @@ let make_naservice
               ~req:
                 { ri with
                   Ocsigen.Extensions.request_info =
-                    drop_most_params ri.request_info si }
+                    drop_most_params ri.request_info si
+                }
               si.Common.si_previous_extension_error
           in
           Lwt.fail
@@ -402,7 +448,8 @@ let make_naservice
                {info with request = ri'; session_info = si'}
       | Common.RNa_get_ _ | Common.RNa_get' _ ->
           Logs.info ~src:section (fun fmt ->
-            fmt "Link too old. Try without non-attached parameters:");
+              fmt "Link too old. Try without non-attached parameters:"
+          );
           Polytables.set
             ~table:(Ocsigen.Request.request_cache ri.request_info)
             ~key:Common.eliom_link_too_old ~value:true;
@@ -411,19 +458,22 @@ let make_naservice
               ~req:
                 { ri with
                   Ocsigen.Extensions.request_info =
-                    drop_most_params ri.request_info si }
+                    drop_most_params ri.request_info si
+                }
               si.Common.si_previous_extension_error
           in
           Lwt.fail
           @@ Common.Eliom_retry_with
-               {info with request = ri'; session_info = si'})
+               {info with request = ri'; session_info = si'}
+    )
   in
   let sp = Common.make_server_params sitedata info None fullsessname in
   let* r = naservice sp in
   Logs.info ~src:section (fun fmt ->
-    fmt "Non attached page found and generated successfully");
+      fmt "Non attached page found and generated successfully"
+  );
   (match expdate with Some (timeout, e) -> e := timeout +. now | None -> ());
-  (match max_use with
+  ( match max_use with
   | None -> ()
   | Some r ->
       if !r = 1
@@ -431,5 +481,6 @@ let make_naservice
         remove_naservice_ tablewhereithasbeenfound
           (Common.na_key_serv_of_req si.Common.si_nonatt_info)
           node
-      else r := !r - 1);
+      else r := !r - 1
+  );
   Lwt.return r

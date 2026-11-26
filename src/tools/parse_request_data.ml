@@ -119,7 +119,8 @@ let intern () =
           v.(i) <- intern_rec ()
         done;
         let fin = pos () in
-        {desc = Block (tag, v, c); start; fin})
+        {desc = Block (tag, v, c); start; fin}
+      )
       else {desc = Int (code land 0x3F); start; fin = start + 1}
     else if code >= prefix_small_string
     then (
@@ -127,7 +128,8 @@ let intern () =
       incr obj_counter;
       let s = readstr len in
       let fin = pos () in
-      {desc = String s; start; fin})
+      {desc = String s; start; fin}
+    )
     else
       match code with
       | 0x00 -> {desc = Int (read8s ()); start; fin = start + 2}
@@ -248,7 +250,8 @@ let intern () =
                     (Nativeint.of_int (read8u ()))
               done;
               {desc = Nativeint !a; start; fin = start + 10}
-          | _ -> assert false)
+          | _ -> assert false
+        )
       | _ -> assert false
   in
   intern_rec ()
@@ -299,8 +302,10 @@ let _ =
              ; request_data
              ; event_handlers
              ; client_attribs
-             ; sess_info |]
-          , _ ) ->
+             ; sess_info
+            |]
+          , _
+          ) ->
           let pr s v =
             Format.printf "ZZ %s (%d)@." s (v.fin - v.start);
             Format.printf "@[%a@]@." print v
@@ -310,5 +315,6 @@ let _ =
           pr "event_handlers" event_handlers;
           pr "client_attribs" client_attribs;
           pr "sess_info" sess_info
-      | _ -> assert false)
+      | _ -> assert false
+    )
   | _ -> assert false

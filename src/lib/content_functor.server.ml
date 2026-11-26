@@ -60,7 +60,9 @@ module Html = struct
         Content_core.(
           Html.F.to_attrib
             (Xml.internal_event_handler_attrib s
-               (Xml.internal_event_handler_of_service info)))
+               (Xml.internal_event_handler_of_service info)
+            )
+        )
 
       let to_elt = toelt
     end
@@ -82,7 +84,9 @@ module Html = struct
         Content_core.(
           Html.D.to_attrib
             (Xml.internal_event_handler_attrib s
-               (Xml.internal_event_handler_of_service info)))
+               (Xml.internal_event_handler_of_service info)
+            )
+        )
 
       let to_elt = toelt
     end
@@ -106,15 +110,15 @@ module Html = struct
   module type T = sig
     include
       Html_sigs.Make(Content_core.Xml)(Content_core.Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include
       Content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 end

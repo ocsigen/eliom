@@ -5,7 +5,8 @@ let of_bus bus =
     (Page.receive bus : (_, _) Eliom.Comet_base.wrapped_bus * _)
   in
   { channel = Comet_info.of_wrapped channel
-  ; write = Service_info.of_service service }
+  ; write = Service_info.of_service service
+  }
 
 let json = [%json: string * string]
 

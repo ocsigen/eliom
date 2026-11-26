@@ -12,7 +12,8 @@ type menus =
   ; depth_first : string
   ; whole_tree : string
   ; breadth_first : string
-  ; structure_links : string }
+  ; structure_links : string
+  }
 
 let menus b url =
   let+ r = Browser.get b url in
@@ -29,21 +30,25 @@ let simple server =
   let case = case server in
   ( "menu"
   , [ case "current page" (fun b ->
-        let+ m = menus b "/a" in
-        check "menu"
-          {|<ul class="eliomtools_menu"><li class="eliomtools_current eliomtools_first">A</li><li><a href="b">B</a></li><li class="eliomtools_last"><a href="c">C</a></li></ul>|}
-          m.menu)
+          let+ m = menus b "/a" in
+          check "menu"
+            {|<ul class="eliomtools_menu"><li class="eliomtools_current eliomtools_first">A</li><li><a href="b">B</a></li><li class="eliomtools_last"><a href="c">C</a></li></ul>|}
+            m.menu
+      )
     ; case "page not in the menu" (fun b ->
-        (* The links are relative to the page. *)
-        let+ m = menus b "/section/x" in
-        check "menu"
-          {|<ul class="eliomtools_menu"><li class="eliomtools_first"><a href="../a">A</a></li><li><a href="../b">B</a></li><li class="eliomtools_last"><a href="../c">C</a></li></ul>|}
-          m.menu)
+          (* The links are relative to the page. *)
+          let+ m = menus b "/section/x" in
+          check "menu"
+            {|<ul class="eliomtools_menu"><li class="eliomtools_first"><a href="../a">A</a></li><li><a href="../b">B</a></li><li class="eliomtools_last"><a href="../c">C</a></li></ul>|}
+            m.menu
+      )
     ; case "given service" (fun b ->
-        let+ m = menus b "/a" in
-        check "menu"
-          {|<ul class="eliomtools_menu"><li class="eliomtools_first"><a href="a">A</a></li><li class="eliomtools_current">B</li><li class="eliomtools_last"><a href="c">C</a></li></ul>|}
-          m.menu_of_b) ] )
+          let+ m = menus b "/a" in
+          check "menu"
+            {|<ul class="eliomtools_menu"><li class="eliomtools_first"><a href="a">A</a></li><li class="eliomtools_current">B</li><li class="eliomtools_last"><a href="c">C</a></li></ul>|}
+            m.menu_of_b
+      )
+    ] )
 
 let level0 ?(a = "") ?(section = "") ?(submenu = "") prefix =
   Printf.sprintf
@@ -62,56 +67,70 @@ let hierarchical server =
   let current = " eliomtools_current" in
   ( "hierarchical menu"
   , [ case "depth first" (fun b ->
-        let* m = menus b "/a" in
-        (* The submenus of the other sections are collapsed. *)
-        check "page of the first level" (level0 ~a:current "") m.depth_first;
-        let+ m = menus b "/section/x" in
-        check "page of a section"
-          (level0 ~section:{| class="eliomtools_current_path"|}
-             ~submenu:(level1 ~x:current "") "../")
-          m.depth_first)
+          let* m = menus b "/a" in
+          (* The submenus of the other sections are collapsed. *)
+          check "page of the first level" (level0 ~a:current "") m.depth_first;
+          let+ m = menus b "/section/x" in
+          check "page of a section"
+            (level0 ~section:{| class="eliomtools_current_path"|}
+               ~submenu:(level1 ~x:current "") "../"
+            )
+            m.depth_first
+      )
     ; case "main page of a section" (fun b ->
-        let+ m = menus b "/section/" in
-        check "section"
-          (level0 ~section:{| class="eliomtools_current"|} ~submenu:(level1 "")
-             "../")
-          m.depth_first)
+          let+ m = menus b "/section/" in
+          check "section"
+            (level0 ~section:{| class="eliomtools_current"|}
+               ~submenu:(level1 "") "../"
+            )
+            m.depth_first
+      )
     ; case "whole tree" (fun b ->
-        let+ m = menus b "/a" in
-        check "all the submenus"
-          (level0 ~a:current ~submenu:(level1 "section/") "")
-          m.whole_tree)
+          let+ m = menus b "/a" in
+          check "all the submenus"
+            (level0 ~a:current ~submenu:(level1 "section/") "")
+            m.whole_tree
+      )
     ; case "breadth first" (fun b ->
-        (* One list for each level, down to the current page *)
-        let* m = menus b "/a" in
-        check "page of the first level" (level0 ~a:current "") m.breadth_first;
-        let+ m = menus b "/section/x" in
-        check "page of a section"
-          (level0 ~section:{| class="eliomtools_current_path"|} "../"
-          ^ level1 ~x:current "")
-          m.breadth_first) ] )
+          (* One list for each level, down to the current page *)
+          let* m = menus b "/a" in
+          check "page of the first level" (level0 ~a:current "") m.breadth_first;
+          let+ m = menus b "/section/x" in
+          check "page of a section"
+            (level0 ~section:{| class="eliomtools_current_path"|} "../"
+            ^ level1 ~x:current ""
+            )
+            m.breadth_first
+      )
+    ] )
 
 let links server =
   let case = case server in
   ( "structure links"
   , [ case "main page" (fun b ->
-        let+ m = menus b "/" in
-        check "subsections"
-          {|<link href="a" rel="subsection"/><link href="section/" rel="subsection"/>|}
-          m.structure_links)
+          let+ m = menus b "/" in
+          check "subsections"
+            {|<link href="a" rel="subsection"/><link href="section/" rel="subsection"/>|}
+            m.structure_links
+      )
     ; case "page of a section" (fun b ->
-        let+ m = menus b "/section/x" in
-        check "section" {|<link href="./" rel="up"/>|} m.structure_links)
+          let+ m = menus b "/section/x" in
+          check "section" {|<link href="./" rel="up"/>|} m.structure_links
+      )
     ; case "main page of a section" (fun b ->
-        let+ m = menus b "/section/" in
-        check "main page and subsections"
-          {|<link href="../" rel="up"/><link href="x" rel="subsection"/><link href="y" rel="subsection"/>|}
-          m.structure_links)
+          let+ m = menus b "/section/" in
+          check "main page and subsections"
+            {|<link href="../" rel="up"/><link href="x" rel="subsection"/><link href="y" rel="subsection"/>|}
+            m.structure_links
+      )
     ; case "page not in the site" (fun b ->
-        let+ m = menus b "/b" in
-        check "no link" "" m.structure_links) ] )
+          let+ m = menus b "/b" in
+          check "no link" "" m.structure_links
+      )
+    ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-menus"
-      [simple server; hierarchical server; links server])
+      Alcotest.run ~and_exit:false "eliom-server-menus"
+        [simple server; hierarchical server; links server]
+  )

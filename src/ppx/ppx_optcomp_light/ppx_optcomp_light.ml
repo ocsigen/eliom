@@ -89,7 +89,8 @@ end = struct
     | [], y :: _ -> compint 0 y
     | x :: _, [] -> compint x 0
     | x :: xs, y :: ys -> (
-      match compint x y with 0 -> compare xs ys | n -> n)
+      match compint x y with 0 -> compare xs ys | n -> n
+    )
 
   type extra_prefix = Plus | Tilde
   type release_info = {extra : (extra_prefix * string) option}
@@ -131,12 +132,14 @@ let get_bin_op = function
     | "<>" -> NEQ
     | "&&" -> AND
     | "||" -> OR
-    | _ -> raise (Invalid loc))
+    | _ -> raise (Invalid loc)
+  )
   | {pexp_loc = loc; _} -> raise (Invalid loc)
 
 let get_un_op = function
   | {pexp_desc = Pexp_ident {txt = Lident str; _}; pexp_loc = loc; _} -> (
-    match str with "not" -> NOT | _ -> raise (Invalid loc))
+    match str with "not" -> NOT | _ -> raise (Invalid loc)
+  )
   | {pexp_loc = loc; _} -> raise (Invalid loc)
 
 let version = function
@@ -144,15 +147,17 @@ let version = function
   | Tuple l ->
       Version.of_list
         (List.map l ~f:(function
-           | Int i -> i
-           | _ -> raise (Invalid Location.none)))
+          | Int i -> i
+          | _ -> raise (Invalid Location.none)
+        ))
   | Bool _ | Int _ | String _ -> raise (Invalid Location.none)
 
 let keep loc (attrs : attributes) =
   let ifs =
     List.filter attrs ~f:(function
       | {attr_name = {txt = "if"; _}; _} -> true
-      | _ -> false)
+      | _ -> false
+    )
   in
   match ifs with
   | [] -> true
@@ -173,22 +178,30 @@ let keep loc (attrs : attributes) =
                (pexp_ident (lident (string "ocaml_version"))
                >>| (fun () -> Version Version.current)
                ||| ( pexp_ident (lident (string "ast_version")) >>| fun () ->
-                     Int Ppxlib.Selected_ast.version )
+                     Int Ppxlib.Selected_ast.version
+                   )
                ||| ( pexp_ident (lident (string "oxcaml")) >>| fun () ->
                      Bool
-                       (match Version.extra with
+                       ( match Version.extra with
                        | Some (Plus, "ox") -> true
-                       | _ -> false) )
+                       | _ -> false
+                       )
+                   )
                ||| ( pexp_ident (lident (string "os_type")) >>| fun () ->
-                     String Sys.os_type )
+                     String Sys.os_type
+                   )
                ||| ( pexp_construct (lident (string "true")) drop >>| fun () ->
-                     Bool true )
+                     Bool true
+                   )
                ||| ( pexp_construct (lident (string "false")) drop >>| fun () ->
-                     Bool false )
+                     Bool false
+                   )
                ||| ( pexp_constant (pconst_integer __ none) >>| fun () d ->
-                     Int (int_of_string d) )
+                     Int (int_of_string d)
+                   )
                ||| ( pexp_constant (pconst_string __ drop drop) >>| fun () s ->
-                     String s )
+                     String s
+                   )
                ||| (pexp_tuple __ >>| fun () l -> Tuple (List.map l ~f:eval))
                ||| ( pexp_apply __ __ >>| fun () op l ->
                      match l with
@@ -220,20 +233,27 @@ let keep loc (attrs : attributes) =
                          | AND -> (
                            match a, b with
                            | Bool a, Bool b -> Bool (a && b)
-                           | _ -> raise (Invalid loc))
+                           | _ -> raise (Invalid loc)
+                         )
                          | OR -> (
                            match a, b with
                            | Bool a, Bool b -> Bool (a || b)
-                           | _ -> raise (Invalid loc))
-                         | NOT -> raise (Invalid loc))
+                           | _ -> raise (Invalid loc)
+                         )
+                         | NOT -> raise (Invalid loc)
+                       )
                      | [(Nolabel, a)] -> (
                          let op = get_un_op op in
                          let a = eval a in
                          match op, a with
                          | NOT, Bool b -> Bool (not b)
                          | NOT, _ -> raise (Invalid loc)
-                         | _ -> raise (Invalid loc))
-                     | _ -> raise (Invalid loc) )))
+                         | _ -> raise (Invalid loc)
+                       )
+                     | _ -> raise (Invalid loc)
+                   )
+               )
+            )
               loc e ()
           with
           | Ok res -> res
@@ -254,7 +274,8 @@ let keep loc (attrs : attributes) =
           Printf.eprintf "keep %s:%d\n%!" loc.Location.loc_start.pos_fname
             loc.Location.loc_start.pos_lnum;
       keep
-    with Invalid loc -> Location.raise_errorf ~loc "Invalid attribute format")
+    with Invalid loc -> Location.raise_errorf ~loc "Invalid attribute format"
+  )
 
 let filter_map ~f l =
   let l =
@@ -270,7 +291,8 @@ let rec filter_pattern = function
     | None, None -> None
     | Some p1, None -> Some p1
     | None, Some p2 -> Some p2
-    | Some p1, Some p2 -> Some {p with ppat_desc = Ppat_or (p1, p2)})
+    | Some p1, Some p2 -> Some {p with ppat_desc = Ppat_or (p1, p2)}
+  )
   | {ppat_attributes; ppat_loc; _} as p ->
       if keep ppat_loc ppat_attributes then Some p else None
 
@@ -278,7 +300,8 @@ let drop_attr =
   let attr =
     { attr_name = Location.mknoloc "ppx_optcomp_light.dropped"
     ; attr_loc = Location.none
-    ; attr_payload = PStr [] }
+    ; attr_payload = PStr []
+    }
   in
   Ppxlib.Attribute.mark_as_handled_manually attr;
   attr
@@ -315,7 +338,8 @@ let strip_extension_if ((name, payload) : extension) ext_attrs =
     | PStr [({pstr_desc = Pstr_value (r, vbs); _} as item)] ->
         let vbs =
           List.map vbs ~f:(fun vb ->
-            {vb with pvb_attributes = strip_if vb.pvb_attributes})
+              {vb with pvb_attributes = strip_if vb.pvb_attributes}
+          )
         in
         PStr [{item with pstr_desc = Pstr_value (r, vbs)}]
     | other -> other
@@ -355,7 +379,8 @@ let traverse =
               let ext, ext_attrs = strip_extension_if ext ext_attrs in
               super#structure_item
                 {item with pstr_desc = Pstr_extension (ext, ext_attrs)}
-            else drop_str item.pstr_loc)
+            else drop_str item.pstr_loc
+      )
       | _ -> self#structure_item_default item
 
     method private structure_item_default item =
@@ -368,19 +393,22 @@ let traverse =
       | Pstr_value (r, l) -> (
           let l =
             filter_map l ~f:(fun b ->
-              if keep b.pvb_loc b.pvb_attributes then Some b else None)
+                if keep b.pvb_loc b.pvb_attributes then Some b else None
+            )
           in
           match l with
           | [] -> drop_str Location.none
-          | _ -> {item with pstr_desc = Pstr_value (r, l)})
+          | _ -> {item with pstr_desc = Pstr_value (r, l)}
+        )
       | _ -> item
 
     method! cases cases =
       let cases =
         filter_map cases ~f:(fun case ->
-          match filter_pattern case.pc_lhs with
-          | None -> None
-          | Some pattern -> Some {case with pc_lhs = pattern})
+            match filter_pattern case.pc_lhs with
+            | None -> None
+            | Some pattern -> Some {case with pc_lhs = pattern}
+        )
       in
       super#cases cases
 
@@ -396,5 +424,6 @@ let () =
   Ppxlib.Driver.register_transformation
     ~instrument:
       (Ppxlib.Driver.Instrument.make traverse#structure
-         ~position:Ppxlib.Driver.Instrument.Before)
+         ~position:Ppxlib.Driver.Instrument.Before
+      )
     ~intf:traverse#signature "ppx_optcomp_light"

@@ -25,7 +25,7 @@ let suffix_redir_uri_key = Polytables.make_key ()
 
 type ('options, 'page, 'result) param =
   { send :
-      ?options:'options
+         ?options:'options
       -> ?charset:string
       -> ?code:int
       -> ?content_type:string
@@ -33,11 +33,12 @@ type ('options, 'page, 'result) param =
       -> 'page
       -> Ocsigen.Response.t Lwt.t
   ; send_appl_content : S.send_appl_content
-    (** Whether the service is capable to send application content when
+        (** Whether the service is capable to send application content when
           required. This field is usually [Service.XNever]. This
           value is recorded inside each service just after
           registration.  *)
-  ; result_of_http_result : Ocsigen.Response.t -> 'result }
+  ; result_of_http_result : Ocsigen.Response.t -> 'result
+  }
 
 (* If it is an xmlHTTPrequest who asked for an internal application
    service but the current service
@@ -109,7 +110,10 @@ let check_process_redir sp f param =
              (Ocsigen.Request.original_full_path_string ri)
              ~sep:"?"
              (Parameter.construct_params_string
-                (Ocsigen.Request.get_params_flat ri))))
+                (Ocsigen.Request.get_params_flat ri)
+             )
+         )
+      )
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
   (* If an action occurred before,
@@ -117,15 +121,7 @@ let check_process_redir sp f param =
   else Lwt.return_unit
 
 let send_with_cookies
-      sp
-      pages
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      content
-  =
+    sp pages ?options ?charset ?code ?content_type ?headers content =
   let code =
     (* The status set by the handler with [Registration.set_status] wins
        over the code given at registration. *)
@@ -171,18 +167,17 @@ type registration_table =
 let reset_response_status sp = sp.Common.sp_response_status <- None
 
 let register_aux
-      pages
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      table
-      (type a)
-      ~(service : (_, _, _, a, _, _, _, _, _, _, _) S.t)
-      ?(error_handler = fun l -> raise (Common.Eliom_Typing_Error l))
-      page_generator
-  =
+    pages
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    table
+    (type a)
+    ~(service : (_, _, _, a, _, _, _, _, _, _, _) S.t)
+    ?(error_handler = fun l -> raise (Common.Eliom_Typing_Error l))
+    page_generator =
   (* The table where the service is registered *)
   let registration_table () =
     match table with
@@ -202,7 +197,8 @@ let register_aux
                but in the table specified while creating
                the csrf safe service *)
             !(State.get_session_service_table ?secure:secure_session ~scope ~sp
-                ()) )
+                ()
+             ) )
     | Session_table (sp, ct, sec) ->
         if secure_session <> sec || ct <> scope
         then raise S.Wrong_session_table_for_CSRF_safe_coservice;
@@ -240,97 +236,110 @@ let register_aux
           ; s_f =
               (fun nosuffixversion sp ->
                 Lwt.with_value Common.sp_key (Some sp) (fun () ->
-                  reset_response_status sp;
-                  let ri = Request_info.get_ri_sp sp
-                  and suff = Request_info.get_suffix_sp sp in
-                  let* content =
-                    Lwt.catch
-                      (fun () ->
-                         let* g =
-                           Parameter.reconstruct_params ~sp sgpt
-                             (Some
-                                (Lwt.return
-                                   (Ocsigen.Request.get_params_flat ri)))
-                             (Some (Lwt.return []))
-                             nosuffixversion suff
-                         in
-                         let post_params = Request_info.get_post_params_sp sp in
-                         let files = Request_info.get_files_sp sp in
-                         let* p =
-                           Parameter.reconstruct_params ~sp sppt post_params
-                             files false None
-                         in
-                         (* GRGR TODO: avoid
+                    reset_response_status sp;
+                    let ri = Request_info.get_ri_sp sp
+                    and suff = Request_info.get_suffix_sp sp in
+                    let* content =
+                      Lwt.catch
+                        (fun () ->
+                          let* g =
+                            Parameter.reconstruct_params ~sp sgpt
+                              (Some
+                                 (Lwt.return
+                                    (Ocsigen.Request.get_params_flat ri)
+                                 )
+                              )
+                              (Some (Lwt.return []))
+                              nosuffixversion suff
+                          in
+                          let post_params =
+                            Request_info.get_post_params_sp sp
+                          in
+                          let files = Request_info.get_files_sp sp in
+                          let* p =
+                            Parameter.reconstruct_params ~sp sppt post_params
+                              files false None
+                          in
+                          (* GRGR TODO: avoid
                            Eliom_uri.make_string_uri_. But we need to
                            "downcast" the type of service to the
                            correct "get service". *)
-                         let* () =
-                           if
-                             Request_info.get_http_method () = `GET
-                             && nosuffixversion && suffix_with_redirect
-                           then (
-                             if
-                               (* it is a suffix service in version
+                          let* () =
+                            if
+                              Request_info.get_http_method () = `GET
+                              && nosuffixversion && suffix_with_redirect
+                            then (
+                              if
+                                (* it is a suffix service in version
                                without suffix. We redirect. *)
-                               not (Request_info.expecting_process_page ())
-                             then
-                               let redir_uri =
-                                 Eliom_uri.make_string_uri_ ~absolute:true
-                                   ~service:
-                                     (service
-                                       : ( 'a
+                                not (Request_info.expecting_process_page ())
+                              then
+                                let redir_uri =
+                                  Eliom_uri.make_string_uri_ ~absolute:true
+                                    ~service:
+                                      ( service
+                                        : ( 'a
+                                          , 'b
+                                          , _
+                                          , _
+                                          , _
+                                          , S.non_ext
+                                          , S.reg
+                                          , _
+                                          , 'c
+                                          , 'd
+                                          , 'return
+                                          )
+                                          S.t
+                                        :> ( 'a
                                            , 'b
                                            , _
                                            , _
                                            , _
-                                           , S.non_ext
-                                           , S.reg
+                                           , _
+                                           , _
                                            , _
                                            , 'c
                                            , 'd
-                                           , 'return )
+                                           , 'return
+                                           )
                                            S.t
-                                       :> ( 'a
-                                            , 'b
-                                            , _
-                                            , _
-                                            , _
-                                            , _
-                                            , _
-                                            , _
-                                            , 'c
-                                            , 'd
-                                            , 'return )
-                                            S.t)
-                                   g
-                               in
-                               Lwt.fail (Common.Do_redirection redir_uri)
-                             else
-                               (* It is an internal application form.
+                                      )
+                                    g
+                                in
+                                Lwt.fail (Common.Do_redirection redir_uri)
+                              else
+                                (* It is an internal application form.
                                We don't redirect but we set this
                                special information for url to be displayed
                                by the browser
                                (see Request_info.rebuild_uri_without_iternal_form_info_)
                             *)
-                               let redir_uri =
-                                 Eliom_uri.make_string_uri_ ~service g
-                               in
-                               let rc = Request_info.get_request_cache_sp sp in
-                               Polytables.set ~table:rc
-                                 ~key:suffix_redir_uri_key ~value:redir_uri;
-                               Lwt.return_unit)
-                           else Lwt.return_unit
-                         in
-                         let* () =
-                           check_process_redir sp check_before service
-                         in
-                         page_generator g p)
-                      (function
-                        | Common.Eliom_Typing_Error l -> error_handler l
-                        | e -> Lwt.fail e)
-                  in
-                  send_with_cookies sp pages ?options ?charset ?code
-                    ?content_type ?headers content)) }
+                                let redir_uri =
+                                  Eliom_uri.make_string_uri_ ~service g
+                                in
+                                let rc = Request_info.get_request_cache_sp sp in
+                                Polytables.set ~table:rc
+                                  ~key:suffix_redir_uri_key ~value:redir_uri;
+                                Lwt.return_unit
+                            )
+                            else Lwt.return_unit
+                          in
+                          let* () =
+                            check_process_redir sp check_before service
+                          in
+                          page_generator g p
+                        )
+                        (function
+                          | Common.Eliom_Typing_Error l -> error_handler l
+                          | e -> Lwt.fail e
+                          )
+                    in
+                    send_with_cookies sp pages ?options ?charset ?code
+                      ?content_type ?headers content
+                )
+              )
+          }
       in
       match key_meth, attserget, attserpost with
       | ( (`Post | `Put | `Delete)
@@ -338,31 +347,36 @@ let register_aux
         , Common.SAtt_csrf_safe
             { Common.csrf_id = id
             ; csrf_scope = scope
-            ; csrf_secure = secure_session } ) ->
+            ; csrf_secure = secure_session
+            } ) ->
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_post_registration_function tablereg id
             (fun ~sp attserget ->
-               let n = S.new_state () in
-               let attserpost = Common.SAtt_anon n in
-               let table = table_for ~sp in
-               f table (attserget, attserpost);
-               n)
+              let n = S.new_state () in
+              let attserpost = Common.SAtt_anon n in
+              let table = table_for ~sp in
+              f table (attserget, attserpost);
+              n
+          )
       | ( `Get
         , Common.SAtt_csrf_safe
             { Common.csrf_id = id
             ; csrf_scope = scope
-            ; csrf_secure = secure_session }
+            ; csrf_secure = secure_session
+            }
         , _ ) ->
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
-            let n = S.new_state () in
-            let attserget = Common.SAtt_anon n in
-            let table = table_for ~sp in
-            f table (attserget, attserpost);
-            n)
+              let n = S.new_state () in
+              let attserget = Common.SAtt_anon n in
+              let table = table_for ~sp in
+              f table (attserget, attserpost);
+              n
+          )
       | _ ->
           let tablereg = registration_table () in
-          f tablereg (attserget, attserpost))
+          f tablereg (attserget, attserpost)
+    )
   | S.Nonattached naser -> (
       let na_name = S.na_name naser in
       let f table na_name =
@@ -371,34 +385,39 @@ let register_aux
           , Option.map (fun t -> t, ref (t +. Unix.time ())) (S.timeout service)
           , fun sp ->
               Lwt.with_value Common.sp_key (Some sp) (fun () ->
-                reset_response_status sp;
-                let ri = Request_info.get_ri_sp sp in
-                let* content =
-                  Lwt.catch
-                    (fun () ->
-                       let* g =
-                         Parameter.reconstruct_params ~sp
-                           (S.get_params_type service)
-                           (Some
-                              (Lwt.return (Ocsigen.Request.get_params_flat ri)))
-                           (Some (Lwt.return []))
-                           false None
-                       in
-                       let post_params = Request_info.get_post_params_sp sp in
-                       let files = Request_info.get_files_sp sp in
-                       let* p =
-                         Parameter.reconstruct_params ~sp
-                           (S.post_params_type service)
-                           post_params files false None
-                       in
-                       let* () = check_process_redir sp check_before service in
-                       page_generator g p)
-                    (function
-                      | Common.Eliom_Typing_Error l -> error_handler l
-                      | e -> Lwt.fail e)
-                in
-                send_with_cookies sp pages ?options ?charset ?code ?content_type
-                  ?headers content) )
+                  reset_response_status sp;
+                  let ri = Request_info.get_ri_sp sp in
+                  let* content =
+                    Lwt.catch
+                      (fun () ->
+                        let* g =
+                          Parameter.reconstruct_params ~sp
+                            (S.get_params_type service)
+                            (Some
+                               (Lwt.return (Ocsigen.Request.get_params_flat ri))
+                            )
+                            (Some (Lwt.return []))
+                            false None
+                        in
+                        let post_params = Request_info.get_post_params_sp sp in
+                        let files = Request_info.get_files_sp sp in
+                        let* p =
+                          Parameter.reconstruct_params ~sp
+                            (S.post_params_type service)
+                            post_params files false None
+                        in
+                        let* () = check_process_redir sp check_before service in
+                        page_generator g p
+                      )
+                      (function
+                        | Common.Eliom_Typing_Error l -> error_handler l
+                        | e -> Lwt.fail e
+                        )
+                  in
+                  send_with_cookies sp pages ?options ?charset ?code
+                    ?content_type ?headers content
+              )
+          )
       in
       match na_name with
       | Common.SNa_get_csrf_safe
@@ -407,23 +426,26 @@ let register_aux
           (* CSRF safe coservice: we'll do the registration later *)
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
-            let n = S.new_state () in
-            let na_name = Common.SNa_get' n in
-            let table = table_for ~sp in
-            f table na_name; n)
+              let n = S.new_state () in
+              let na_name = Common.SNa_get' n in
+              let table = table_for ~sp in
+              f table na_name; n
+          )
       | Common.SNa_post_csrf_safe
           {Common.csrf_id = id; csrf_scope = scope; csrf_secure = secure_session}
         ->
           (* CSRF safe coservice: we'll do the registration later *)
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
-            let n = S.new_state () in
-            let na_name = Common.SNa_post' n in
-            let table = table_for ~sp in
-            f table na_name; n)
+              let n = S.new_state () in
+              let na_name = Common.SNa_post' n in
+              let table = table_for ~sp in
+              f table na_name; n
+          )
       | _ ->
           let tablereg = registration_table () in
-          f tablereg na_name)
+          f tablereg na_name
+    )
 
 let send pages ?options ?charset ?code ?content_type ?headers content =
   let* result =
@@ -432,29 +454,29 @@ let send pages ?options ?charset ?code ?content_type ?headers content =
   Lwt.return (pages.result_of_http_result result)
 
 let register
-      pages
-      ?app:_
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      (type a)
-      ~(service : (_, _, _, a, _, _, S.reg, _, _, _, _) S.t)
-      ?error_handler
-      page_gen
-  =
+    pages
+    ?app:_
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    (type a)
+    ~(service : (_, _, _, a, _, _, S.reg, _, _, _, _) S.t)
+    ?error_handler
+    page_gen =
   let sp = Common.get_sp_option () in
   match scope, sp with
   | None, None | Some `Site, None -> (
       let aux sitedata =
-        (match S.info service with
+        ( match S.info service with
         | S.Attached attser ->
             Common.remove_unregistered sitedata (S.sub_path attser)
         | S.Nonattached naser ->
-            Common.remove_unregistered_na sitedata (S.na_name naser));
+            Common.remove_unregistered_na sitedata (S.na_name naser)
+        );
         register_aux pages ?options ?charset ?code ?content_type ?headers
           (Global_table sitedata.Common.global_services) ~service ?error_handler
           page_gen
@@ -468,9 +490,11 @@ let register
             (* I suppose that it's a statically linked module
                that is not associated with a site yet.
                I will defer the registration until app is initialised. *)
-            Ocsigen_base.Loader.add_module_init_function
-              (Common.get_app_name ()) (fun () -> aux sitedata)
-      | _ -> raise (Common.Site_information_not_available "register"))
+            Ocsigen_base.Loader.add_module_init_function (Common.get_app_name ())
+              (fun () -> aux sitedata
+            )
+      | _ -> raise (Common.Site_information_not_available "register")
+    )
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
@@ -492,27 +516,26 @@ let register
 *)
 
 let create
-      pages
-      ?scope
-      ?app
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~meth
-      ~path
-      ?error_handler
-      page
-  =
+    pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ~meth
+    ~path
+    ?error_handler
+    page =
   let service =
     S.create_unsafe ?name ?csrf_safe
       ?csrf_scope:(csrf_scope :> Common.user_scope option)
@@ -523,27 +546,26 @@ let create
   service
 
 let create_attached_get
-      pages
-      ?scope
-      ?app
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~fallback
-      ~get_params
-      ?error_handler
-      page
-  =
+    pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ~fallback
+    ~get_params
+    ?error_handler
+    page =
   let service =
     S.create_attached_get_unsafe ?name ?csrf_safe
       ?csrf_scope:(csrf_scope :> Common.user_scope option)
@@ -554,27 +576,26 @@ let create_attached_get
   service
 
 let create_attached_post
-      pages
-      ?scope
-      ?app
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~fallback
-      ~post_params
-      ?error_handler
-      page
-  =
+    pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ~fallback
+    ~post_params
+    ?error_handler
+    page =
   let service =
     S.create_attached_post_unsafe ?name ?csrf_safe
       ?csrf_scope:(csrf_scope :> Common.user_scope option)
@@ -595,7 +616,8 @@ struct
   let pages =
     { send = Pages.send
     ; send_appl_content = Pages.send_appl_content
-    ; result_of_http_result = Pages.result_of_http_result }
+    ; result_of_http_result = Pages.result_of_http_result
+    }
 
   let send ?options = send pages ?options
   let register ?app = register pages ?app
@@ -614,7 +636,8 @@ struct
   let pages =
     { send = Pages.send
     ; send_appl_content = Pages.send_appl_content
-    ; result_of_http_result = Fun.id }
+    ; result_of_http_result = Fun.id
+    }
 
   let register ?app = register pages ?app
   let create ?app = create pages ?app

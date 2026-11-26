@@ -20,27 +20,24 @@
 type kind = [`Service | `Data | `Persistent]
 
 val set_default :
-   ?scope_hierarchy:Common.scope_hierarchy
+     ?scope_hierarchy:Common.scope_hierarchy
   -> [< kind]
   -> [< Common.cookie_level]
   -> float option
   -> unit
 
 val find_global :
-   [< kind]
-  -> Common.full_state_name
-  -> Common.sitedata
-  -> float option
+  [< kind] -> Common.full_state_name -> Common.sitedata -> float option
 
 val get_global :
-   kind:[< kind]
+     kind:[< kind]
   -> cookie_scope:[< Common.cookie_scope]
   -> secure:bool
   -> Common.sitedata
   -> float option
 
 val set_global :
-   kind:[< kind]
+     kind:[< kind]
   -> cookie_scope:[< Common.cookie_scope]
   -> secure:bool
   -> recompute_expdates:bool
@@ -50,7 +47,7 @@ val set_global :
   -> unit
 
 val set_global_ :
-   ?full_st_name:Common.full_state_name
+     ?full_st_name:Common.full_state_name
   -> ?cookie_level:[< Common.cookie_level]
   -> kind:[< kind]
   -> recompute_expdates:bool
@@ -61,7 +58,7 @@ val set_global_ :
   -> unit
 
 val set_default_global :
-   [< kind]
+     [< kind]
   -> [< Common.cookie_level]
   -> override_configfile:bool
   -> from_configfile:bool

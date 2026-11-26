@@ -11,9 +11,10 @@ let print_cases name cases =
   Printf.printf "let %s = [|\n" name;
   List.iter
     (fun (change, Values.Case {name = _; value; show}) ->
-       Printf.printf "  (%S, %S);\n"
-         (change (Marshal.to_string (Eliom.Wrap.wrap value) []))
-         (show value))
+      Printf.printf "  (%S, %S);\n"
+        (change (Marshal.to_string (Eliom.Wrap.wrap value) []))
+        (show value)
+    )
     cases;
   print_endline "|]"
 

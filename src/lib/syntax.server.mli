@@ -51,9 +51,7 @@ val close_server_section : string -> unit
     Called in parallel with {!Client.Syntax_helpers.close_server_section}.  *)
 
 val close_client_section :
-   string
-  -> (int * Ocsigen_base.Lib.poly * Lib.pos * string option) list
-  -> unit
+  string -> (int * Ocsigen_base.Lib.poly * Lib.pos * string option) list -> unit
 (** Called at the end of every client or shared section. The first
     argument identifies the compilation unit. The second is the list
     of novel injections in that section.

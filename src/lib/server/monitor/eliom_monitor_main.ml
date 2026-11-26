@@ -19,4 +19,5 @@
 
 let _ =
   Eliom.Registration.Html.create ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
-    ~path:(Eliom.Service.Path []) (fun _ _ -> Eliom_monitor.content_html ())
+    ~path:(Eliom.Service.Path []) (fun _ _ -> Eliom_monitor.content_html ()
+  )

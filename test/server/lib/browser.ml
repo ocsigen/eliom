@@ -9,7 +9,8 @@ let create server =
   let hosts = Hashtbl.create 1 in
   Hashtbl.add hosts host (`Unix_domain_socket (Server_harness.socket server));
   { ctx = Cohttp_lwt_unix.Net.init ~resolver:(Resolver_lwt_unix.static hosts) ()
-  ; jar = Cookie_jar.empty }
+  ; jar = Cookie_jar.empty
+  }
 
 let path_of_url url =
   match String.index_opt url '?' with
@@ -37,7 +38,8 @@ let call ?(headers = []) ?body meth b url =
   Lwt.return
     { status = Cohttp.Code.code_of_status (Cohttp.Response.status resp)
     ; headers
-    ; body }
+    ; body
+    }
 
 let get ?headers b url = call ?headers `GET b url
 

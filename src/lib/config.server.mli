@@ -53,25 +53,25 @@ val set_persistent_session_gc_frequency : int option -> unit
     [None] means never. *)
 
 val set_volatile_timeout :
-   ?scope_hierarchy:Common.scope_hierarchy
+     ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_data_timeout :
-   ?scope_hierarchy:Common.scope_hierarchy
+     ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_service_timeout :
-   ?scope_hierarchy:Common.scope_hierarchy
+     ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_persistent_timeout :
-   ?scope_hierarchy:Common.scope_hierarchy
+     ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
@@ -136,8 +136,7 @@ val add_ignored_get_params : string * Re.re -> unit
 val add_ignored_post_params : string * Re.re -> unit
 
 val set_omitpersistentstorage :
-   Common.omitpersistentstorage_rule list option
-  -> unit
+  Common.omitpersistentstorage_rule list option -> unit
 
 val get_default_hostname : unit -> string
 (** The function [get_default_hostname ()]returns the hostname
@@ -198,7 +197,7 @@ val get_config : unit -> Xml.xml list
 *)
 
 val parse_config :
-   ?pcdata:(string -> unit)
+     ?pcdata:(string -> unit)
   -> ?other_elements:(string -> (string * string) list -> Xml.xml list -> unit)
   -> Ocsigen.Extensions.Configuration.element list
   -> unit

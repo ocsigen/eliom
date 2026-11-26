@@ -52,7 +52,8 @@ let wait_for p =
     then false
     else (
       Unix.sleepf 0.01;
-      loop (n - 1))
+      loop (n - 1)
+    )
   in
   loop 2000
 
@@ -80,10 +81,12 @@ let stop pid dir =
         if not (wait_for (fun () -> exited pid))
         then (
           prerr_endline "The test server did not stop: killing it.";
-          kill pid)
+          kill pid
+        )
     | exception Unix.Unix_error (e, _, _) ->
         Printf.eprintf
-          "Cannot send the shutdown command to the test server (%s): killing it.\n%!"
+          "Cannot send the shutdown command to the test server (%s): killing it.\n\
+           %!"
           (Unix.error_message e);
         kill pid
 
@@ -95,10 +98,11 @@ let accepts_connections server =
   Fun.protect
     ~finally:(fun () -> Unix.close fd)
     (fun () ->
-       match Unix.connect fd (Unix.ADDR_UNIX (socket server)) with
-       | () -> true
-       | exception Unix.Unix_error ((Unix.ENOENT | Unix.ECONNREFUSED), _, _) ->
-           false)
+      match Unix.connect fd (Unix.ADDR_UNIX (socket server)) with
+      | () -> true
+      | exception Unix.Unix_error ((Unix.ENOENT | Unix.ECONNREFUSED), _, _) ->
+          false
+    )
 
 (* [launch exe dir] starts [exe] in [dir] and returns its pid, once it accepts
    connections. Its outputs are appended to the log. *)
@@ -115,11 +119,13 @@ let launch exe dir =
   if
     not
       (wait_for (fun () -> accepts_connections server || exited pid)
-      && not (exited pid))
+      && not (exited pid)
+      )
   then (
     print_log dir;
     stop pid dir;
-    failwith ("the test server " ^ exe ^ " did not start"));
+    failwith ("the test server " ^ exe ^ " did not start")
+  );
   pid
 
 let with_server exe f =
@@ -163,4 +169,5 @@ let start instructions =
     ~command_pipe ~logdir:"log" ~debugmode:true
     [ Ocsigen.Server.host
         ~charset_assoc:(Ocsigen_http.Charset_mime.empty_charset_assoc ())
-        instructions ]
+        instructions
+    ]

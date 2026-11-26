@@ -3,7 +3,8 @@ type cookie =
   ; value : string
   ; path : string
   ; expires : float option
-  ; secure : bool }
+  ; secure : bool
+  }
 
 (* In the order of creation *)
 type t = cookie list
@@ -24,7 +25,8 @@ let months =
   ; "Sep"
   ; "Oct"
   ; "Nov"
-  ; "Dec" ]
+  ; "Dec"
+  ]
 
 (* [days_from_civil y m d] is the number of days from 1970-01-01 to [y-m-d]
    (proleptic Gregorian calendar, [m] from 1 to 12). *)
@@ -46,11 +48,13 @@ let month_index mon =
 let parse_date s =
   match
     Scanf.sscanf s " %_s %d %s %d %d:%d:%d GMT" (fun d mon y h mi sec ->
-      Option.map
-        (fun m ->
-           float_of_int
-             ((days_from_civil y m d * 86400) + (h * 3600) + (mi * 60) + sec))
-        (month_index mon))
+        Option.map
+          (fun m ->
+            float_of_int
+              ((days_from_civil y m d * 86400) + (h * 3600) + (mi * 60) + sec)
+          )
+          (month_index mon)
+    )
   with
   | date -> date
   | exception (Scanf.Scan_failure _ | Failure _ | End_of_file) -> None
@@ -58,8 +62,9 @@ let parse_date s =
 let split_at c s =
   Option.map
     (fun i ->
-       ( String.trim (String.sub s 0 i)
-       , String.trim (String.sub s (i + 1) (String.length s - i - 1)) ))
+      ( String.trim (String.sub s 0 i)
+      , String.trim (String.sub s (i + 1) (String.length s - i - 1)) )
+    )
     (String.index_opt s c)
 
 let attribute a =
@@ -89,7 +94,8 @@ let parse ~now ~path header =
         ( String.sub header 0 i
         , List.rev_map attribute
             (String.split_on_char ';'
-               (String.sub header (i + 1) (String.length header - i - 1))) )
+               (String.sub header (i + 1) (String.length header - i - 1))
+            ) )
     | None -> header, []
   in
   match split_at '=' name_value with
@@ -123,7 +129,8 @@ let add now jar c =
 let store ~now ~path set_cookies jar =
   List.fold_left
     (fun jar h ->
-       match parse ~now ~path h with None -> jar | Some c -> add now jar c)
+      match parse ~now ~path h with None -> jar | Some c -> add now jar c
+    )
     jar set_cookies
 
 (* RFC 6265, 5.1.4 *)
@@ -137,9 +144,10 @@ let header ~now ~path jar =
   match
     List.filter
       (fun c ->
-         (not c.secure)
-         && (not (expired now c))
-         && path_matches ~cookie_path:c.path path)
+        (not c.secure)
+        && (not (expired now c))
+        && path_matches ~cookie_path:c.path path
+      )
       jar
   with
   | [] -> None
@@ -155,4 +163,5 @@ let cookies ~now jar =
   List.sort compare
     (List.filter_map
        (fun c -> if expired now c then None else Some (c.name, c.value))
-       jar)
+       jar
+    )

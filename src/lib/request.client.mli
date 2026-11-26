@@ -25,28 +25,16 @@ exception Program_terminated
 exception Non_xml_content
 
 val redirect_get :
-   ?window_name:string
-  -> ?window_features:string
-  -> string
-  -> unit
+  ?window_name:string -> ?window_features:string -> string -> unit
 
 val redirect_post :
-   ?window_name:string
-  -> string
-  -> (string * Mod_parameters.param) list
-  -> unit
+  ?window_name:string -> string -> (string * Mod_parameters.param) list -> unit
 
 val redirect_put :
-   ?window_name:string
-  -> string
-  -> (string * Mod_parameters.param) list
-  -> unit
+  ?window_name:string -> string -> (string * Mod_parameters.param) list -> unit
 
 val redirect_delete :
-   ?window_name:string
-  -> string
-  -> (string * Mod_parameters.param) list
-  -> unit
+  ?window_name:string -> string -> (string * Mod_parameters.param) list -> unit
 
 type 'a result
 
@@ -62,7 +50,7 @@ module Additional_headers : sig
 end
 
 val send :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
@@ -76,7 +64,7 @@ val send :
   -> (string * 'a option) Lwt.t
 
 val send_get_form :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
@@ -101,7 +89,7 @@ val send_get_form :
     the last click on this button, (0, 0) if there is none. *)
 
 val send_post_form :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
@@ -119,7 +107,7 @@ val send_post_form :
     [~post_args]. [~get_args] go in the query string. *)
 
 val http_get :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -131,7 +119,7 @@ val http_get :
   -> (string * 'a option) Lwt.t
 
 val http_post :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -143,7 +131,7 @@ val http_post :
   -> (string * 'a option) Lwt.t
 
 val http_put :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -155,7 +143,7 @@ val http_put :
   -> (string * 'a option) Lwt.t
 
 val http_delete :
-   ?with_credentials:bool
+     ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -173,9 +161,10 @@ val max_redirection_level : int
 
 val nl_template :
   ( string
-    , [`WithoutSuffix]
-    , [`One of string] Parameter.param_name )
-    Parameter.non_localized_params
+  , [`WithoutSuffix]
+  , [`One of string] Parameter.param_name
+  )
+  Parameter.non_localized_params
 
 val nl_template_string : string
 val section : Logs.src

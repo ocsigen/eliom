@@ -29,10 +29,11 @@ let () =
   string
     (get ["stateful"; "create"] P.(opt (int "size")))
     (fun size () ->
-       let stream, push = Lwt_stream.create () in
-       let channel = Comet.Channel.create ?size stream in
-       V.set push_of_tab (Some push);
-       text (Info.to_string (Info.of_channel channel)))
+      let stream, push = Lwt_stream.create () in
+      let channel = Comet.Channel.create ?size stream in
+      V.set push_of_tab (Some push);
+      text (Info.to_string (Info.of_channel channel))
+    )
 
 let () =
   string
@@ -43,8 +44,9 @@ let () = string (get ["stateful"; "end"] P.unit) (fun () () -> push_to_tab None)
 
 let () =
   string (get ["discard"] P.unit) (fun () () ->
-    let* () = State.discard ~scope:Common.comet_client_process_scope () in
-    text "discarded")
+      let* () = State.discard ~scope:Common.comet_client_process_scope () in
+      text "discarded"
+  )
 
 (* Channels of the site *)
 
@@ -59,8 +61,7 @@ let site_channel ~name create =
     (fun v () -> push (Some v); text "pushed")
 
 let () =
-  site_channel ~name:"stateless"
-    (Comet.Channel.create ~scope:`Site ~name:"site");
+  site_channel ~name:"stateless" (Comet.Channel.create ~scope:`Site ~name:"site");
   site_channel ~name:"newest" (Comet.Channel.create_newest ~name:"newest")
 
 (* The channel "site", declared as a channel of another server, here the

@@ -17,7 +17,8 @@ type settings =
   ; max_persistent_tab_sessions : int option
   ; max_anonymous_services : int
   ; secure_cookies : bool
-  ; ignored_get_params : string list }
+  ; ignored_get_params : string list
+  }
 
 let settings () =
   let sitedata = Common.get_current_sitedata () in
@@ -41,7 +42,8 @@ let settings () =
   ; max_anonymous_services =
       sitedata.max_anonymous_services_per_session.cf_value
   ; secure_cookies = sitedata.secure_cookies
-  ; ignored_get_params = List.map fst sitedata.ignored_get_params }
+  ; ignored_get_params = List.map fst sitedata.ignored_get_params
+  }
 
 let run ~app =
   Eliom.App.run ~app ~xhr_links:false ~data_timeout:(`Session, None, Some 10.)
@@ -95,11 +97,12 @@ let test_configuration_file () =
   let run ~app = Eliom.App.run ~app ~max_service_sessions_per_group:3 () in
   let kept, overridden =
     Site.init ~run ~app:"options, configuration file" (fun () ->
-      State.set_default_max_service_sessions_per_group 5;
-      let kept = (settings ()).max_service_sessions in
-      State.set_default_max_service_sessions_per_group ~override_configfile:true
-        5;
-      kept, (settings ()).max_service_sessions)
+        State.set_default_max_service_sessions_per_group 5;
+        let kept = (settings ()).max_service_sessions in
+        State.set_default_max_service_sessions_per_group
+          ~override_configfile:true 5;
+        kept, (settings ()).max_service_sessions
+    )
   in
   Alcotest.(check int) "kept" 3 kept;
   Alcotest.(check int) "overridden" 5 overridden
@@ -108,4 +111,5 @@ let suite =
   ( "options of App.run"
   , [ Alcotest.test_case "options" `Quick test_options
     ; Alcotest.test_case "other site" `Quick test_other_site
-    ; Alcotest.test_case "configuration file" `Quick test_configuration_file ] )
+    ; Alcotest.test_case "configuration file" `Quick test_configuration_file
+    ] )

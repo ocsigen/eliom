@@ -24,15 +24,15 @@ open Js_of_ocaml
 module Xml : sig
   include
     Xml_sigs.Iterable
-    with type 'a wrap = 'a
-     and type 'a list_wrap = 'a list
-     and type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
-     and type mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Client_value.t
-     and type keyboard_event_handler =
-      (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
-     and type touch_event_handler =
-      (Dom_html.touchEvent Js.t -> unit) Client_value.t
+      with type 'a wrap = 'a
+       and type 'a list_wrap = 'a list
+       and type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
+       and type mouse_event_handler =
+        (Dom_html.mouseEvent Js.t -> unit) Client_value.t
+       and type keyboard_event_handler =
+        (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
+       and type touch_event_handler =
+        (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
   type caml_event_handler
 
@@ -54,12 +54,11 @@ module Xml : sig
   val internal_event_handler_attrib : aname -> internal_event_handler -> attrib
 
   val internal_event_handler_of_service :
-     Runtime.RawXML.call_service_info option Eliom_lazy.request
+       Runtime.RawXML.call_service_info option Eliom_lazy.request
     -> internal_event_handler
 
   val caml_event_handler :
-     (Dom_html.event Js.t -> unit) Client_value.t
-    -> caml_event_handler
+    (Dom_html.event Js.t -> unit) Client_value.t -> caml_event_handler
 
   type racontent =
     | RA of acontent
@@ -89,12 +88,12 @@ module Svg : sig
   (**/**)
 
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) : sig
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) : sig
     val a_onabort : string -> [> `OnAbort] A.attrib
     val a_onactivate : string -> [> `OnActivate] A.attrib
     val a_onbegin : string -> [> `OnBegin] A.attrib
@@ -131,8 +130,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -149,8 +148,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -168,8 +167,8 @@ module Svg : sig
       (Xml : Xml_sigs.T with type elt = Xml.elt and type attrib = Xml.attrib)
       (_ : Svg_sigs.Wrapped_functions with module Xml = Xml) :
     Svg_sigs.Make(Xml).T
-    with type +'a elt = 'a elt
-     and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
   module Id : sig
     type +'a id
@@ -198,12 +197,12 @@ module Html : sig
   (**/**)
 
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) : sig
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) : sig
     val a_onabort : string -> [> `OnAbort] A.attrib
     val a_onafterprint : string -> [> `OnAfterPrint] A.attrib
     val a_onbeforeprint : string -> [> `OnBeforePrint] A.attrib
@@ -287,8 +286,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -306,9 +305,10 @@ module Html : sig
 
     val lazy_form :
       ( [< Html_types.form_attrib]
-        , [< Html_types.form_content_fun]
-        , [> Html_types.form] )
-        lazy_star
+      , [< Html_types.form_content_fun]
+      , [> Html_types.form]
+      )
+      lazy_star
   end
 
   module D : sig
@@ -316,8 +316,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -337,9 +337,10 @@ module Html : sig
 
     val lazy_form :
       ( [< Html_types.form_attrib]
-        , [< Html_types.form_content_fun]
-        , [> Html_types.form] )
-        lazy_star
+      , [< Html_types.form_content_fun]
+      , [> Html_types.form]
+      )
+      lazy_star
   end
 
   module Make
@@ -347,8 +348,8 @@ module Html : sig
       (_ : Html_sigs.Wrapped_functions with module Xml = Xml)
       (Svg : Svg_sigs.T with module Xml := Xml) :
     Html_sigs.Make(Xml)(Svg).T
-    with type +'a elt = 'a elt
-     and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
   module Id : sig
     type +'a id
@@ -367,7 +368,7 @@ module Html : sig
     type 'a t
 
     val create :
-       name:string
+         name:string
       -> ?default:'a
       -> to_string:('a -> string)
       -> of_string:(string -> 'a)

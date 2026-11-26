@@ -23,18 +23,14 @@ val close : Tab.t -> Comet_info.t -> unit Lwt.t
 (** [close t c] tells that [t] no longer requests [c]. *)
 
 val request :
-   ?idle:bool
-  -> Tab.t
-  -> Comet_info.t
-  -> int
-  -> (string * 'a message) list Lwt.t
+  ?idle:bool -> Tab.t -> Comet_info.t -> int -> (string * 'a message) list Lwt.t
 (** [request t c n] is the [n]th request of data of the channels registered by
     [t] (the Comet service of [c]), as channel identifiers and messages. It
     waits for data, unless [idle] is [true] (default [false]). The type of
     the values is the one of the channels: it is not checked. *)
 
 val request_stateless :
-   Eliom_test_server.Browser.t
+     Eliom_test_server.Browser.t
   -> Comet_info.t
   -> Eliom.Comet_base.position
   -> (string * ('a * int) message) list Lwt.t

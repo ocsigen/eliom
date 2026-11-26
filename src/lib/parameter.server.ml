@@ -27,20 +27,18 @@ open Ocsigen.Extensions
 (* server-specific constructors *)
 
 let user_type
-      ?client_to_and_of
-      ~(of_string : string -> 'a)
-      ~(to_string : 'a -> string)
-      (n : string)
-  =
+    ?client_to_and_of
+    ~(of_string : string -> 'a)
+    ~(to_string : 'a -> string)
+    (n : string) =
   TUserType
     (n, Common.To_and_of_shared.create ?client_to_and_of {of_string; to_string})
 
 let all_suffix_user
-      ?client_to_and_of
-      ~(of_string : string -> 'a)
-      ~(to_string : 'a -> string)
-      (n : string)
-  =
+    ?client_to_and_of
+    ~(of_string : string -> 'a)
+    ~(to_string : 'a -> string)
+    (n : string) =
   TESuffixu
     (n, Common.To_and_of_shared.create ?client_to_and_of {of_string; to_string})
 
@@ -54,27 +52,21 @@ let regexp_of_string reg dest s =
       Ocsigen.Extensions.replace_user_dir reg
         (Ocsigen.Extensions.parse_user_dir dest)
         s
-    with Ocsigen.Extensions.NoSuchUser ->
-      raise (Failure "User does not exist"))
+    with Ocsigen.Extensions.NoSuchUser -> raise (Failure "User does not exist")
+  )
   | _ | (exception Not_found) -> raise (Failure "Regexp not matching")
 
 let regexp reg dest ~to_string n =
   user_type ~of_string:(regexp_of_string reg dest) ~to_string n
 
 let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
-  (string, [`Endsuffix], [`One of string] param_name) params_type
-  =
+    (string, [`Endsuffix], [`One of string] param_name) params_type =
   all_suffix_user ~of_string:(regexp_of_string reg dest) ~to_string n
 
 (* Non localized parameters *)
 
 let get_non_localized_parameters
-      params
-      files
-      ~getorpost
-      ~sp
-      {name; get; post; param = paramtype; _}
-  =
+    params files ~getorpost ~sp {name; get; post; param = paramtype; _} =
   (* non localized parameters are parsed only once,
      and cached in request_cache *)
   let key = match getorpost with `Get -> get | `Post -> post in
@@ -93,7 +85,8 @@ let get_non_localized_parameters
            let files =
              try String.Table.find name files with Not_found -> []
            in
-           reconstruct_params_ paramtype params files false None)
+           reconstruct_params_ paramtype params files false None
+          )
       with Common.Eliom_Wrong_parameter | Not_found -> None
     in
     (* add in cache: *)

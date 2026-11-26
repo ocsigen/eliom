@@ -57,7 +57,7 @@ module S : sig
 end
 
 val create_sitedata :
-   Ocsigen.Extensions.virtual_hosts
+     Ocsigen.Extensions.virtual_hosts
   -> Lib.Url.path
   -> Ocsigen.Extensions.config_info
   -> Common.sitedata
@@ -65,9 +65,7 @@ val create_sitedata :
 val parse_global_config : Xml_light_types.xml list -> unit
 
 val parse_site_options :
-   Common.sitedata
-  -> Xml_light_types.xml list
-  -> Xml_light_types.xml list
+  Common.sitedata -> Xml_light_types.xml list -> Xml_light_types.xml list
 (** [parse_site_options sitedata options] applies to [sitedata] the options of
     Eliom in [options], the content of an [<eliom>] element of a site, and
     returns the other ones, left to the Eliom modules.
@@ -89,31 +87,28 @@ val set_app_name : string -> unit
 val site_init : bool ref -> unit
 
 val update_sitedata :
-   string
+     string
   -> Ocsigen.Extensions.virtual_hosts
   -> Lib.Url.path
   -> Ocsigen.Extensions.config_info
   -> Common.sitedata
 
 val load_eliom_module :
-   'a
-  -> module_to_load
-  -> string
-  -> Xml_light_types.xml list
-  -> unit
+  'a -> module_to_load -> string -> Xml_light_types.xml list -> unit
 
 val gen_nothing : unit -> 'a -> Ocsigen.Extensions.answer Lwt.t
 val default_module_action : 'a -> 'b
 
 val set_timeout :
-   (?full_st_name:Common.full_state_name
-    -> ?cookie_level:([< Common.cookie_level] as 'a)
-    -> recompute_expdates:bool
-    -> override_configfile:bool
-    -> from_configfile:bool
-    -> Common.sitedata
-    -> float option
-    -> unit)
+     (   ?full_st_name:Common.full_state_name
+      -> ?cookie_level:([< Common.cookie_level] as 'a)
+      -> recompute_expdates:bool
+      -> override_configfile:bool
+      -> from_configfile:bool
+      -> Common.sitedata
+      -> float option
+      -> unit
+     )
   -> Common.sitedata
   -> 'a
   -> Common_base.scope_hierarchy option
@@ -121,7 +116,7 @@ val set_timeout :
   -> unit
 
 val parse_config :
-   'a
+     'a
   -> Ocsigen.Extensions.virtual_hosts
   -> Ocsigen.Extensions.config_info
   -> Lib.Url.path

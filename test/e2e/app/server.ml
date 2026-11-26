@@ -14,7 +14,9 @@ let () =
         ~logdir:data_dir ~debugmode:true
         [ Ocsigen.Server.host
             [ Staticmod.run ~dir:static_dir ()
-            ; Eliom.App.run ~enable_wasm:(backend = "wasm") () ] ]
+            ; Eliom.App.run ~enable_wasm:(backend = "wasm") ()
+            ]
+        ]
   | _ ->
       prerr_endline "usage: server.exe PORT STATIC_DIR DATA_DIR (js | wasm)";
       exit 2

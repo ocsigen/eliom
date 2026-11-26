@@ -83,10 +83,10 @@ type 'a ocaml_content
     pages. *)
 module Html :
   Registration_sigs.S_with_create
-  with type page = Html_types.html Content.Html.elt
-   and type options = unit
-   and type return = Service.non_ocaml
-   and type result = browser_content kind
+    with type page = Html_types.html Content.Html.elt
+     and type options = unit
+     and type return = Service.non_ocaml
+     and type result = browser_content kind
 
 (** {2 Eliom client/server applications} *)
 
@@ -106,17 +106,14 @@ val default_appl_service_options : appl_service_options
 
 module type APP = sig
   val application_script :
-     ?defer:bool
-    -> ?async:bool
-    -> unit
-    -> [> `Script] Content.Html.elt
+    ?defer:bool -> ?async:bool -> unit -> [> `Script] Content.Html.elt
   (** The function [application_name ()] returns a [<script>] node
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automatically added at the end of the [<head>] node. *)
 
   val wasm_detection_script :
-     ?defer:bool
+       ?defer:bool
     -> ?async:bool
     -> ?js_name:string
     -> ?wasm_name:string
@@ -173,10 +170,10 @@ module type APP = sig
 
   include
     Registration_sigs.S_with_create
-    with type page = Html_types.html Content.Html.elt
-     and type options = appl_service_options
-     and type return = Service.non_ocaml
-     and type result = app_id application_content kind
+      with type page = Html_types.html Content.Html.elt
+       and type options = appl_service_options
+       and type return = Service.non_ocaml
+       and type result = app_id application_content kind
 
   (**/**)
 
@@ -201,10 +198,10 @@ end
 
 module Eliom_tmpl (App : APP) (Tmpl_param : TMPL_PARAMS) :
   Registration_sigs.S_with_create
-  with type page = Tmpl_param.t
-   and type options = appl_service_options
-   and type return = Service.non_ocaml
-   and type result = App.app_id application_content kind
+    with type page = Tmpl_param.t
+     and type options = appl_service_options
+     and type return = Service.non_ocaml
+     and type result = App.app_id application_content kind
 
 (** {3 Services returning HTML (or other TyXML) fragments} *)
 
@@ -215,10 +212,10 @@ module Eliom_tmpl (App : APP) (Tmpl_param : TMPL_PARAMS) :
     fragments. *)
 module Flow5 :
   Registration_sigs.S_with_create
-  with type page = Html_types.flow5 Content.Html.elt list
-   and type options = unit
-   and type return = Service.non_ocaml
-   and type result = block_content kind
+    with type page = Html_types.flow5 Content.Html.elt list
+     and type options = unit
+     and type return = Service.non_ocaml
+     and type result = block_content kind
 
 (*
    (** Eliom service registration for services that return fragments of
@@ -241,10 +238,10 @@ module Make_typed_xml_registration
     and the content type is always [text/html]. *)
 module Html_text :
   Registration_sigs.S_with_create
-  with type page = string
-   and type options = unit
-   and type return = Service.non_ocaml
-   and type result = browser_content kind
+    with type page = string
+     and type options = unit
+     and type return = Service.non_ocaml
+     and type result = browser_content kind
 
 (** Eliom service registration for services that returns CSS. The page
     content is a [string] that must contains valid CSS and the content
@@ -252,10 +249,10 @@ module Html_text :
     "Cache-Control: max-age" header value to be sent. *)
 module CssText :
   Registration_sigs.S_with_create
-  with type page = string
-   and type options = int
-   and type return = Service.non_ocaml
-   and type result = browser_content kind
+    with type page = string
+     and type options = int
+     and type return = Service.non_ocaml
+     and type result = browser_content kind
 
 (** {2 Other kinds of services} *)
 
@@ -268,34 +265,35 @@ module CssText :
     Content] will be sent to the server. *)
 module Action :
   Registration_sigs.S_with_create
-  with type return = Service.non_ocaml
-   and type page = unit
-   and type options = [`Reload | `NoReload]
-   and type result = browser_content kind
+    with type return = Service.non_ocaml
+     and type page = unit
+     and type options = [`Reload | `NoReload]
+     and type result = browser_content kind
 
 (** Similar to {!Action} with [`NoReload] option. *)
 module Unit :
   Registration_sigs.S_with_create
-  with type page = unit
-   and type options = unit
-   and type return = Service.non_ocaml
-   and type result = browser_content kind
+    with type page = unit
+     and type options = unit
+     and type return = Service.non_ocaml
+     and type result = browser_content kind
 
 (** Auxiliarry type to hide non-interesting type parameters *)
 type _ redirection =
   | Redirection :
       ( unit
-        , unit
-        , Service.get
-        , _
-        , _
-        , _
-        , _
-        , [`WithoutSuffix]
-        , unit
-        , unit
-        , 'a )
-        Service.t
+      , unit
+      , Service.get
+      , _
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , unit
+      , 'a
+      )
+      Service.t
       -> 'a redirection
 
 (** Eliom service registration for services that returns a
@@ -315,19 +313,19 @@ type _ redirection =
 module Redirection : sig
   include
     Registration_sigs.S_poly_with_create
-    with type 'a page = 'a redirection
-     and type options =
-      [ `MovedPermanently
-      | `Found
-      | `SeeOther
-      | `NotModified
-      | `NotNodifed
-      | `UseProxy
-      | `TemporaryRedirect ]
-     and type 'a return = 'a
+      with type 'a page = 'a redirection
+       and type options =
+        [ `MovedPermanently
+        | `Found
+        | `SeeOther
+        | `NotModified
+        | `NotNodifed
+        | `UseProxy
+        | `TemporaryRedirect ]
+       and type 'a return = 'a
 
   val send :
-     ?options:options
+       ?options:options
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string
@@ -347,17 +345,17 @@ end
     {!module-Redirection} for a detailed description. *)
 module String_redirection :
   Registration_sigs.S_with_create
-  with type page = Lib.Url.uri
-   and type options =
-    [ `MovedPermanently
-    | `Found
-    | `SeeOther
-    | `NotModified
-    | `NotNodifed
-    | `UseProxy
-    | `TemporaryRedirect ]
-   and type return = Service.non_ocaml
-   and type result = browser_content kind
+    with type page = Lib.Url.uri
+     and type options =
+      [ `MovedPermanently
+      | `Found
+      | `SeeOther
+      | `NotModified
+      | `NotNodifed
+      | `UseProxy
+      | `TemporaryRedirect ]
+     and type return = Service.non_ocaml
+     and type result = browser_content kind
 
 (** Eliom service registration for services that returns file
     contents. The value returned by service handlers is the name of
@@ -372,10 +370,10 @@ module File : sig
 
   include
     Registration_sigs.S_with_create
-    with type page = string
-     and type options = int
-     and type return = Service.non_ocaml
-     and type result = browser_content kind
+      with type page = string
+       and type options = int
+       and type return = Service.non_ocaml
+       and type result = browser_content kind
 end
 
 (** Same as file but makes possible to specify the content type for
@@ -389,20 +387,20 @@ module File_ct : sig
 
   include
     Registration_sigs.S_with_create
-    with type page = string * string
-     and type options = int
-     and type return = Service.non_ocaml
-     and type result = browser_content kind
+      with type page = string * string
+       and type options = int
+       and type return = Service.non_ocaml
+       and type result = browser_content kind
 end
 
 (** Eliom service registration for services that send marshalled OCaml
     values. *)
 module Ocaml :
   Registration_sigs.S_poly_with_create_with_send
-  with type 'a page = 'a
-   and type options = unit
-   and type 'a return = 'a Service.ocaml
-   and type 'a result = 'a ocaml_content kind
+    with type 'a page = 'a
+     and type options = unit
+     and type 'a return = 'a Service.ocaml
+     and type 'a result = 'a ocaml_content kind
 
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
@@ -411,13 +409,13 @@ module Ocaml :
     send} *)
 module Any :
   Registration_sigs.S_poly_with_create_with_send
-  with type 'a page = 'a kind
-   and type options = unit
-   and type 'a return = Service.non_ocaml
-   and type 'a result = 'a kind
+    with type 'a page = 'a kind
+     and type options = unit
+     and type 'a return = Service.non_ocaml
+     and type 'a result = 'a kind
 
 val appl_self_redirect :
-   ('page -> [< 'a application_content | browser_content] kind Lwt.t)
+     ('page -> [< 'a application_content | browser_content] kind Lwt.t)
   -> 'page
   -> 'appl application_content kind Lwt.t
 (** The function [appl_self_redirect send page] is an helper function
@@ -439,10 +437,10 @@ val appl_self_redirect :
     header value to be sent. *)
 module String :
   Registration_sigs.S_with_create
-  with type page = string * string
-   and type options = int
-   and type return = Service.non_ocaml
-   and type result = unknown_content kind
+    with type page = string * string
+     and type options = int
+     and type return = Service.non_ocaml
+     and type result = unknown_content kind
 
 (*
    (** Eliom service registration for services that returns "byte"
@@ -471,15 +469,15 @@ module Streamlist : Registration_sigs.S_with_create
 module Customize
     (R : Registration_sigs.S_with_create)
     (T : sig
-       type page
+      type page
 
-       val translate : page -> R.page Lwt.t
-     end) :
+      val translate : page -> R.page Lwt.t
+    end) :
   Registration_sigs.S_with_create
-  with type options = R.options
-   and type return = R.return
-   and type page = T.page
-   and type result = R.result
+    with type options = R.options
+     and type return = R.return
+     and type page = T.page
+     and type result = R.result
 
 (** {2 Using your own error pages} *)
 

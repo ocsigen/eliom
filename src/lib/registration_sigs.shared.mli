@@ -26,7 +26,7 @@ module type PARAM = sig
   type frame
 
   val send :
-     ?options:options
+       ?options:options
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string
@@ -50,7 +50,7 @@ module type PARAM_POLY = sig
   type frame
 
   val send :
-     ?options:options
+       ?options:options
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string
@@ -83,7 +83,7 @@ module type S = sig
   (** {2 Service registration } *)
 
   val register :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -93,17 +93,18 @@ module type S = sig
     -> ?secure_session:bool
     -> service:
          ( 'get
-           , 'post
-           , _
-           , _
-           , _
-           , Service.non_ext
-           , Service.reg
-           , _
-           , _
-           , _
-           , return )
-           Service.t
+         , 'post
+         , _
+         , _
+         , _
+         , Service.non_ext
+         , Service.reg
+         , _
+         , _
+         , _
+         , return
+         )
+         Service.t
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('get -> 'post -> page Lwt.t)
     -> unit
@@ -142,7 +143,7 @@ module type S = sig
       (]{!Common.Eliom_Typing_Error}[ l) ]. *)
 
   val send :
-     ?options:options
+       ?options:options
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string
@@ -159,7 +160,7 @@ module type S_with_create = sig
   include S
 
   val create :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -179,24 +180,25 @@ module type S_with_create = sig
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('gp -> 'pp -> page Lwt.t)
     -> ( 'gp
-         , 'pp
-         , 'm
-         , 'att
-         , 'co
-         , Service.non_ext
-         , Service.reg
-         , 'tipo
-         , 'gn
-         , 'pn
-         , return )
-         Service.t
+       , 'pp
+       , 'm
+       , 'att
+       , 'co
+       , Service.non_ext
+       , Service.reg
+       , 'tipo
+       , 'gn
+       , 'pn
+       , return
+       )
+       Service.t
   (** Create a service and register it at the same time.
       It calls {!Service.create} and then performs
       {!Registration_sigs.S.register}.
       Returns the service. *)
 
   val create_attached_get :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -213,39 +215,41 @@ module type S_with_create = sig
     -> ?timeout:float
     -> fallback:
          ( unit
-           , unit
-           , Service.get
-           , Service.att
-           , Service.non_co
-           , Service.non_ext
-           , _
-           , [`WithoutSuffix]
-           , unit
-           , unit
-           , return )
-           Service.t
+         , unit
+         , Service.get
+         , Service.att
+         , Service.non_co
+         , Service.non_ext
+         , _
+         , [`WithoutSuffix]
+         , unit
+         , unit
+         , return
+         )
+         Service.t
     -> get_params:('gp, [`WithoutSuffix], 'gn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('gp -> unit -> page Lwt.t)
     -> ( 'gp
-         , unit
-         , Service.get
-         , Service.att
-         , Service.co
-         , Service.non_ext
-         , Service.reg
-         , [`WithoutSuffix]
-         , 'gn
-         , unit
-         , return )
-         Service.t
+       , unit
+       , Service.get
+       , Service.att
+       , Service.co
+       , Service.non_ext
+       , Service.reg
+       , [`WithoutSuffix]
+       , 'gn
+       , unit
+       , return
+       )
+       Service.t
   (** Create an attached service and register it at the same time.
       It calls {!Service.create_attached_get} and then performs
       {!Registration_sigs.S.register}.
       Returns the new service. *)
 
   val create_attached_post :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -262,32 +266,34 @@ module type S_with_create = sig
     -> ?timeout:float
     -> fallback:
          ( 'gp
-           , unit
-           , Service.get
-           , Service.att
-           , Service.non_co
-           , Service.non_ext
-           , _
-           , [`WithoutSuffix]
-           , 'gn
-           , unit
-           , return )
-           Service.t
+         , unit
+         , Service.get
+         , Service.att
+         , Service.non_co
+         , Service.non_ext
+         , _
+         , [`WithoutSuffix]
+         , 'gn
+         , unit
+         , return
+         )
+         Service.t
     -> post_params:('pp, [`WithoutSuffix], 'pn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('gp -> 'pp -> page Lwt.t)
     -> ( 'gp
-         , 'pp
-         , Service.post
-         , Service.att
-         , Service.co
-         , Service.non_ext
-         , Service.reg
-         , [`WithoutSuffix]
-         , 'gn
-         , 'pn
-         , return )
-         Service.t
+       , 'pp
+       , Service.post
+       , Service.att
+       , Service.co
+       , Service.non_ext
+       , Service.reg
+       , [`WithoutSuffix]
+       , 'gn
+       , 'pn
+       , return
+       )
+       Service.t
   (** Create an attached POST service and register it at the same time.
       It calls {!Service.create_attached_post} and then performs
       {!Registration_sigs.S.register}.
@@ -300,7 +306,7 @@ module type S_poly = sig
   type _ return
 
   val register :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -310,17 +316,18 @@ module type S_poly = sig
     -> ?secure_session:bool
     -> service:
          ( 'get
-           , 'post
-           , _
-           , _
-           , _
-           , Service.non_ext
-           , Service.reg
-           , _
-           , _
-           , _
-           , 'a return )
-           Service.t
+         , 'post
+         , _
+         , _
+         , _
+         , Service.non_ext
+         , Service.reg
+         , _
+         , _
+         , _
+         , 'a return
+         )
+         Service.t
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('get -> 'post -> 'a page Lwt.t)
     -> unit
@@ -331,7 +338,7 @@ module type S_poly_with_create = sig
   include S_poly
 
   val create :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -351,21 +358,22 @@ module type S_poly_with_create = sig
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('gp -> 'pp -> 'a page Lwt.t)
     -> ( 'gp
-         , 'pp
-         , 'm
-         , 'att
-         , 'co
-         , Service.non_ext
-         , Service.reg
-         , 'tipo
-         , 'gn
-         , 'pn
-         , 'a return )
-         Service.t
+       , 'pp
+       , 'm
+       , 'att
+       , 'co
+       , Service.non_ext
+       , Service.reg
+       , 'tipo
+       , 'gn
+       , 'pn
+       , 'a return
+       )
+       Service.t
   (** See {!S_with_create.create}. *)
 
   val create_attached_get :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -382,36 +390,38 @@ module type S_poly_with_create = sig
     -> ?timeout:float
     -> fallback:
          ( unit
-           , unit
-           , Service.get
-           , Service.att
-           , Service.non_co
-           , Service.non_ext
-           , _
-           , [`WithoutSuffix]
-           , unit
-           , unit
-           , 'a return )
-           Service.t
+         , unit
+         , Service.get
+         , Service.att
+         , Service.non_co
+         , Service.non_ext
+         , _
+         , [`WithoutSuffix]
+         , unit
+         , unit
+         , 'a return
+         )
+         Service.t
     -> get_params:('gp, [`WithoutSuffix], 'gn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('gp -> unit -> 'a page Lwt.t)
     -> ( 'gp
-         , unit
-         , Service.get
-         , Service.att
-         , Service.co
-         , Service.non_ext
-         , Service.reg
-         , [`WithoutSuffix]
-         , 'gn
-         , unit
-         , 'a return )
-         Service.t
+       , unit
+       , Service.get
+       , Service.att
+       , Service.co
+       , Service.non_ext
+       , Service.reg
+       , [`WithoutSuffix]
+       , 'gn
+       , unit
+       , 'a return
+       )
+       Service.t
   (** See {!S_with_create.create_attached_get}. *)
 
   val create_attached_post :
-     ?app:string
+       ?app:string
     -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
@@ -428,32 +438,34 @@ module type S_poly_with_create = sig
     -> ?timeout:float
     -> fallback:
          ( 'gp
-           , unit
-           , Service.get
-           , Service.att
-           , Service.non_co
-           , Service.non_ext
-           , _
-           , [`WithoutSuffix]
-           , 'gn
-           , unit
-           , 'a return )
-           Service.t
+         , unit
+         , Service.get
+         , Service.att
+         , Service.non_co
+         , Service.non_ext
+         , _
+         , [`WithoutSuffix]
+         , 'gn
+         , unit
+         , 'a return
+         )
+         Service.t
     -> post_params:('pp, [`WithoutSuffix], 'pn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('gp -> 'pp -> 'a page Lwt.t)
     -> ( 'gp
-         , 'pp
-         , Service.post
-         , Service.att
-         , Service.co
-         , Service.non_ext
-         , Service.reg
-         , [`WithoutSuffix]
-         , 'gn
-         , 'pn
-         , 'a return )
-         Service.t
+       , 'pp
+       , Service.post
+       , Service.att
+       , Service.co
+       , Service.non_ext
+       , Service.reg
+       , [`WithoutSuffix]
+       , 'gn
+       , 'pn
+       , 'a return
+       )
+       Service.t
   (** See {!S_with_create.create_attached_post}. *)
 end
 
@@ -463,7 +475,7 @@ module type S_poly_with_send = sig
   type 'a result
 
   val send :
-     ?options:options
+       ?options:options
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string
@@ -478,7 +490,7 @@ module type S_poly_with_create_with_send = sig
   type 'a result
 
   val send :
-     ?options:options
+       ?options:options
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string

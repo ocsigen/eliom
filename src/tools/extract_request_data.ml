@@ -12,7 +12,8 @@ let read ch =
     if n > 0
     then (
       Buffer.add_subbytes b s 0 n;
-      read ())
+      read ()
+    )
   in
   read (); Buffer.contents b
 
@@ -56,7 +57,8 @@ let rec parse b s i =
         parse b s (i + 2)
     | c ->
         Format.eprintf "??? %d %c@." i c;
-        exit 1)
+        exit 1
+  )
   | c ->
       Buffer.add_char b c;
       parse b s (i + 1)

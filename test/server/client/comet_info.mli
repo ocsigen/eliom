@@ -4,10 +4,11 @@
 type t =
   { url : string  (** The URL of the Comet service of the channel *)
   ; post_params : (string * string) list
-    (** The hidden POST parameters of the service *)
+        (** The hidden POST parameters of the service *)
   ; idle_param : string  (** The name of the POST parameter [idle] *)
   ; request_param : string  (** The name of the POST parameter of the request *)
-  ; channel : string  (** The identifier of the channel *) }
+  ; channel : string  (** The identifier of the channel *)
+  }
 
 val of_channel : 'a Eliom.Comet.Channel.t -> t
 (** [of_channel c] is the information about [c]. To be called by a service
