@@ -12,12 +12,15 @@ let%shared colored_element contents =
   let span = D.(span ~a:[a_style ("color: " ^ random_color ())] contents) in
   ignore
     [%client
-      (let span = To_dom.of_span ~%span in
-       Lwt.async (fun () ->
-         Lwt_js_events.clicks span (fun _ _ ->
-           span##.style##.color := Js.string (random_color ());
-           Lwt.return_unit))
-       : unit)];
+      ( let span = To_dom.of_span ~%span in
+        Lwt.async (fun () ->
+            Lwt_js_events.clicks span (fun _ _ ->
+                span##.style##.color := Js.string (random_color ());
+                Lwt.return_unit
+            )
+        )
+        : unit
+      )];
   span
 
 let%shared main_page () =
