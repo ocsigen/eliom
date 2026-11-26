@@ -1,0 +1,17 @@
+# The default build without "@doc" {with-doc}: the server and client
+# libraries define the same modules, so dune's @doc fails with
+# "Multiple rules generated". The published docs are built by odoc_driver.
+# Keep in sync with the build dune generates by default.
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+  ]
+]
