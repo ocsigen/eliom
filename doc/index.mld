@@ -1,9 +1,8 @@
 @children_order intro server/ clientserver/ workflow/
 
 {0 Eliom}
-{e The full-stack OCaml Web and mobile framework}
 
-Eliom is a framework for building client/server Web and mobile
+Eliom is a full-stack framework for building client/server Web and mobile
 applications in OCaml.
 
 It can be used both as a traditional server-side Web framework
