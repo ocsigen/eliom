@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Eliom_uri/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Eliom_uri/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Eliom_uri/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Eliom_uri/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Eliom_uri</span></code></h1><p>Low-level functions for relative or absolute URL calculation.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../eliom.client/Eliom/Eliom_uri/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Eliom_uri</span></code></h1><p>Low-level functions for relative or absolute URL calculation.</p></header>
         <div class="odoc-content"><h3 id="compute-service's-url">Compute service's URL</h3><p>Please note that for many functions of this section, the returned URL depends on whether the function is called from a service handler or not:</p><ul><li>relative URL could not be computed outside of a service handler.</li><li>&quot;kept&quot; non localized parameters outside a service handler are restricted to preapplied parameters.</li></ul><p>To define <em>global</em> link (i.e. outside of a service handler) and recompute a relative URL at each request, use <code>Registration.Html.a</code> or other specialized functions from <a href="../Registration/Html/index.html"><code>Registration.Html</code></a>.</p><div class="odoc-spec"><div class="spec value anchored" id="val-make_string_uri"><code><span><span class="keyword">val</span> make_string_uri : 
   <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
@@ -340,14 +344,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

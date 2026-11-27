@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../../../eliom.server/Eliom/Content_core/Svg/D/Raw/Xml/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../../../eliom.client/Eliom/Content_core/Svg/D/Raw/Xml/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../../../eliom.server/Eliom/Content_core/Svg/D/Raw/Xml/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../../../eliom.client/Eliom/Content_core/Svg/D/Raw/Xml/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Raw.Xml</span></code></h1><p>Underlying XML data-structure</p><p>The type variables in <a href="../index.html#type-elt"><code>elt</code></a> and <a href="../index.html#type-attrib"><code>attrib</code></a> are know as <i>phantom types</i>. The implementation, defined here, is actually monomorphic.</p><p>In particular, tyxml doesn't impose any overhead over the underlying representation. The <a href="../index.html#val-tot"><code>tot</code></a> and <a href="../index.html#val-toelt"><code>toelt</code></a> functions allows to convert between the typed and the untyped representation without any cost.</p><p>Note that some implementation may not be iterable or printable, such as the Dom representation exposed by js_of_ocaml.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../../../../eliom.client/Eliom/Content_core/Svg/D/Raw/Xml/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Raw.Xml</span></code></h1><p>Underlying XML data-structure</p><p>The type variables in <a href="../index.html#type-elt"><code>elt</code></a> and <a href="../index.html#type-attrib"><code>attrib</code></a> are know as <i>phantom types</i>. The implementation, defined here, is actually monomorphic.</p><p>In particular, tyxml doesn't impose any overhead over the underlying representation. The <a href="../index.html#val-tot"><code>tot</code></a> and <a href="../index.html#val-toelt"><code>toelt</code></a> functions allows to convert between the typed and the untyped representation without any cost.</p><p>Note that some implementation may not be iterable or printable, such as the Dom representation exposed by js_of_ocaml.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec module anchored" id="module-W"><code><span><span class="keyword">module</span> <a href="W/index.html">W</a></span><span> : 
   <a href="../../../../../../../../../tyxml/dev/tyxml/Xml_wrap/module-type-T/index.html">Xml_wrap.T</a>
     <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../../../../../../../../tyxml/dev/tyxml/Xml_wrap/module-type-T/index.html#type-t">t</a></span> = <span><span class="type-var">'a</span> <a href="../../../../Xml/W/index.html#type-t">Xml.W.t</a></span></span>
@@ -304,14 +308,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

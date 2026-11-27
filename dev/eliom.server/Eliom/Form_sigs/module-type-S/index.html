@@ -87,9 +87,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Form_sigs/module-type-S/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Form_sigs/module-type-S/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -196,9 +196,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Form_sigs/module-type-S/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Form_sigs/module-type-S/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -292,7 +292,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module type <code><span>Form_sigs.S</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Form_sigs/module-type-S/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module type <code><span>Form_sigs.S</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-param"><code><span><span class="keyword">type</span> <span>'a param</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-elt"><code><span><span class="keyword">type</span> <span>+'a elt</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attrib"><code><span><span class="keyword">type</span> <span>+'a attrib</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-uri"><code><span><span class="keyword">type</span> uri</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-float"><code><span><span class="keyword">val</span> float : <span>float <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int"><code><span><span class="keyword">val</span> int : <span>int <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int32"><code><span><span class="keyword">val</span> int32 : <span>int32 <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int64"><code><span><span class="keyword">val</span> int64 : <span>int64 <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-nativeint"><code><span><span class="keyword">val</span> nativeint : <span>nativeint <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-bool"><code><span><span class="keyword">val</span> bool : <span>bool <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-string"><code><span><span class="keyword">val</span> string : <span>string <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-user"><code><span><span class="keyword">val</span> user : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> string)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_post_uri_components"><code><span><span class="keyword">val</span> make_post_uri_components : 
   <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
@@ -450,14 +454,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

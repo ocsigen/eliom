@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Content_functor/Svg/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Content_functor/Svg/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Content_functor/Svg/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Content_functor/Svg/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,21 +293,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Content_functor.Svg</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Content_functor/Svg/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Content_functor.Svg</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec module anchored" id="module-Ev'"><code><span><span class="keyword">module</span> <a href="Ev'/index.html">Ev'</a></span><span> (<a href="Ev'/argument-1-A/index.html">A</a> : <span class="keyword">sig</span> ... <span class="keyword">end</span>) : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-F"><code><span><span class="keyword">module</span> F</span><span> = <a href="../../Content_core/Svg/F/index.html">Content_core.Svg.F</a></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-D"><code><span><span class="keyword">module</span> D</span><span> = <a href="../../Content_core/Svg/D/index.html">Content_core.Svg.D</a></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-R"><code><span><span class="keyword">module</span> <a href="R/index.html">R</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Id"><code><span><span class="keyword">module</span> Id</span><span> = <a href="../../Content_core/Svg/Id/index.html">Content_core.Svg.Id</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-elt"><code><span><span class="keyword">type</span> <span>+'a elt</span></span><span> = <span><span class="type-var">'a</span> <a href="../../Content_core/Svg/F/index.html#type-elt">F.elt</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-wrap"><code><span><span class="keyword">type</span> <span>'a wrap</span></span><span> = <span><span class="type-var">'a</span> <a href="../../Content_core/Svg/F/index.html#type-wrap">F.wrap</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-list_wrap"><code><span><span class="keyword">type</span> <span>'a list_wrap</span></span><span> = <span><span class="type-var">'a</span> <a href="../../Content_core/Svg/F/index.html#type-list_wrap">F.list_wrap</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attrib"><code><span><span class="keyword">type</span> <span>'a attrib</span></span><span> = <span><span class="type-var">'a</span> <a href="../../Content_core/Svg/F/index.html#type-attrib">F.attrib</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-uri"><code><span><span class="keyword">type</span> uri</span><span> = <a href="../../Content_core/Svg/F/index.html#type-uri">F.uri</a></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Printer"><code><span><span class="keyword">module</span> Printer</span><span> = <a href="../../Content_core/Svg/Printer/index.html">Content_core.Svg.Printer</a></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Registration/String_redirection/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Registration/String_redirection/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Registration.String_redirection</span></code></h1><p>Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about <a href="../../../../server/services/handlers.html#redirections" title="redirections">Redirections outputs</a>. The URL given must be an absolute URI.</p><p>The default returned HTTP code is <code>302 Found</code>. You could use the optional parameter <code>~options</code> to change this value, see <a href="../Redirection/index.html"><code>Redirection</code></a> for a detailed description.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Registration.String_redirection</span></code></h1><p>Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about <a href="../../../../server/services/handlers.html#redirections" title="redirections">Redirections outputs</a>. The URL given must be an absolute URI.</p><p>The default returned HTTP code is <code>302 Found</code>. You could use the optional parameter <code>~options</code> to change this value, see <a href="../Redirection/index.html"><code>Redirection</code></a> for a detailed description.</p></header>
         <div class="odoc-content"><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../Registration_sigs/module-type-S/index.html">Registration_sigs.S</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Registration_sigs/module-type-S/index.html#type-page">page</a> = <a href="../../Lib/Url/index.html#type-uri">Lib.Url.uri</a></span>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Registration_sigs/module-type-S/index.html#type-options">options</a> =
@@ -449,14 +453,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

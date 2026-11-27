@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Lib/Url/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Lib/Url/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Lib/Url/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Lib/Url/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Lib.Url</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Lib/Url/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Lib.Url</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <a href="../Url_base/index.html">Url_base</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Url_base/index.html#type-t">t</a> = <a href="../Url_base/index.html#type-t">Url_base.t</a></span></span></code></summary><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> t</span><span> = <a href="../Url_base/index.html#type-t">Url_base.t</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-uri"><code><span><span class="keyword">type</span> uri</span><span> = string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_absolute_url"><code><span><span class="keyword">val</span> make_absolute_url : <span><span class="label">https</span>:bool <span class="arrow">&#45;&gt;</span></span> <span><span class="label">host</span>:string <span class="arrow">&#45;&gt;</span></span> <span><span class="label">port</span>:int <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-uri">uri</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>make_absolute_url https host port path</code> generates a new absolute url</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-path"><code><span><span class="keyword">type</span> path</span><span> = <span>string list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove_dotdot"><code><span><span class="keyword">val</span> remove_dotdot : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div><div class="spec-doc"><p><code>remove_dotdot path</code> cleans the path of <code>..</code></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove_end_slash"><code><span><span class="keyword">val</span> remove_end_slash : <span>string <span class="arrow">&#45;&gt;</span></span> string</span></code></div><div class="spec-doc"><p><code>remove_end_slash str</code> removes last <code>/</code></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove_internal_slash"><code><span><span class="keyword">val</span> remove_internal_slash : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div><div class="spec-doc"><p><code>remove_internal_slash path</code> cleans the path of empty string</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-change_empty_list"><code><span><span class="keyword">val</span> change_empty_list : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_end_slash_if_missing"><code><span><span class="keyword">val</span> add_end_slash_if_missing : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove_slash_at_end"><code><span><span class="keyword">val</span> remove_slash_at_end : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove_slash_at_beginning"><code><span><span class="keyword">val</span> remove_slash_at_beginning : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-is_prefix_skip_end_slash"><code><span><span class="keyword">val</span> is_prefix_skip_end_slash : <span><span>string list</span> <span class="arrow">&#45;&gt;</span></span> <span><span>string list</span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>is_prefix_skip_end_slash path1 path2</code> returns <code>true</code> if <code>path1</code> is the same as <code>path2</code> before a first slash</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split_fragment"><code><span><span class="keyword">val</span> split_fragment : <span>string <span class="arrow">&#45;&gt;</span></span> string * <span>string option</span></span></code></div><div class="spec-doc"><p><code>split_fragment str</code> splits <code>str</code> at first '#'</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-join_path"><code><span><span class="keyword">val</span> join_path : <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div></details></div><div class="odoc-spec"><div class="spec value anchored" id="val-fixup_url_string"><code><span><span class="keyword">val</span> fixup_url_string : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-encode"><code><span><span class="keyword">val</span> encode : <span><span class="optlabel">?plus</span>:bool <span class="arrow">&#45;&gt;</span></span> <span>string <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-decode"><code><span><span class="keyword">val</span> decode : <span><span class="optlabel">?plus</span>:bool <span class="arrow">&#45;&gt;</span></span> <span>string <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_encoded_parameters"><code><span><span class="keyword">val</span> make_encoded_parameters : <span><span><span>(string * string)</span> list</span> <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-string_of_url_path"><code><span><span class="keyword">val</span> string_of_url_path : <span><span class="label">encode</span>:bool <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-path">path</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-uri">uri</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split_decoded_path"><code><span><span class="keyword">val</span> split_decoded_path : <span>string <span class="arrow">&#45;&gt;</span></span> <a href="#type-path">path</a></span></code></div><div class="spec-doc"><p><code>split_decoded_path s</code> splits the path <code>s</code> on its slashes and percent-decodes each of the resulting segments.</p><p>A segment that decodes to something containing a slash is split again: a path is a list of segments and cannot represent a slash inside one, so an encoded slash is a separator like any other. <code>remove_dotdot</code> is then applied, so that neither a literal nor an encoded &quot;..&quot; can be used to walk up the tree.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-parse"><code><span><span class="keyword">val</span> parse : 
   <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span>
   <span>bool option</span>
@@ -308,14 +312,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Mod_sessiongroups/Serv/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Mod_sessiongroups/Serv/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Mod_sessiongroups.Serv</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Mod_sessiongroups.Serv</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-group_of_group_data"><code><span><span class="keyword">type</span> group_of_group_data</span><span> =
   <span><span class="xref-unresolved">Common.tables</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>
   * <span><span class="xref-unresolved">Common.group_of_groups_entry</span> <a href="../../../../../../ocsigenserver/dev/Ocsigen_base/Cache/Dlist/index.html#type-node">Ocsigen_base.Cache.Dlist.node</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add"><code><span><span class="keyword">val</span> add : 
@@ -314,14 +318,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

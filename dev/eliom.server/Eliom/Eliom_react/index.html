@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Eliom_react/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Eliom_react/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Eliom_react/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Eliom_react/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,21 +293,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Eliom_react</span></code></h1><p>Propagate events occurrences from the server to the client and the other way around. Occurrence propagation is done asynchronously.</p><p>Warning: it is not possible to catch exceptions on each channel using Eliom_react (for example channel closed or full). If you need an error handling, use Comet.Channel instead.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../eliom.client/Eliom/Eliom_react/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Eliom_react</span></code></h1><p>Propagate events occurrences from the server to the client and the other way around. Occurrence propagation is done asynchronously.</p><p>Warning: it is not possible to catch exceptions on each channel using Eliom_react (for example channel closed or full). If you need an error handling, use Comet.Channel instead.</p></header>
         <div class="odoc-content"><p><b>Please read the <a href="../../../clientserver/communication.html" title="communication">chapter on communication</a> of Eliom's manual before this page to learn how client and server parts communicate.</b></p><p>The use of this module is pretty much useless without it's client counter part.</p><div class="odoc-spec"><div class="spec module anchored" id="module-Down"><code><span><span class="keyword">module</span> <a href="Down/index.html">Down</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Event from server to client.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Up"><code><span><span class="keyword">module</span> <a href="Up/index.html">Up</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Event from client to server.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-S"><code><span><span class="keyword">module</span> <a href="S/index.html">S</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

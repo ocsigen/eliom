@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Client_history/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Client_history/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Client_history</span></code></h1><p>Pages of the application, the navigation history, and the data associated to each state of the History API. Internal module.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Client_history</span></code></h1><p>Pages of the application, the navigation history, and the data associated to each state of the History API. Internal module.</p></header>
         <div class="odoc-content"><h3 id="history-states">History states</h3><div class="odoc-spec"><div class="spec type anchored" id="type-state"><code><span><span class="keyword">type</span> state</span><span> = </span><span>{</span></code><ol><li id="type-state.template" class="def record field anchored"><code><span>template : <span>string option</span>;</span></code></li><li id="type-state.position" class="def record field anchored"><code><span>position : <a href="../Mod_dom/index.html#type-position">Mod_dom.position</a>;</span></code></li></ol><code><span>}</span></code></div><div class="spec-doc"><p>Data stored in the session storage for each state of the History API.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-state_id"><code><span><span class="keyword">type</span> state_id</span><span> = </span><span>{</span></code><ol><li id="type-state_id.session_id" class="def record field anchored"><code><span>session_id : int;</span></code></li><li id="type-state_id.state_index" class="def record field anchored"><code><span>state_index : int;</span></code><div class="def-doc"><span class="comment-delim">(*</span><p>point in history</p><span class="comment-delim">*)</span></div></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-saved_state"><code><span><span class="keyword">type</span> saved_state</span><span> = <a href="#type-state_id">state_id</a> * string</span></code></div><div class="spec-doc"><p>The value of <code>history.state</code>: the state id and the URL.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-saved_state_of_json"><code><span><span class="keyword">val</span> saved_state_of_json : <span><a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Deriving_Json_lexer/index.html#type-lexbuf">Deriving_Json_lexer.lexbuf</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-saved_state">saved_state</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-saved_state_to_json"><code><span><span class="keyword">val</span> saved_state_to_json : <span><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Buffer/index.html#type-t">Buffer.t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-saved_state">saved_state</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-saved_state_json"><code><span><span class="keyword">val</span> saved_state_json : <span><a href="#type-saved_state">saved_state</a> <a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-session_id"><code><span><span class="keyword">val</span> session_id : int</span></code></div><div class="spec-doc"><p>A random number identifying the current session of the browser tab.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-history_state"><code><span><span class="keyword">val</span> history_state : 
   <span><a href="#type-state_id">state_id</a> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
@@ -287,14 +291,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

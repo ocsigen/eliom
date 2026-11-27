@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Config/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Config/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Config/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Config/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Config</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../eliom.server/Eliom/Config/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Config</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-get_default_hostname"><code><span><span class="keyword">val</span> get_default_hostname : <span>unit <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_default_port"><code><span><span class="keyword">val</span> get_default_port : <span>unit <span class="arrow">&#45;&gt;</span></span> int</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_default_sslport"><code><span><span class="keyword">val</span> get_default_sslport : <span>unit <span class="arrow">&#45;&gt;</span></span> int</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-default_protocol_is_https"><code><span><span class="keyword">val</span> default_protocol_is_https : <span>unit <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_default_links_xhr"><code><span><span class="keyword">val</span> get_default_links_xhr : <span>unit <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-debug_timings"><code><span><span class="keyword">val</span> debug_timings : <span>bool <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-debug_time"><code><span><span class="keyword">val</span> debug_time : <span>string <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>debug_time name</code> starts the browser timer <code>name</code> if <code>debug_timings</code> is set.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-debug_time_end"><code><span><span class="keyword">val</span> debug_time_end : <span>string <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>debug_time_end name</code> stops the browser timer <code>name</code> if <code>debug_timings</code> is set.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_tracing"><code><span><span class="keyword">val</span> set_tracing : <span>bool <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Not tracing by default. Can be dynamically set by adding <code>&quot;#__trace&quot;</code> to the URL.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_tracing"><code><span><span class="keyword">val</span> get_tracing : <span>unit <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_debugmode"><code><span><span class="keyword">val</span> get_debugmode : <span>unit <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>Same as <code>Ocsigen.Config.get_debugmode</code>. On client side, returns <code>false</code> for now.</p></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

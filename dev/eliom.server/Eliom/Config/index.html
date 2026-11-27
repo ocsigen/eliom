@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Config/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Config/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Config/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Config/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Config</span></code></h1><p>This module makes also possible get information from the configuration file.</p><p>It make also possible to add configuration options in configuration file for your Eliom modules. Use <a href="#val-parse_config"><code>Config.parse_config</code></a> for that.</p><p>Example:</p><pre>     &lt;eliommodule ...&gt;
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../eliom.client/Eliom/Config/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Config</span></code></h1><p>This module makes also possible get information from the configuration file.</p><p>It make also possible to add configuration options in configuration file for your Eliom modules. Use <a href="#val-parse_config"><code>Config.parse_config</code></a> for that.</p><p>Example:</p><pre>     &lt;eliommodule ...&gt;
         &lt;myoption myattr=&quot;...&quot;&gt;myvalue&lt;/myoption&gt;
      &lt;/eliommodule&gt;</pre></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-set_session_gc_frequency"><code><span><span class="keyword">val</span> set_session_gc_frequency : <span><span>int option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Set frequency for garnage collection of both in memory data and service sessions. <code>None</code> means never.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_service_session_gc_frequency"><code><span><span class="keyword">val</span> set_service_session_gc_frequency : <span><span>int option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Set frequency for garbage collection of service sessions. <code>None</code> means never.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_data_session_gc_frequency"><code><span><span class="keyword">val</span> set_data_session_gc_frequency : <span><span>int option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Set frequency for garbage collection of in memory data sessions. <code>None</code> means never.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_persistent_session_gc_frequency"><code><span><span class="keyword">val</span> set_persistent_session_gc_frequency : <span><span>int option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Set frequency for garbage collection of persistent data sessions. <code>None</code> means never.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_volatile_timeout"><code><span><span class="keyword">val</span> set_volatile_timeout : 
@@ -324,14 +328,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

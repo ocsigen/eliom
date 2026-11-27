@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Comet/Channel/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Comet/Channel/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Comet/Channel/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Comet/Channel/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Comet.Channel</span></code></h1><p>Basic primitives needed for server push.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Comet/Channel/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Comet.Channel</span></code></h1><p>Basic primitives needed for server push.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div><div class="spec-doc"><p><code>v t</code> is the type of server-to-client communication channels transporting data of type <code>v</code></p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-comet_scope"><code><span><span class="keyword">type</span> comet_scope</span><span> = </span><span>[ </span></code><ol><li id="type-comet_scope.Common.site_scope" class="def variant type anchored"><code><span>| </span><span><a href="../../Common/index.html#type-site_scope">Common.site_scope</a></span></code></li><li id="type-comet_scope.Common.client_process_scope" class="def variant type anchored"><code><span>| </span><span><a href="../../Common/index.html#type-client_process_scope">Common.client_process_scope</a></span></code></li></ol><code><span> ]</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : 
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="#type-comet_scope">comet_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?name</span>:string <span class="arrow">&#45;&gt;</span></span>
@@ -320,14 +324,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

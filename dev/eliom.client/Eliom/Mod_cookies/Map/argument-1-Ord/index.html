@@ -87,9 +87,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Mod_cookies/Map/argument-1-Ord/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -185,9 +185,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Mod_cookies/Map/argument-1-Ord/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -270,21 +270,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Parameter <code><span>Map.Ord</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Parameter <code><span>Map.Ord</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-key"><code><span><span class="keyword">type</span> key</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-key_of_json"><code><span><span class="keyword">val</span> key_of_json : <span><a href="../../../../../../../js_of_ocaml/dev/js_of_ocaml/Deriving_Json_lexer/index.html#type-lexbuf">Deriving_Json_lexer.lexbuf</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-key_to_json"><code><span><span class="keyword">val</span> key_to_json : <span><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Buffer/index.html#type-t">Buffer.t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-key_json"><code><span><span class="keyword">val</span> key_json : <span><a href="#type-key">key</a> <a href="../../../../../../../js_of_ocaml/dev/js_of_ocaml/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-compare"><code><span><span class="keyword">val</span> compare : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> int</span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/Registration/Action/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Registration/Action/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/Registration/Action/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Registration/Action/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Registration.Action</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../eliom.server/Eliom/Registration/Action/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Registration.Action</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-page"><code><span><span class="keyword">type</span> page</span><span> = unit</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-options"><code><span><span class="keyword">type</span> options</span><span> = </span><span>[ </span></code><ol><li id="type-options.Reload" class="def variant constructor anchored"><code><span>| </span><span>`Reload</span></code></li><li id="type-options.NoReload" class="def variant constructor anchored"><code><span>| </span><span>`NoReload</span></code></li></ol><code><span> ]</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-return"><code><span><span class="keyword">type</span> return</span><span> = <a href="../../Service/index.html#type-non_ocaml">Service.non_ocaml</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-result"><code><span><span class="keyword">type</span> result</span><span> = <span><a href="../index.html#type-browser_content">browser_content</a> <a href="../index.html#type-kind">kind</a></span></span></code></div></div><h3 id="service-registration">Service registration</h3><div class="odoc-spec"><div class="spec value anchored" id="val-register"><code><span><span class="keyword">val</span> register : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Common/index.html#type-scope">Common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
@@ -299,14 +303,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

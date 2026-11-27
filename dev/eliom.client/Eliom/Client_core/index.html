@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Client_core/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Client_core/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Client_core</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Client_core</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec module anchored" id="module-Xml"><code><span><span class="keyword">module</span> Xml</span><span> = <a href="../Content_core/Xml/index.html">Content_core.Xml</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-section"><code><span><span class="keyword">val</span> section : <a href="https://ocaml.org/p/logs/0.10.0/doc/Logs/index.html#type-src">Logs.src</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-buffer"><code><span><span class="keyword">type</span> <span>'a buffer</span></span><span> = </span><span>{</span></code><ol><li id="type-buffer.add" class="def record field anchored"><code><span>add : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> unit;</span></code></li><li id="type-buffer.get" class="def record field anchored"><code><span>get : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> list</span>;</span></code></li><li id="type-buffer.flush" class="def record field anchored"><code><span>flush : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> list</span>;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_buffer"><code><span><span class="keyword">val</span> create_buffer : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-buffer">buffer</a></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Client_closure"><code><span><span class="keyword">module</span> <a href="Client_closure/index.html">Client_closure</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Client_value_registry"><code><span><span class="keyword">module</span> <a href="Client_value_registry/index.html">Client_value_registry</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-middleClick"><code><span><span class="keyword">val</span> middleClick : <span><span><a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Dom_html/class-type-event/index.html">Js_of_ocaml.Dom_html.event</a> <a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Injection"><code><span><span class="keyword">module</span> <a href="Injection/index.html">Injection</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-compilation_unit_global_data"><code><span><span class="keyword">type</span> compilation_unit_global_data</span><span> = </span><span>{</span></code><ol><li id="type-compilation_unit_global_data.server_section" class="def record field anchored"><code><span><span class="keyword">mutable</span> server_section : <span><span><span class="xref-unresolved">Runtime.client_value_datum</span> array</span> list</span>;</span></code></li><li id="type-compilation_unit_global_data.client_section" class="def record field anchored"><code><span><span class="keyword">mutable</span> client_section : <span><span><span class="xref-unresolved">Runtime.injection_datum</span> array</span> list</span>;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-global_data"><code><span><span class="keyword">val</span> global_data : <span><span><a href="#type-compilation_unit_global_data">compilation_unit_global_data</a> <a href="../Lib/String_map/index.html#type-t">Lib.String_map.t</a></span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-do_next_server_section_data"><code><span><span class="keyword">val</span> do_next_server_section_data : 
   <span><span class="label">compilation_unit_id</span>:<a href="../Lib/String_map/index.html#type-key">Lib.String_map.key</a> <span class="arrow">&#45;&gt;</span></span>
   unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-do_next_client_section_data"><code><span><span class="keyword">val</span> do_next_client_section_data : 
@@ -387,14 +391,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Tools/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Tools/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Tools/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Tools/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Tools</span></code></h1><p>Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about <a href="../../../server/widgets.html#basic_menu" title="basic_menu">menu</a> or <a href="../../../server/widgets.html#hier_menu" title="hier_menu">hierarchical site</a>.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../eliom.server/Eliom/Tools/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Tools</span></code></h1><p>Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about <a href="../../../server/widgets.html#basic_menu" title="basic_menu">menu</a> or <a href="../../../server/widgets.html#hier_menu" title="hier_menu">hierarchical site</a>.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-srv"><code><span><span class="keyword">type</span> srv</span><span> = </span></code><ol><li id="type-srv.Srv" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Srv</span> : <span><span>(unit,
         unit,
         <a href="../Service/index.html#type-get">Service.get</a>,
@@ -308,14 +312,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

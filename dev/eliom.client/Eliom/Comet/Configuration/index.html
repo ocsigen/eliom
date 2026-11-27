@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Comet/Configuration/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Comet/Configuration/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Comet.Configuration</span></code></h1><p>Change the reactivity of channels. Multiples configurations ( of type <code>t</code> ) can be created. The resulting behaviour is the minimal ( in the meaning of maximal reactivity ) between all configurations</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Comet.Configuration</span></code></h1><p>Change the reactivity of channels. Multiples configurations ( of type <code>t</code> ) can be created. The resulting behaviour is the minimal ( in the meaning of maximal reactivity ) between all configurations</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> t</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-new_configuration"><code><span><span class="keyword">val</span> new_configuration : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>Creates a new configuration with default value. It modifies the current behaviour immediately</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-drop_configuration"><code><span><span class="keyword">val</span> drop_configuration : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>drop_configuration t</code> restores the behaviour to the minimum of configuration without <code>t</code>. If there is no other configuration than <code>t</code>, it is restored to the defaults.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_always_active"><code><span><span class="keyword">val</span> set_always_active : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span>bool <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>set_always_active c b</code> if b is true, tells the client to always stay active. Default value is false.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_timeout"><code><span><span class="keyword">val</span> set_timeout : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span>float <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>set_timeout c t</code> tells the client to stay active at least <code>t</code> seconds when the application lose the focus. Default value is 180.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_active_until_timeout"><code><span><span class="keyword">val</span> set_active_until_timeout : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span>bool <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>set_active_until_timeout c v</code> sets the activity changing behaviour. if <code>v</code> is <code>true</code> the page is kept active even if not focused until the client receive a timeout message from the server. It implies that if the server keeps sending data to the client, the comet connection will never be closed. Default value is false.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_time_between_requests"><code><span><span class="keyword">val</span> set_time_between_requests : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span>float <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>after <code>set_time_between_requests t v</code>, the main loop will wait for <code>v</code> seconds between two requests. It is taken into account immediately. Default value is 0.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_time_between_requests_when_idle"><code><span><span class="keyword">val</span> set_time_between_requests_when_idle : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><span>(float * float * float)</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>set_time_between_requests_when_idle t (a, b, c)</code> sets the time between two requests when the the windows does not have the focus, after the timeout. This amount of time is computed using an affine function (a * T + b), where T is the amount of time elapsed since the beginning of the idle phase, with a maximal time of c. If you want no request at all, do <code>set_always_active false</code>. Setting this to <code>(0., 0., 0.)</code> is equivalent to <code>set_always_active true</code>. Default value is <code>(0.5, 60., 600.)</code>.</p></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

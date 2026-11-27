@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Shared/React/E/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Shared/React/E/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>React.E</span></code></h1><p>Event combinators.</p><p>Consult their <span class="xref-unresolved" title="evsem">semantics.</span></p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>React.E</span></code></h1><p>Event combinators.</p><p>Consult their <span class="xref-unresolved" title="evsem">semantics.</span></p></header>
         <div class="odoc-content"><h2 id="prim">Primitive and basics</h2><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span><span> = <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p>The type for events with occurrences of type <code>'a</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-never"><code><span><span class="keyword">val</span> never : <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p>A never occuring event. For all t, [<code>never</code>]<sub>t</sub> <code>= None</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> * <span>(<span><span class="optlabel">?step</span>:<a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-step">React.step</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> unit)</span></span></code></div><div class="spec-doc"><p><code>create ()</code> is a primitive event <code>e</code> and a <code>send</code> function. The function <code>send</code> is such that:</p><ul><li><code>send v</code> generates an occurrence <code>v</code> of <code>e</code> at the time it is called and triggers an <span class="xref-unresolved" title="steps">update step</span>.</li><li><code>send ~step v</code> generates an occurence <code>v</code> of <code>e</code> on the step <code>step</code> when <code>step</code> is <span class="xref-unresolved" title="Step.execute">executed</span>.</li><li><code>send ~step v</code> raises <code>Invalid_argument</code> if it was previously called with a step and this step has not executed yet or if the given <code>step</code> was already executed.</li></ul><p><b>Warning.</b> <code>send</code> must not be executed inside an update step.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-retain"><code><span><span class="keyword">val</span> retain : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span>unit <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="arrow">&#45;&gt;</span></span> <span>[ <span>`R of <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span> ]</span></span></code></div><div class="spec-doc"><p><code>retain e c</code> keeps a reference to the closure <code>c</code> in <code>e</code> and returns the previously retained value. <code>c</code> will <em>never</em> be invoked.</p><p><b>Raises.</b> <code>Invalid_argument</code> on <a href="#val-never"><code>E.never</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-stop"><code><span><span class="keyword">val</span> stop : <span><span class="optlabel">?strong</span>:bool <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>stop e</code> stops <code>e</code> from occuring. It conceptually becomes <a href="#val-never"><code>never</code></a> and cannot be restarted. Allows to disable <span class="xref-unresolved" title="sideeffects">effectful</span> events.</p><p>The <code>strong</code> argument should only be used on platforms where weak arrays have a strong semantics (i.e. JavaScript). See <span class="xref-unresolved" title="strongstop">details</span>.</p><p><b>Note.</b> If executed in an <span class="xref-unresolved" title="steps">update step</span> the event may still occur in the step.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-equal"><code><span><span class="keyword">val</span> equal : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>equal e e'</code> is <code>true</code> iff <code>e</code> and <code>e'</code> are equal. If both events are different from <a href="#val-never"><code>never</code></a>, physical equality is used.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-trace"><code><span><span class="keyword">val</span> trace : 
   <span><span class="optlabel">?iff</span>:<span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="arrow">&#45;&gt;</span></span>
@@ -308,14 +312,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

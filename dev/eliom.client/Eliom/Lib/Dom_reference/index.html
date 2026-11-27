@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Lib/Dom_reference/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Lib/Dom_reference/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Lib.Dom_reference</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Lib.Dom_reference</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-key"><code><span><span class="keyword">type</span> key</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-new_key"><code><span><span class="keyword">val</span> new_key : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-retain"><code><span><span class="keyword">val</span> retain : <span><span class="optlabel">?key</span>:<a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">_</span> <a href="../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="label">keep</span>:<span class="type-var">_</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>retain v ~keep</code> prevents <code>keep</code> from being garbage collected while <code>v</code> is live. An optional key can be specified if one needs to remove this association later one.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-retain_generic"><code><span><span class="keyword">val</span> retain_generic : <span><span class="optlabel">?key</span>:<a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">_</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="label">keep</span>:<span class="type-var">_</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Same as <code>retain</code> but works with any object. More error-prone</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-release"><code><span><span class="keyword">val</span> release : <span><span class="label">key</span>:<a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">_</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>release ~key o</code> removes the association between the value <code>v</code> and the value associated to <code>key</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-transfer"><code><span><span class="keyword">val</span> transfer : <span><span class="label">key</span>:<a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="label">src</span>:<span class="type-var">_</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="label">dst</span>:<span class="type-var">_</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>transfer ~key ~src ~dst</code> transfers the association between the value <code>src</code> and the value associated to key <code>key</code> to value <code>dst</code>.</p></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

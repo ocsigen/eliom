@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Content/Svg/C/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Content/Svg/C/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Content/Svg/C/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Content/Svg/C/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Svg.C</span></code></h1><p>Creation of content from client-side values.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../../eliom.server/Eliom/Content/Svg/C/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Svg.C</span></code></h1><p>Creation of content from client-side values.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-node"><code><span><span class="keyword">val</span> node : <span><span class="optlabel">?init</span>:<span><span class="type-var">'a</span> <a href="../D/index.html#type-elt">D.elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <a href="../../../Client_value/index.html#type-t">Client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../D/index.html#type-elt">D.elt</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-attr"><code><span><span class="keyword">val</span> attr : <span><span class="optlabel">?init</span>:<span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <a href="../../../Client_value/index.html#type-t">Client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

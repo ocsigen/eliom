@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../eliom.client/Eliom/Shared/React/S/Bool/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../eliom.client/Eliom/Shared/React/S/Bool/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>S.Bool</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>S.Bool</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-zero"><code><span><span class="keyword">val</span> zero : <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-one"><code><span><span class="keyword">val</span> one : <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-not"><code><span><span class="keyword">val</span> not : <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(&amp;&amp;)"><code><span><span class="keyword">val</span> (&amp;&amp;) : <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(||)"><code><span><span class="keyword">val</span> (||) : <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-edge"><code><span><span class="keyword">val</span> edge : <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>edge s</code> is <code>changes s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-rise"><code><span><span class="keyword">val</span> rise : <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>rise s</code> is <code>E.fmap (fun b -&gt; if b then Some () else None) (edge s)</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fall"><code><span><span class="keyword">val</span> fall : <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>fall s</code> is <code>E.fmap (fun b -&gt; if b then None else Some ()) (edge s)</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-flip"><code><span><span class="keyword">val</span> flip : <span>bool <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span></span></code></div><div class="spec-doc"><p><code>flip b e</code> is a signal whose boolean value flips each time <code>e</code> occurs. <code>b</code> is the initial signal value.</p><ul><li>[<code>flip b e</code>]<sub>0</sub> <code>= not b</code> if [<code>e</code>]<sub>0</sub> <code>= Some _</code></li><li>[<code>flip b e</code>]<sub>t</sub> <code>= b</code> if [<code>e</code>]<sub>&lt;=t</sub> <code>= None</code></li><li>[<code>flip b e</code>]<sub>t</sub> <code>=</code> <code>not</code> [<code>flip b e</code>]<sub>t-dt</sub> if [<code>e</code>]<sub>t</sub> <code>= Some _</code></li></ul></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

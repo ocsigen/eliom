@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../eliom.client/Eliom/Content_functor/Html/Manip/Ev/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../eliom.client/Eliom/Content_functor/Html/Manip/Ev/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Manip.Ev</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Manip.Ev</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-ev"><code><span><span class="keyword">type</span> <span>('a, 'b) ev</span></span><span> = <span><span><span class="type-var">'a</span> <a href="../../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span><span class="type-var">'b</span> <a href="../../../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ev_unit"><code><span><span class="keyword">type</span> <span>('a, 'b) ev_unit</span></span><span> = <span><span><span class="type-var">'a</span> <a href="../../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span><span class="type-var">'b</span> <a href="../../../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-bool_cb"><code><span><span class="keyword">val</span> bool_cb : 
   <span><span>(<span><span><span>(<a href="../../../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Dom_html/class-type-event/index.html">Js_of_ocaml.Dom_html.event</a> <span class="keyword">as</span> 'a)</span> <a href="../../../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'b</span>, <span><span class="type-var">'a</span> <a href="../../../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span>)</span> <a href="../../../../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Dom_html/index.html#type-event_listener">Js_of_ocaml.Dom_html.event_listener</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-onkeyup"><code><span><span class="keyword">val</span> onkeyup : 
@@ -325,14 +329,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

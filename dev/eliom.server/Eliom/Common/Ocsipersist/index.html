@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Common/Ocsipersist/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Common/Ocsipersist/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Common.Ocsipersist</span></code></h1><p>Persistent key-value store interface for OCaml. This is a virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages <code>ocsipersist-sqlite</code>, <code>ocsipersist-dbm</code> or <code>ocsipersist-pgsql</code>.</p><p>Library <code>Ocsipersist_settings</code>, provided by each of the backends, contain the configuration options for your stores.</p><p>Packages <code>ocsipersist-sqlite-config</code>, <code>ocsipersist-dbm-config</code> and <code>ocsipersist-pgsql-config</code> add the possibility to configure the corresponding backends from Ocsigen Server's configuration file.</p><p>Ocsipersist is used by Eliom for persistent session storages and references.</p><p>Ocsipersist defines several interfaces:</p><ul><li><code>Ref</code> is the simpler the use: it provides persistent references</li><li><code>Store</code> is a lower level interface for persistent values</li><li><code>Polymorphic</code> is a polymorphic table, using Mahshal</li><li><code>Functorial</code> is a typed interface for your own data type</li></ul><p>Example of use from the toplevel:</p><pre class="language-ocaml"><code># #require &quot;lwt_ppx&quot;;;
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Common.Ocsipersist</span></code></h1><p>Persistent key-value store interface for OCaml. This is a virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages <code>ocsipersist-sqlite</code>, <code>ocsipersist-dbm</code> or <code>ocsipersist-pgsql</code>.</p><p>Library <code>Ocsipersist_settings</code>, provided by each of the backends, contain the configuration options for your stores.</p><p>Packages <code>ocsipersist-sqlite-config</code>, <code>ocsipersist-dbm-config</code> and <code>ocsipersist-pgsql-config</code> add the possibility to configure the corresponding backends from Ocsigen Server's configuration file.</p><p>Ocsipersist is used by Eliom for persistent session storages and references.</p><p>Ocsipersist defines several interfaces:</p><ul><li><code>Ref</code> is the simpler the use: it provides persistent references</li><li><code>Store</code> is a lower level interface for persistent values</li><li><code>Polymorphic</code> is a polymorphic table, using Mahshal</li><li><code>Functorial</code> is a typed interface for your own data type</li></ul><p>Example of use from the toplevel:</p><pre class="language-ocaml"><code># #require &quot;lwt_ppx&quot;;;
 (* #thread;; if you are using OCaml &lt; 5.0.0 *)
 # #require &quot;ocsipersist-sqlite&quot;;;
 # Ocsipersist.init ();;
@@ -307,14 +311,6 @@ val r : int Ocsipersist.Ref.t = &lt;abstr&gt;
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

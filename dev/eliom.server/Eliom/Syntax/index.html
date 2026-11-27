@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Syntax/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Syntax/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Syntax</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Syntax</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-get_global_data"><code><span><span class="keyword">val</span> get_global_data : <span>unit <span class="arrow">&#45;&gt;</span></span> <span class="xref-unresolved">Runtime.global_data</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_request_data"><code><span><span class="keyword">val</span> get_request_data : <span>unit <span class="arrow">&#45;&gt;</span></span> <span class="xref-unresolved">Runtime.request_data</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_poly"><code><span><span class="keyword">val</span> to_poly : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="../../../../../ocsigenserver/dev/Ocsigen_lib_base/index.html#type-poly">Ocsigen_lib_base.poly</a></span></code></div><div class="spec-doc"><p>Used by the PPX to serialize injection values.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-client_value"><code><span><span class="keyword">val</span> client_value : <span><span class="optlabel">?pos</span>:<span class="xref-unresolved">Lib.pos</span> <span class="arrow">&#45;&gt;</span></span> <span>string <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'args</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../Client_value/index.html#type-t">Client_value.t</a></span></span></code></div><div class="spec-doc"><p>Registers a client value datum for the next server section when executed in a global_data (cf. <a href="#val-set_global"><code>Syntax.set_global</code></a>) or in the request_data when executed in a request.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_global"><code><span><span class="keyword">val</span> set_global : <span>bool <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>All client values created between <code>set_global true</code> and <code>set_global false</code> are considered global client values (cf. <a href="../../../clientserver/multitier.html" title="multitier">the manual</a>).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-global_context"><code><span><span class="keyword">val</span> global_context : <span>unit <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>Returns whether client values created in the current context should be considered global</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-close_server_section"><code><span><span class="keyword">val</span> close_server_section : <span>string <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Called at the end of each server or shared section. The argument identifies the compilation unit.</p><p>Adds the list of recently registered <a href="../Runtime/index.html#type-client_value_datum"><code>Runtime.client_value_datum</code></a>s into the queue of server section data of the compilation unit (<code>Lib_base.compilation_unit_global_data</code>).</p><p>Called in parallel with <code>Client.Syntax_helpers.close_server_section</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-close_client_section"><code><span><span class="keyword">val</span> close_client_section : 
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span><span><span>(int * <a href="../../../../../ocsigenserver/dev/Ocsigen_base/Lib/index.html#type-poly">Ocsigen_base.Lib.poly</a> * <span class="xref-unresolved">Lib.pos</span> * <span>string option</span>)</span> list</span> <span class="arrow">&#45;&gt;</span></span>
@@ -303,14 +307,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

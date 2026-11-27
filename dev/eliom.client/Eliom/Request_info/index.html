@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Request_info/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Request_info/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Request_info/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Request_info/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Request_info</span></code></h1><p>This module contains the functions you need to get (or set) information about current request.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../eliom.server/Eliom/Request_info/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Request_info</span></code></h1><p>This module contains the functions you need to get (or set) information about current request.</p></header>
         <div class="odoc-content"><h3 id="getting-information-about-the-request">Getting information about the request</h3><div class="odoc-spec"><div class="spec value anchored" id="val-get_original_full_path_string"><code><span><span class="keyword">val</span> get_original_full_path_string : <span>unit <span class="arrow">&#45;&gt;</span></span> string</span></code></div><div class="spec-doc"><p>returns the full path of the URL as first sent by the browser (not changed by previous extensions like rewritemod)</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_nl_get_params"><code><span><span class="keyword">val</span> get_nl_get_params : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span>(string * string)</span> list</span> <a href="../Lib/String/Table/index.html#type-t">Lib.String.Table.t</a></span></span></code></div><div class="spec-doc"><p>returns non localized parameters in the URL.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_site_dir"><code><span><span class="keyword">val</span> get_site_dir : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="../Lib/Url/index.html#type-path">Lib.Url.path</a></span></code></div><div class="spec-doc"><p>returns the root of the site.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_site_dir_option"><code><span><span class="keyword">val</span> get_site_dir_option : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><a href="../Lib/Url/index.html#type-path">Lib.Url.path</a> option</span></span></code></div><div class="spec-doc"><p>returns the root of the site.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_ignored_get_params"><code><span><span class="keyword">val</span> get_ignored_get_params : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span>(string * string)</span> list</span></span></code></div><div class="spec-doc"><p>returns the GET parameters that have been ignored using &lt;ignoredgetparams/&gt; in config file.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_ignored_post_params"><code><span><span class="keyword">val</span> get_ignored_post_params : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span>(string * string)</span> list</span></span></code></div><div class="spec-doc"><p>returns the POST parameters that have been ignored using &lt;ignoredpostparams/&gt; in config file.</p></div></div><h3 id="other-low-level-functions">Other low level functions</h3><p>You probably don't need these functions.</p><h4 id="getting-information-about-the-url-of-the-client-side-process-(csp)">Getting information about the URL of the client side process (csp)</h4><p>Warning: it is different from the URL to which the request has been made.</p><div class="odoc-spec"><div class="spec value anchored" id="val-get_csp_original_full_path"><code><span><span class="keyword">val</span> get_csp_original_full_path : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="../Lib/Url/index.html#type-path">Lib.Url.path</a></span></code></div><div class="spec-doc"><p>returns the full path of the URL where the client-side process is running. If there is no client side process, same as <code>get_original_full_path</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_csp_ssl"><code><span><span class="keyword">val</span> get_csp_ssl : <span>unit <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>returns true if https is used in the URL of the browser, false if http. If there is no client side process, same as <code>get_ssl</code>.</p></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,
