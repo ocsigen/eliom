@@ -12,7 +12,8 @@ let eliomverbatim_filename = ".eliomverbatim"
 let eliom_template_dir =
   Filename.concat (Findlib.package_directory "eliom") "templates"
 
-let distillery_basic = "client-server.basic", eliom_template_dir
+(* The template used when [-template] is not given. *)
+let default_template = "app"
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
 
 (* Returns all lines of [file] as a string list. Returns an empty list
@@ -32,7 +33,7 @@ let lines_of_file file =
     aux (); !lines
 
 let pp_list () l =
-  let f s = if s = fst distillery_basic then s ^ " (default)" else s in
+  let f s = if s = default_template then s ^ " (default)" else s in
   String.concat ", " (List.map f l)
 
 let gen_usage_msg l =
@@ -279,7 +280,7 @@ let get_templates () =
 (* ---------- Reserve project name ---------- *)
 
 (* Check if the project name is valid for the given template. For example,
- * options is not a valid project name for client-server.basic.
+ * options is not a valid project name for app.
  * It is supposed each
  * template has a file {!reserve_project_name_filename} file containing the
  * list of reserve project name (one name a line).
@@ -307,11 +308,11 @@ let main () =
   in
   let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
   let name = ref None in
-  let template = ref distillery_basic in
+  let template = ref None in
   let templates = get_templates () in
   let usage_msg = gen_usage_msg (List.map fst templates) in
   let select_template s =
-    try template := List.find (fun (name, _) -> name = s) templates
+    try template := Some (List.find (fun (name, _) -> name = s) templates)
     with Not_found -> bad "Not a known template name: %S" s
   in
   let dest_dir = ref None in
@@ -355,13 +356,26 @@ let main () =
   else if !shown
   then ()
   else
-    let template, name, dest_dir =
-      match !template, !name with
-      | template, Some name ->
-          let dir = Option.value !dest_dir ~default:name in
-          template, name, dir
-      | _ -> Arg.usage spec usage_msg; exit 1
+    let name =
+      match !name with
+      | Some name -> name
+      | None -> Arg.usage spec usage_msg; exit 1
     in
+    let template =
+      match !template with
+      | Some template -> template
+      | None -> (
+        match List.find_opt (fun (t, _) -> t = default_template) templates with
+        | Some template -> template
+        | None ->
+            eprintf
+              "No -template given, and the default template %S is not \
+               installed (see -list-templates).\n"
+              default_template;
+            exit 1
+      )
+    in
+    let dest_dir = Option.value !dest_dir ~default:name in
     if check_reserve_project_name name template
     then
       printf "'%s' is not a valid project name for the template '%s'.\n" name

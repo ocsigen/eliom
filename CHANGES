@@ -1,4 +1,6 @@
 ===== dev =====
+* Distillery: without -template, use the template app. The default was
+  still client-server.basic, which is no longer installed.
 * Distillery: install the dotfiles of the templates (.ocamlformat,
   .gitignore, ...): generated projects did not get them.
 * Distillery templates app and basic.ppx: formatted with the ocsigen
