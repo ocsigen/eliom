@@ -67,4 +67,5 @@
   (js_of_ocaml     js_of_ocaml     subdir)
   (tyxml           tyxml           subdir Tyxml)
   (lwt             lwt             subdir)
+  (ocsipersist     ocsipersist     subdir)
   (reactiveData    reactiveData    root))
