@@ -281,7 +281,7 @@ If your `page` type has parameters you should use [`Eliom.Mkreg.Make_poly`](./..
 
 ### Implementing cooperative service handlers with Lwt
 
-Remember that a Web site written with Eliom is an OCaml application. This application must be able to handle several requests at the same time, in order to prevent a single request from making the whole server hang. To make this possible, Ocsigen uses *cooperative threads*. The monadic style followed by [`Lwt`](./../../../lwt/lwt/Lwt.md) makes such threads easy to use.
+Remember that a Web site written with Eliom is an OCaml application. This application must be able to handle several requests at the same time, in order to prevent a single request from making the whole server hang. To make this possible, Ocsigen uses *cooperative threads*. The monadic style followed by [`Lwt`](../../../../lwt/latest/lwt/Lwt.md) makes such threads easy to use.
 
 Below is an example of a page written in a non-cooperative way, that has the effect of stopping the entire server for 5 seconds. No one will be able to query the server during this period:
 
@@ -299,7 +299,7 @@ let looong =
              (body [h1 [txt "Ok now, you can read the page."]])
          ))
 ```
-To solve this problem, use a cooperative version of `Unix.sleep`: [`Lwt_unix.sleep`](./../../../lwt/lwt.unix/Lwt_unix.md#val-sleep):
+To solve this problem, use a cooperative version of `Unix.sleep`: [`Lwt_unix.sleep`](../../../../lwt/latest/lwt/Lwt_unix.md#val-sleep):
 
 ```ocaml
 open Eliom.Content.Html.D
@@ -316,7 +316,7 @@ let looong =
              (body [h1 [txt "Ok now, you can read the page."]])
          ))
 ```
-If you want to use, say, a database library that is not written in a cooperative way, but which is thread-safe for preemptive threads, use the [`Lwt_preemptive`](./../../../lwt/lwt.unix/Lwt_preemptive.md) module to detach the computation. In the following example, we simulate the request by making a call to Unix.sleep:
+If you want to use, say, a database library that is not written in a cooperative way, but which is thread-safe for preemptive threads, use the [`Lwt_preemptive`](../../../../lwt/latest/lwt/Lwt_preemptive.md) module to detach the computation. In the following example, we simulate the request by making a call to Unix.sleep:
 
 ```ocaml
 let looong2 =

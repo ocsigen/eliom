@@ -52,7 +52,7 @@ module Custom_data : sig ... end
 ```ocaml
 module To_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.TO with type 'a elt = 'a elt
 ```
-Conversion from HTML5 `elt`s to Javascript DOM elements (`<:` [`Js_of_ocaml.Dom_html.element`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)). One conversion function per source type (stressed by the `of_` prefix).
+Conversion from HTML5 `elt`s to Javascript DOM elements (`<:` [`Js_of_ocaml.Dom_html.element`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)). One conversion function per source type (stressed by the `of_` prefix).
 
 ```ocaml
 module Manip : sig ... end
@@ -62,4 +62,4 @@ DOM-like manipulation functions.
 ```ocaml
 module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
 ```
-Conversion functions from DOM nodes ([`Js_of_ocaml.Dom_html.element`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md) [`Js_of_ocaml.Js.t`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Js.md#type-t)) to Eliom nodes ([`Content.Html.elt`](./#type-elt)).
+Conversion functions from DOM nodes ([`Js_of_ocaml.Dom_html.element`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md) [`Js_of_ocaml.Js.t`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Js.md#type-t)) to Eliom nodes ([`Content.Html.elt`](./#type-elt)).

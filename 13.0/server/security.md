@@ -40,8 +40,8 @@ This typically happens if authentication is badly implemented, or altogether mis
 
 ### [Path traversal](http://en.wikipedia.org/wiki/Directory_traversal)
 
-- The module [Extendconfiguration](./../../ocsigenserver/extendconfiguration.md) can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
-- Even if [userconf](./../../ocsigenserver/userconf.md) is activated, users can only expose their own files; see the `localpath` option for details.
+- The module [Extendconfiguration](../../../ocsigenserver/latest/extendconfiguration.md) can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
+- Even if [userconf](../../../ocsigenserver/latest/userconf.md) is activated, users can only expose their own files; see the `localpath` option for details.
 - Occurrences of the `'..'` pattern appearing in URLs are automatically removed by the server
 - Ocsigen automatically decodes the percent-encoded characters of URLs, which protects against attacks based on quoted characters
 
@@ -58,7 +58,7 @@ This typically happens if authentication is badly implemented, or altogether mis
   - `<script>` tags
   - JavaScript event attributes such as `onmouseover`
   - inside `<meta>` refresh tags
-- if the user can upload files, sanitize very severely HTML or text files (that can contain JavaScript). Moreover, browsers may guess the type of a file whose content looks like HTML, so you also need to check those files. The header `X-Content-Type-Options: nosniff`, sent by the [Securityheaders](./../../ocsigenserver/securityheaders.md) extension of Ocsigen Server, prevents this guess.
+- if the user can upload files, sanitize very severely HTML or text files (that can contain JavaScript). Moreover, browsers may guess the type of a file whose content looks like HTML, so you also need to check those files. The header `X-Content-Type-Options: nosniff`, sent by the [Securityheaders](../../../ocsigenserver/latest/securityheaders.md) extension of Ocsigen Server, prevents this guess.
 
 ### [Cross site tracing](http://en.wikipedia.org/wiki/Cross-site_tracing)
 

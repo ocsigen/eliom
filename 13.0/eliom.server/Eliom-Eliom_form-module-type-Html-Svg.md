@@ -34,7 +34,7 @@ type 'a wrap = 'a Xml.W.t
 ```
 `wrap` is a container for elements and values.
 
-In most cases, `'a wrap = 'a`. For `R` modules (in eliom or js\_of\_ocaml), It will be [`React.S.t`](./../../react/react/React-S.md#type-t).
+In most cases, `'a wrap = 'a`. For `R` modules (in eliom or js\_of\_ocaml), It will be [`React.S.t`](https://ocaml.org/p/react/1.2.2/doc/react/React/S/index.html#type-t).
 
 ```ocaml
 type 'a list_wrap = 'a Xml.W.tlist
@@ -2149,7 +2149,7 @@ val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
 ```
 `import signal` converts the given XML signal into Tyxml elements. It can be used with HTML and SVG parsing libraries, such as Markup.
 
-raises [`Xml_stream.Malformed_stream`](./../../tyxml/tyxml.functor/Xml_stream.md#exception-Malformed_stream) if the stream is malformed.
+raises [`Xml_stream.Malformed_stream`](../../../tyxml/latest/tyxml/Xml_stream.md#exception-Malformed_stream) if the stream is malformed.
 ```ocaml
 val tot : Xml.elt -> 'a elt
 ```

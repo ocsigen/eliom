@@ -2,7 +2,7 @@
 
 An *Eliom module* is the server-side code of a Web site, or of part of it, compiled as an OCaml library (or as a single module). Either the `ocsigenserver` command loads it dynamically, as specified in its configuration file, or your own executable links it statically with Ocsigen Server (see [Static linking of Eliom modules](./#static_linking)).
 
-This chapter explains how to set Eliom's options in the Ocsigen server configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the [server's configuration](./../../ocsigenserver/config.md).
+This chapter explains how to set Eliom's options in the Ocsigen server configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the [server's configuration](../../../ocsigenserver/latest/config.md).
 
 Note, however, that [Eliom's distillery](./distillery.md) provides templates to get started at once with Eliom\!
 
@@ -69,7 +69,7 @@ If your module has a findlib META file, it is also possible (and recommended!) t
 
 ### Updating sites without shutting down the server
 
-Ocsigen server has a feature that allows the configuration to be reloaded without shutting down the server (see section "Reloading the configuration file" of the [server's configuration](./../../ocsigenserver/config.md)). This can be used to reload Eliom modules without closing volatile sessions. To do that, write `reload` into the server's command pipe (the path given by `<commandpipe>`), for example:
+Ocsigen server has a feature that allows the configuration to be reloaded without shutting down the server (see section "Reloading the configuration file" of the [server's configuration](../../../ocsigenserver/latest/config.md)). This can be used to reload Eliom modules without closing volatile sessions. To do that, write `reload` into the server's command pipe (the path given by `<commandpipe>`), for example:
 
 ```
 echo reload > /var/run/ocsigenserver_command
@@ -121,7 +121,7 @@ Use [`Eliom.Config.get_config`](./../eliom.server/Eliom-Config.md#val-get_config
 
 ### Static linking of Eliom modules
 
-It is possible to link extensions and Eliom modules [statically](./../../ocsigenserver/staticlink.md), with or without a configuration file.
+It is possible to link extensions and Eliom modules [statically](../../../ocsigenserver/latest/staticlink.md), with or without a configuration file.
 
 #### With a configuration file
 
@@ -157,7 +157,7 @@ If you want to use this kind of function before the initialization phase, for ex
 
 #### Without a configuration file
 
-A program can also start the server itself, without a configuration file, with [`Ocsigen.Server.start`](./../../ocsigenserver/ocsigenserver/Ocsigen-Server.md#val-start) (see [Using Ocsigen Server as a library](./../../ocsigenserver/staticlink.md)). The instruction [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run) runs your Eliom application in a host or a site, and its optional parameters replace the options of the `<eliom>` tag. The services can then be registered by the toplevel code of your modules.
+A program can also start the server itself, without a configuration file, with [`Ocsigen.Server.start`](../../../ocsigenserver/latest/Ocsigen-Server.md#val-start) (see [Using Ocsigen Server as a library](../../../ocsigenserver/latest/staticlink.md)). The instruction [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run) runs your Eliom application in a host or a site, and its optional parameters replace the options of the `<eliom>` tag. The services can then be registered by the toplevel code of your modules.
 
 As there is no configuration file, the program must also give the location of the Ocsipersist database, with module `Ocsipersist_settings` (see [Configuring the database](./../server/state.md#ocsipersist_config)). Since Ocsigen Server 8\.1, without `~logdir` (nor `~syslog_facility`), the logs go to the standard output and standard error. For example, with the SQLite backend of Ocsipersist:
 
@@ -172,7 +172,7 @@ The template `app` of [Eliom's distillery](./distillery.md) builds such a progra
 
 ### Advanced use: create an extension for the server that accesses Eliom's data
 
-If you want an Ocsigen extension with access to Eliom's data (for example if you want an extension that will register some services), you can use the function [`Eliom.Extension.register_eliom_extension`](./../eliom.server/Eliom-Extension.md#val-register_eliom_extension) to register the function that will generate the [`Ocsigen.Extensions.answer`](./../../ocsigenserver/ocsigenserver/Ocsigen-Extensions.md#type-answer).
+If you want an Ocsigen extension with access to Eliom's data (for example if you want an extension that will register some services), you can use the function [`Eliom.Extension.register_eliom_extension`](./../eliom.server/Eliom-Extension.md#val-register_eliom_extension) to register the function that will generate the [`Ocsigen.Extensions.answer`](../../../ocsigenserver/latest/Ocsigen-Extensions.md#type-answer).
 
 Add more details about this
 

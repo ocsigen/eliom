@@ -103,7 +103,7 @@ val addEventListener :
   ('a elt -> 'b Js_of_ocaml.Js.t -> bool) ->
   Js_of_ocaml.Dom_html.event_listener_id
 ```
-The function `addEventListener elt evt handler` attach the `handler` for the event `evt` on the element `elt`. See the Js\_of\_ocaml manual, for a list of [available events](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-Event.md).
+The function `addEventListener elt evt handler` attach the `handler` for the event `evt` on the element `elt`. See the Js\_of\_ocaml manual, for a list of [available events](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Dom_html-Event.md).
 
 ```ocaml
 module Named : sig ... end

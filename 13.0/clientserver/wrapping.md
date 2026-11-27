@@ -82,7 +82,7 @@ When `v` is sent to the client, the value received is `(Value 1, empty_wrapper)`
 The Eliom types that are marked are:
 
 - [`Eliom.Service.t`](./../eliom.server/Eliom-Service.md#type-t) transformed to [`Eliom.Service.t`](./../eliom.server/Eliom-Service.md#type-t) (but the client side representation)
-- [`Eliom.Comet.Channel.t`](./../eliom.server/Eliom-Comet-Channel.md#type-t) transformed to [`Lwt_stream.t`](./../../lwt/lwt/Lwt_stream.md#type-t)
+- [`Eliom.Comet.Channel.t`](./../eliom.server/Eliom-Comet-Channel.md#type-t) transformed to [`Lwt_stream.t`](../../../lwt/latest/lwt/Lwt_stream.md#type-t)
 - [`Eliom.Eliom_react.Up.t`](./../eliom.server/Eliom-Eliom_react-Up.md#type-t) transformed to `'a -> unit Lwt.t`
 - [`Eliom.Eliom_react.Down.t`](./../eliom.server/Eliom-Eliom_react-Down.md#type-t) transformed to `'a React.E.t`
 - [`Eliom.Bus.t`](./../eliom.server/Eliom-Bus.md#type-t) transformed to [`Eliom.Bus.t`](./../eliom.server/Eliom-Bus.md#type-t)

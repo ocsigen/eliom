@@ -2,7 +2,7 @@
 
 URL manipulation
 
-See [`Ocsigen_base.Lib.Url_base`](./../../ocsigenserver/ocsigenserver.baselib/Ocsigen_base-Lib-Url_base.md).
+See [`Ocsigen_base.Lib.Url_base`](../../../ocsigenserver/latest/Ocsigen_base-Lib-Url_base.md).
 
 ```ocaml
 type t = string
@@ -58,7 +58,7 @@ val split_fragment : string -> string * string option
 ```ocaml
 val join_path : path -> string
 ```
-See [`Js_of_ocaml.Url`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Url.md).
+See [`Js_of_ocaml.Url`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Url.md).
 
 The first functions are mainly from and to string conversion functions for the different parts of a url.
 

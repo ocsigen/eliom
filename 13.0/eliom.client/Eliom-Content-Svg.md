@@ -46,9 +46,9 @@ DOM-like manipulation functions.
 ```ocaml
 module To_dom : sig ... end
 ```
-Conversion from Svg `elt`s to Javascript DOM elements (`<:` [`Js_of_ocaml.Dom_html.element`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)). One conversion function per source type (stressed by the `of_` prefix).
+Conversion from Svg `elt`s to Javascript DOM elements (`<:` [`Js_of_ocaml.Dom_html.element`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)). One conversion function per source type (stressed by the `of_` prefix).
 
 ```ocaml
 module Of_dom : sig ... end
 ```
-Conversion functions from DOM nodes ([`Js_of_ocaml.Dom_html.element`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md) [`Js_of_ocaml.Js.t`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Js.md#type-t)) to Eliom nodes ([`Content.Html.elt`](./Eliom-Content-Html.md#type-elt)).
+Conversion functions from DOM nodes ([`Js_of_ocaml.Dom_html.element`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md) [`Js_of_ocaml.Js.t`](../../../js_of_ocaml/latest/js_of_ocaml/Js_of_ocaml-Js.md#type-t)) to Eliom nodes ([`Content.Html.elt`](./Eliom-Content-Html.md#type-elt)).

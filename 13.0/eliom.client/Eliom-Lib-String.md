@@ -1,6 +1,6 @@
 # Module `Lib.String`
 
-Extension of [`Ocsigen_lib_base.String_base`](./../../ocsigenserver/ocsigenserver.baselib.base/Ocsigen_lib_base-String_base.md).
+Extension of [`Ocsigen_lib_base.String_base`](../../../ocsigenserver/latest/Ocsigen_lib_base-String_base.md).
 
 ## Strings
 
@@ -14,13 +14,13 @@ val make : int -> char -> string
 ```
 `make n c` is a string of length `n` with each index holding the character `c`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if n \< 0 or n \> Sys.max\_string\_length.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if n \< 0 or n \> Sys.max\_string\_length.
 ```ocaml
 val init : int -> (int -> char) -> string
 ```
 `init n f` is a string of length `n` with index `i` holding the character `f i` (called in increasing index order).
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if n \< 0 or n \> Sys.max\_string\_length.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if n \< 0 or n \> Sys.max\_string\_length.
 since 4\.02
 ```ocaml
 val empty : string
@@ -38,7 +38,7 @@ val get : string -> int -> char
 ```
 `get s i` is the character at index `i` in `s`. This is the same as writing `s.[i]`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if i not an index of s.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if i not an index of s.
 ```ocaml
 val of_bytes : bytes -> string
 ```
@@ -54,24 +54,24 @@ since 4\.13
 ```ocaml
 val blit : string -> int -> bytes -> int -> int -> unit
 ```
-Same as [`Bytes.blit_string`](./../../ocaml-compiler/stdlib/Stdlib-Bytes.md#val-blit_string) which should be preferred.
+Same as [`Bytes.blit_string`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Bytes/index.html#val-blit_string) which should be preferred.
 
 ## Concatenating
 
-**Note.** The [`Stdlib.(^)`](./../../ocaml-compiler/stdlib/Stdlib.md#val-\(^\)) binary operator concatenates two strings.
+**Note.** The [`Stdlib.(^)`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#val-\(^\)) binary operator concatenates two strings.
 
 ```ocaml
 val concat : string -> string list -> string
 ```
 `concat sep ss` concatenates the list of strings `ss`, inserting the separator string `sep` between each.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the result is longer than Sys.max\_string\_length bytes.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the result is longer than Sys.max\_string\_length bytes.
 ```ocaml
 val cat : string -> string -> string
 ```
 `cat s1 s2` concatenates s1 and s2 (`s1 ^ s2`).
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the result is longer than Sys.max\_string\_length bytes.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the result is longer than Sys.max\_string\_length bytes.
 since 4\.13
 
 ## Predicates and comparisons
@@ -85,7 +85,7 @@ since 4\.03 (4.05 in StringLabels)
 ```ocaml
 val compare : t -> t -> int
 ```
-`compare s0 s1` sorts `s0` and `s1` in lexicographical order. `compare` behaves like [`Stdlib.compare`](./../../ocaml-compiler/stdlib/Stdlib.md#val-compare) on strings but may be more efficient.
+`compare s0 s1` sorts `s0` and `s1` in lexicographical order. `compare` behaves like [`Stdlib.compare`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#val-compare) on strings but may be more efficient.
 
 ```ocaml
 val ends_with : suffix:string -> string -> bool
@@ -98,13 +98,13 @@ val contains_from : string -> int -> char -> bool
 ```
 `contains_from s start c` is `true` if and only if `c` appears in `s` after position `start`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if start is not a valid position in s.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if start is not a valid position in s.
 ```ocaml
 val rcontains_from : string -> int -> char -> bool
 ```
 `rcontains_from s stop c` is `true` if and only if `c` appears in `s` before position `stop+1`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if stop \< 0 or stop+1 is not a valid position in s.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if stop \< 0 or stop+1 is not a valid position in s.
 ```ocaml
 val contains : string -> char -> bool
 ```
@@ -117,7 +117,7 @@ val sub : string -> int -> int -> string
 ```
 `sub s pos len` is a string of length `len`, containing the substring of `s` that starts at position `pos` and has length `len`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if pos and len do not designate a valid substring of s.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if pos and len do not designate a valid substring of s.
 ```ocaml
 val split_on_char : char -> string -> string list
 ```
@@ -181,9 +181,9 @@ val escaped : string -> string
 
 All characters outside the US-ASCII printable range \[0x20;0x7E\] are escaped, as well as backslash (0x2F) and double-quote (0x22).
 
-The function [`Scanf.unescaped`](./../../ocaml-compiler/stdlib/Stdlib-Scanf.md#val-unescaped) is a left inverse of `escaped`, i.e. `Scanf.unescaped (escaped s) = s` for any string `s` (unless `escaped s` fails).
+The function [`Scanf.unescaped`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Scanf/index.html#val-unescaped) is a left inverse of `escaped`, i.e. `Scanf.unescaped (escaped s) = s` for any string `s` (unless `escaped s` fails).
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the result is longer than Sys.max\_string\_length bytes.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the result is longer than Sys.max\_string\_length bytes.
 ```ocaml
 val uppercase_ascii : string -> string
 ```
@@ -230,28 +230,28 @@ val index_from : string -> int -> char -> int
 ```
 `index_from s i c` is the index of the first occurrence of `c` in `s` after position `i`.
 
-raises [`Not_found`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Not_found) if c does not occur in s after position i.
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if i is not a valid position in s.
+raises [`Not_found`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Not_found) if c does not occur in s after position i.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if i is not a valid position in s.
 ```ocaml
 val index_from_opt : string -> int -> char -> int option
 ```
 `index_from_opt s i c` is the index of the first occurrence of `c` in `s` after position `i` (if any).
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if i is not a valid position in s.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if i is not a valid position in s.
 since 4\.05
 ```ocaml
 val rindex_from : string -> int -> char -> int
 ```
 `rindex_from s i c` is the index of the last occurrence of `c` in `s` before position `i+1`.
 
-raises [`Not_found`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Not_found) if c does not occur in s before position i+1.
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if i+1 is not a valid position in s.
+raises [`Not_found`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Not_found) if c does not occur in s before position i+1.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if i+1 is not a valid position in s.
 ```ocaml
 val rindex_from_opt : string -> int -> char -> int option
 ```
 `rindex_from_opt s i c` is the index of the last occurrence of `c` in `s` before position `i+1` (if any).
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if i+1 is not a valid position in s.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if i+1 is not a valid position in s.
 since 4\.05
 ```ocaml
 val index : string -> char -> int
@@ -346,7 +346,7 @@ val edit_distance : ?limit:int -> t -> t -> int
 
 If `limit` is provided the function returns with `limit` as soon as it was determined that `s0` and `s1` have distance of at least `limit`. This is faster if you have a fixed limit, for example for spellchecking.
 
-The function assumes the strings are UTF-8 encoded and uses [`Uchar.t`](./../../ocaml-compiler/stdlib/Stdlib-Uchar.md#type-t) for the notion of character. Decoding errors are replaced by [`Uchar.rep`](./../../ocaml-compiler/stdlib/Stdlib-Uchar.md#val-rep). Normalizing the strings to [NFC](https://unicode.org/glossary/#normalization_form_c) gives better results.
+The function assumes the strings are UTF-8 encoded and uses [`Uchar.t`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Uchar/index.html#type-t) for the notion of character. Decoding errors are replaced by [`Uchar.rep`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Uchar/index.html#val-rep). Normalizing the strings to [NFC](https://unicode.org/glossary/#normalization_form_c) gives better results.
 
 **Note.** This implements the simpler Optimal String Alignement (OSA) distance, not the Damerau-Levenshtein distance. With this function `"ca"` and `"abc"` have a distance of 3 not 2\.
 
@@ -365,7 +365,7 @@ val spellcheck :
 - `2` otherwise.
 If your dictionary is a list `l`, a suitable `iter_dict` is given by `(fun yield -> List.iter yield l)`.
 
-All strings are assumed to be UTF-8 encoded, decoding errors are replaced by [`Uchar.rep`](./../../ocaml-compiler/stdlib/Stdlib-Uchar.md#val-rep) characters.
+All strings are assumed to be UTF-8 encoded, decoding errors are replaced by [`Uchar.rep`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Uchar/index.html#val-rep) characters.
 
 since 5\.4
 
@@ -375,7 +375,7 @@ The functions in this section binary decode integers from strings.
 
 All following functions raise `Invalid_argument` if the characters needed at index `i` to decode the integer are not available.
 
-Little-endian (resp. big-endian) encoding means that least (resp. most) significant bytes are stored first. Big-endian is also known as network byte order. Native-endian encoding is either little-endian or big-endian depending on [`Sys.big_endian`](./../../ocaml-compiler/stdlib/Stdlib-Sys.md#val-big_endian).
+Little-endian (resp. big-endian) encoding means that least (resp. most) significant bytes are stored first. Big-endian is also known as network byte order. Native-endian encoding is either little-endian or big-endian depending on [`Sys.big_endian`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Sys/index.html#val-big_endian).
 
 32-bit and 64-bit integers are represented by the `int32` and `int64` types, which can be interpreted either as signed or unsigned numbers.
 
@@ -438,13 +438,13 @@ since 4\.13
 ```ocaml
 val hash : t -> int
 ```
-An unseeded hash function for strings, with the same output value as [`Hashtbl.hash`](./../../ocaml-compiler/stdlib/Stdlib-Hashtbl.md#val-hash). This function allows this module to be passed as argument to the functor [`Hashtbl.Make`](./../../ocaml-compiler/stdlib/Stdlib-Hashtbl-Make.md).
+An unseeded hash function for strings, with the same output value as [`Hashtbl.hash`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Hashtbl/index.html#val-hash). This function allows this module to be passed as argument to the functor [`Hashtbl.Make`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Hashtbl/Make/index.html).
 
 since 5\.0
 ```ocaml
 val seeded_hash : int -> t -> int
 ```
-A seeded hash function for strings, with the same output value as [`Hashtbl.seeded_hash`](./../../ocaml-compiler/stdlib/Stdlib-Hashtbl.md#val-seeded_hash). This function allows this module to be passed as argument to the functor [`Hashtbl.MakeSeeded`](./../../ocaml-compiler/stdlib/Stdlib-Hashtbl-MakeSeeded.md).
+A seeded hash function for strings, with the same output value as [`Hashtbl.seeded_hash`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Hashtbl/index.html#val-seeded_hash). This function allows this module to be passed as argument to the functor [`Hashtbl.MakeSeeded`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Hashtbl/MakeSeeded/index.html).
 
 since 5\.0
 ```ocaml
@@ -500,7 +500,7 @@ Splits a string for words with separator, removing spaces. For ex "azert, sdfmls
 ```ocaml
 val starts_with : prefix:string -> string -> bool
 ```
-Same as [`Stdlib.String.starts_with`](./../../ocaml-compiler/stdlib/Stdlib-String.md#val-starts_with).
+Same as [`Stdlib.String.starts_with`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/String/index.html#val-starts_with).
 
 ```ocaml
 val may_append : string -> sep:string -> string -> string

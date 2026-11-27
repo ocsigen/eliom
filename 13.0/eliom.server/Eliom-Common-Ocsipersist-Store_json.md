@@ -1,8 +1,8 @@
 # Module `Ocsipersist.Store_json`
 
-Type-safe variable store using [`Deriving_Json`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md) for serialisation. Unlike [`Store`](./Eliom-Common-Ocsipersist-Store.md), this does not rely on [`Stdlib.Marshal`](./../../ocaml-compiler/stdlib/Stdlib-Marshal.md) and is safe across OCaml versions. Requires types annotated with `[@@deriving json]` (from `js_of_ocaml-ppx_deriving_json`).
+Type-safe variable store using [`Deriving_Json`](../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json.md) for serialisation. Unlike [`Store`](./Eliom-Common-Ocsipersist-Store.md), this does not rely on [`Stdlib.Marshal`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Marshal/index.html) and is safe across OCaml versions. Requires types annotated with `[@@deriving json]` (from `js_of_ocaml-ppx_deriving_json`).
 
-Note: The dependency on `js_of_ocaml` is only for the [`Deriving_Json`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md) runtime library, which provides type-safe JSON serialisation. This is the same serialisation mechanism used by Eliom for client-server communication. No JavaScript compilation is involved.
+Note: The dependency on `js_of_ocaml` is only for the [`Deriving_Json`](../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json.md) runtime library, which provides type-safe JSON serialisation. This is the same serialisation mechanism used by Eliom for client-server communication. No JavaScript compilation is involved.
 
 ```ocaml
 type 'a t
@@ -27,7 +27,7 @@ val make_persistent :
   default:'a ->
   'a t Lwt.t
 ```
-`make_persistent ~store ~name ~json ~default` find a persistent value named `name` in store `store` from database, or create it with the default value `default` if it does not exist. Uses [`Deriving_Json`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md) for type-safe serialisation. An existing value that cannot be deserialised with `json` is left in place: reading it with [`get`](./#val-get) then fails with `Ocsipersist_lib.Decoding_error`, and the caller decides whether to overwrite it with [`set`](./#val-set).
+`make_persistent ~store ~name ~json ~default` find a persistent value named `name` in store `store` from database, or create it with the default value `default` if it does not exist. Uses [`Deriving_Json`](../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json.md) for type-safe serialisation. An existing value that cannot be deserialised with `json` is left in place: reading it with [`get`](./#val-get) then fails with `Ocsipersist_lib.Decoding_error`, and the caller decides whether to overwrite it with [`set`](./#val-set).
 
 ```ocaml
 val make_persistent_lazy : 

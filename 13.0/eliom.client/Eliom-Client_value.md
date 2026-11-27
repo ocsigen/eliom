@@ -14,7 +14,7 @@ exception Exception_on_server of string
 ```
 This exception is raised (in Lwt) on the client if a call to a server function [`Client.server_function`](./Eliom-Client.md#type-server_function) fails (in Lwt) on the server side.
 
-The argument describes the original exception by [`Printexc.to_string`](./../../ocaml-compiler/stdlib/Stdlib-Printexc.md#val-to_string).
+The argument describes the original exception by [`Printexc.to_string`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Printexc/index.html#val-to_string).
 
 Event handlers like [`Content.Html.F.a_onclick`](./Eliom-Content-Html-F.md#val-a_onclick) may raise `False` to cancel the event (as if the JavaScript function returned `false`).
 

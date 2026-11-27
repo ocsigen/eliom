@@ -1,6 +1,6 @@
 # Module `Content.Html`
 
-Building and printing valid HTML5 tree. Information about Html api can be found at [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md) .
+Building and printing valid HTML5 tree. Information about Html api can be found at [`Html_sigs.T`](../../../tyxml/latest/tyxml/Html_sigs-module-type-T.md) .
 
 See [more information on dom semantics vs. functional semantics](./../clientserver/html.md#unique) in Eliom's manual for HTML5 tree manipulated by client/server application.
 
@@ -44,7 +44,7 @@ Node identifiers
 ```ocaml
 module R : sig ... end
 ```
-Creation of HTML content from shared reactive signals and data ([`Shared`](./Eliom-Shared.md)). For the operations provided, see [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md).
+Creation of HTML content from shared reactive signals and data ([`Shared`](./Eliom-Shared.md)). For the operations provided, see [`Html_sigs.T`](../../../tyxml/latest/tyxml/Html_sigs-module-type-T.md).
 
 ```ocaml
 module Custom_data : sig ... end
@@ -55,4 +55,4 @@ Type-safe custom data for HTML. See the [examples in the manual](./../clientserv
 module Printer : 
   Xml_sigs.Typed_pp with type +'a elt := 'a elt and type doc := F.doc
 ```
-["Polyglot"](http://dev.w3.org/html5/html-xhtml-author-guide/) HTML printer. See [`Xml_sigs.Typed_pp`](./../../tyxml/tyxml.functor/Xml_sigs-module-type-Typed_pp.md).
+["Polyglot"](http://dev.w3.org/html5/html-xhtml-author-guide/) HTML printer. See [`Xml_sigs.Typed_pp`](../../../tyxml/latest/tyxml/Xml_sigs-module-type-Typed_pp.md).

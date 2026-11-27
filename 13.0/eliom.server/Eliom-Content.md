@@ -60,9 +60,9 @@ module Xml_shared :
 ```ocaml
 module Svg : sig ... end
 ```
-Building and pretty-printing valid SVG tree. Information about Svg api can be found at [`Svg_sigs.T`](./../../tyxml/tyxml.functor/Svg_sigs-module-type-T.md)
+Building and pretty-printing valid SVG tree. Information about Svg api can be found at [`Svg_sigs.T`](../../../tyxml/latest/tyxml/Svg_sigs-module-type-T.md)
 
 ```ocaml
 module Html : sig ... end
 ```
-Building and printing valid HTML5 tree. Information about Html api can be found at [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md) .
+Building and printing valid HTML5 tree. Information about Html api can be found at [`Html_sigs.T`](../../../tyxml/latest/tyxml/Html_sigs-module-type-T.md) .

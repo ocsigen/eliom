@@ -290,7 +290,7 @@ val set_default_max_service_sessions_without_group :
 ```
 Sets the maximum number of service sessions without a group in the site (see above). It applies at once: beyond it, the sessions used least recently are closed.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the number is not positive.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the number is not positive.
 ```ocaml
 val set_default_max_volatile_data_sessions_without_group : 
   ?override_configfile:bool ->
@@ -347,7 +347,7 @@ val set_default_max_anonymous_services_per_site :
 ```
 Sets the maximum number of anonymous coservices of the global table of the site created during requests (500000 by default). It applies at once: beyond it, the coservices used least recently are removed. The anonymous coservices created during the initialisation of the site are not counted.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the number is not positive.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the number is not positive.
 ```ocaml
 val set_max_service_states_in_parent : 
   scope:Common.user_scope ->

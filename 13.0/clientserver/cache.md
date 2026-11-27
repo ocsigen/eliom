@@ -6,7 +6,7 @@ Module [`Eliom.Cscache`](./../eliom.server/Eliom-Cscache.md) implements a cache 
 
 Have a look at the documentation of this module for more information.
 
-Also have a look at [`Ocsigen_base.Cache`](./../../ocsigenserver/ocsigenserver.baselib/Ocsigen_base-Cache.md) (from Ocsigen Server) for a server-side cache that keeps the most recently used values.
+Also have a look at [`Ocsigen_base.Cache`](../../../ocsigenserver/latest/Ocsigen_base-Cache.md) (from Ocsigen Server) for a server-side cache that keeps the most recently used values.
 
 ## Off-line applications
 

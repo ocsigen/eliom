@@ -90,7 +90,7 @@ val set_comet_timeout : float -> unit
 ```
 `set_comet_timeout t` sets the time, in seconds, after which the server answers a Comet request that waits for data with no data (default 20\). The client then sends a new request. Keep it below the timeouts of the proxies between clients and the server. The option `<comettimeout value="20"/>` of the configuration file sets it too.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if t is not a positive number.
 The following functions, from `set_secure_cookies` to `set_omitpersistentstorage`, change the defaults of the sites created afterwards, as the options of `<extension findlib-package="eliom.server">` in the configuration file: they do not change a site that already exists. The modules of a site given in the configuration file are loaded once the site is created, so these functions have no effect on it there: use the options of its `<eliom>` element instead. A statically linked executable can call them before the server starts: [`Eliom.App.run`](./Eliom-App.md#val-run) takes the defaults for the options that it is not given.
 
 ```ocaml
@@ -174,7 +174,7 @@ val parse_config :
   Ocsigen.Extensions.Configuration.element list ->
   unit
 ```
-Process the configuration (same as the one returned by [`Config.get_config`](./#val-get_config)) by a given specification (cf. [`Ocsigen.Extensions.Configuration.element`](./../../ocsigenserver/ocsigenserver/Ocsigen-Extensions-Configuration.md#type-element))
+Process the configuration (same as the one returned by [`Config.get_config`](./#val-get_config)) by a given specification (cf. [`Ocsigen.Extensions.Configuration.element`](../../../ocsigenserver/latest/Ocsigen-Extensions-Configuration.md#type-element))
 
 ```ocaml
 val get_config_info : unit -> Ocsigen.Extensions.config_info

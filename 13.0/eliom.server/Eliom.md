@@ -95,7 +95,7 @@ module Form_sigs : sig ... end
 ```ocaml
 module Lib : sig ... end
 ```
-A few common functions used by Eliom. Extension of OCaml stdlib. See also [`Ocsigen_base.Lib`](./../../ocsigenserver/ocsigenserver.baselib/Ocsigen_base-Lib.md)
+A few common functions used by Eliom. Extension of OCaml stdlib. See also [`Ocsigen_base.Lib`](../../../ocsigenserver/latest/Ocsigen_base-Lib.md)
 
 ```ocaml
 module Lib_base : sig ... end

@@ -211,7 +211,7 @@ let my_service_with_get_and_post =
 
 To create a POST form, use the `Eliom.Content.Html.D.Form.post_form` function. It is similar to `Eliom.Content.Html.D.Form.get_form` with an additional parameter for the GET parameters you want to put in the URL (if any). Here, `form2` is a page containing a form to the service `my_service_with_post_params`, and `form3` (defined using the TyXML syntax extension) contains a form to `my_service_with_get_and_post`, with a GET parameter. `form4` is a form to an external page.
 
-*Warning:* Some examples in this section use the Tyxml syntax extension. (See [Tyxml's manual](./../../../tyxml/ppx.md)). *Warning:* After installing Tyxml, add `tyxml-ppx` to the PPX of your project: in a project made from the template `app`, add `--preprocess tyxml-ppx` to the invocation of `ocsigen-dune-rules` in its `dune` files.
+*Warning:* Some examples in this section use the Tyxml syntax extension. (See [Tyxml's manual](../../../../tyxml/latest/tyxml/ppx.md)). *Warning:* After installing Tyxml, add `tyxml-ppx` to the PPX of your project: in a project made from the template `app`, add `--preprocess tyxml-ppx` to the invocation of `ocsigen-dune-rules` in its `dune` files.
 
 ```ocaml
   let form2 =
@@ -583,7 +583,7 @@ The whole suffix `endsuff` is a list of strings: the form writes it with `Ocsige
 
 ### Uploading files
 
-The `Eliom.Parameter.file` parameter type allows files to be sent in your request. The service gets something of type [`Ocsigen.Extensions.file_info`](./../../../ocsigenserver/ocsigenserver/Ocsigen-Extensions.md#type-file_info). You can extract information from it using these functions (from [`Eliom.Request_info`](./../../eliom.server/Eliom-Request_info.md)):
+The `Eliom.Parameter.file` parameter type allows files to be sent in your request. The service gets something of type [`Ocsigen.Extensions.file_info`](../../../../ocsigenserver/latest/Ocsigen-Extensions.md#type-file_info). You can extract information from it using these functions (from [`Eliom.Request_info`](./../../eliom.server/Eliom-Request_info.md)):
 
 ```ocaml
 val get_tmp_filename : Ocsigen.Extensions.file_info -> string
