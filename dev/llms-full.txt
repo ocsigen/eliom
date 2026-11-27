@@ -3541,6 +3541,8 @@ To create your project, do:
 ```shell
 $ eliom-distillery -name <name> -template app [-target-directory <dir>]
 ```
+`app` is the default template, so `-template app` may be omitted.
+
 This creates a project named `<name>` from the `"app"` template in the directory `<dir>` or `<name>` by default. The project name should be a valid name for an OCaml compilation unit.
 
 ### Compilation & Running
