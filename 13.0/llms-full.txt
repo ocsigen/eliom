@@ -1,6 +1,6 @@
 # Eliom
 
-> *The full-stack OCaml Web and mobile framework*
+> Eliom is a full-stack framework for building client/server Web and mobile applications in OCaml.
 
 
 ---
