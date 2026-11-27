@@ -2,7 +2,7 @@
 
 Eliom standard library
 
-See [`Ocsigen_lib_base`](./../../ocsigenserver/ocsigenserver.baselib.base/Ocsigen_lib_base.md).
+See [`Ocsigen_lib_base`](../../../ocsigenserver/dev/Ocsigen_lib_base.md).
 
 ```ocaml
 exception Ocsigen_Internal_Error of string
@@ -19,7 +19,7 @@ exception Ocsigen_Request_too_long
 ```ocaml
 val (>>=) : 'a Lwt.t -> ('a -> 'b Lwt.t) -> 'b Lwt.t
 ```
-`p >>= f` is the same as [`Lwt.bind`](./../../lwt/lwt/Lwt.md#val-bind)` p f`. It requires `Lwt.Infix` to be opened in scope:
+`p >>= f` is the same as [`Lwt.bind`](../../../lwt/dev/lwt/Lwt.md#val-bind)` p f`. It requires `Lwt.Infix` to be opened in scope:
 
 ```ocaml
 open Lwt.Infix
@@ -35,7 +35,7 @@ It is recommended to use the PPX `let%lwt` syntax instead. This operator is the 
 ```ocaml
 val (>|=) : 'a Lwt.t -> ('a -> 'b) -> 'b Lwt.t
 ```
-`p >|= f` is the same as [`Lwt.map`](./../../lwt/lwt/Lwt.md#val-map)` f p`. It requires `Lwt.Infix` to be opened in scope.
+`p >|= f` is the same as [`Lwt.map`](../../../lwt/dev/lwt/Lwt.md#val-map)` f p`. It requires `Lwt.Infix` to be opened in scope.
 
 ```ocaml
 open Lwt.Infix
@@ -49,30 +49,30 @@ let () =
 ```ocaml
 val (<&>) : unit Lwt.t -> unit Lwt.t -> unit Lwt.t
 ```
-`p1 <&> p2` is the same as [`Lwt.join`](./../../lwt/lwt/Lwt.md#val-join)` [p1; p2]`. It requires `Lwt.Infix` to be opened in scope.
+`p1 <&> p2` is the same as [`Lwt.join`](../../../lwt/dev/lwt/Lwt.md#val-join)` [p1; p2]`. It requires `Lwt.Infix` to be opened in scope.
 
-Unlike with [`Lwt.bind`](./../../lwt/lwt/Lwt.md#val-bind) and [`Lwt.map`](./../../lwt/lwt/Lwt.md#val-map), there are no problems with explicit [`Lwt.join`](./../../lwt/lwt/Lwt.md#val-join) syntax, so using this operator is not recommended.
+Unlike with [`Lwt.bind`](../../../lwt/dev/lwt/Lwt.md#val-bind) and [`Lwt.map`](../../../lwt/dev/lwt/Lwt.md#val-map), there are no problems with explicit [`Lwt.join`](../../../lwt/dev/lwt/Lwt.md#val-join) syntax, so using this operator is not recommended.
 
 ```ocaml
 val (<?>) : 'a Lwt.t -> 'a Lwt.t -> 'a Lwt.t
 ```
-`p1 <?> p2` is the same as [`Lwt.choose`](./../../lwt/lwt/Lwt.md#val-choose)` [p1; p2]`. It requires `Lwt.Infix` to be opened in scope.
+`p1 <?> p2` is the same as [`Lwt.choose`](../../../lwt/dev/lwt/Lwt.md#val-choose)` [p1; p2]`. It requires `Lwt.Infix` to be opened in scope.
 
-Unlike with [`Lwt.bind`](./../../lwt/lwt/Lwt.md#val-bind) and [`Lwt.map`](./../../lwt/lwt/Lwt.md#val-map), there are no problems with explicit [`Lwt.choose`](./../../lwt/lwt/Lwt.md#val-choose) syntax, so using this operator is not recommended.
+Unlike with [`Lwt.bind`](../../../lwt/dev/lwt/Lwt.md#val-bind) and [`Lwt.map`](../../../lwt/dev/lwt/Lwt.md#val-map), there are no problems with explicit [`Lwt.choose`](../../../lwt/dev/lwt/Lwt.md#val-choose) syntax, so using this operator is not recommended.
 
-Furthermore, most users actually need [`Lwt.pick`](./../../lwt/lwt/Lwt.md#val-pick) instead of [`Lwt.choose`](./../../lwt/lwt/Lwt.md#val-choose).
+Furthermore, most users actually need [`Lwt.pick`](../../../lwt/dev/lwt/Lwt.md#val-pick) instead of [`Lwt.choose`](../../../lwt/dev/lwt/Lwt.md#val-choose).
 
 ```ocaml
 val (=<<) : ('a -> 'b Lwt.t) -> 'a Lwt.t -> 'b Lwt.t
 ```
-`f =<< p` is the same as [`Lwt.bind`](./../../lwt/lwt/Lwt.md#val-bind)` p f`. It requires `Lwt.Infix` to be opened in scope.
+`f =<< p` is the same as [`Lwt.bind`](../../../lwt/dev/lwt/Lwt.md#val-bind)` p f`. It requires `Lwt.Infix` to be opened in scope.
 
 This operator is obscure and its use is discouraged. It is the same as `p >>= f`.
 
 ```ocaml
 val (=|<) : ('a -> 'b) -> 'a Lwt.t -> 'b Lwt.t
 ```
-`f =|< p` is the same as [`Lwt.map`](./../../lwt/lwt/Lwt.md#val-map)` f p`. It requires `Lwt.Infix` to be opened in scope.
+`f =|< p` is the same as [`Lwt.map`](../../../lwt/dev/lwt/Lwt.md#val-map)` f p`. It requires `Lwt.Infix` to be opened in scope.
 
 This operator is obscure and its use is discouraged. It is the same as `p >|= f`.
 
@@ -173,7 +173,7 @@ URL manipulation
 ```ocaml
 module String : sig ... end
 ```
-Extension of [`Ocsigen_lib_base.String_base`](./../../ocsigenserver/ocsigenserver.baselib.base/Ocsigen_lib_base-String_base.md).
+Extension of [`Ocsigen_lib_base.String_base`](../../../ocsigenserver/dev/Ocsigen_lib_base-String_base.md).
 
 ```ocaml
 val raise_error : 

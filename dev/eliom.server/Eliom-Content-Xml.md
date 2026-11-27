@@ -4,7 +4,7 @@ Low-level XML manipulation.
 
 ### Base functions
 
-See [`Xml_sigs.Iterable`](./../../tyxml/tyxml.functor/Xml_sigs-module-type-Iterable.md).
+See [`Xml_sigs.Iterable`](../../../tyxml/dev/tyxml/Xml_sigs-module-type-Iterable.md).
 
 ```ocaml
 module W = Xml_wrap.NoWrap

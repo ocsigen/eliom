@@ -1,6 +1,6 @@
 # Module `Ocsipersist.Polymorphic`
 
-Polymorphic frontent. Relies on [`Marshal`](./../../ocaml-compiler/stdlib/Stdlib-Marshal.md) for (de)serialisation, which means that data will be stored in the backend in a fashion that is not necessarily easily readable by non-OCaml-based life forms. If this is an issue for you, you can rely on the functorial frontend instead.
+Polymorphic frontent. Relies on [`Marshal`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Marshal/index.html) for (de)serialisation, which means that data will be stored in the backend in a fashion that is not necessarily easily readable by non-OCaml-based life forms. If this is an issue for you, you can rely on the functorial frontend instead.
 
 ```ocaml
 type 'value table

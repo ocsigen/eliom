@@ -169,19 +169,19 @@ The simple low-level version above which all other following mechanisms are impl
 
 Comet defines channels which can transfer data. A channel is created using an Lwt stream. It is a kind of cooperative lazy list.
 
-The two main methods to create a stream are through the functions [`Lwt_stream.from`](./../../lwt/lwt/Lwt_stream.md#val-from) and [`Lwt_stream.create`](./../../lwt/lwt/Lwt_stream.md#val-create).
+The two main methods to create a stream are through the functions [`Lwt_stream.from`](../../../lwt/dev/lwt/Lwt_stream.md#val-from) and [`Lwt_stream.create`](../../../lwt/dev/lwt/Lwt_stream.md#val-create).
 
 ```ocaml
 val from : (unit -> 'a option Lwt.t) -> 'a t
 val create : unit -> 'a t * ('a option -> unit)
 ```
-Function [`Lwt_stream.from`](./../../lwt/lwt/Lwt_stream.md#val-from) makes possible to create a stream where a new value is added each time a function returns. Function [`Lwt_stream.create`](./../../lwt/lwt/Lwt_stream.md#val-create) returns a stream and a function to push new values to the stream.
+Function [`Lwt_stream.from`](../../../lwt/dev/lwt/Lwt_stream.md#val-from) makes possible to create a stream where a new value is added each time a function returns. Function [`Lwt_stream.create`](../../../lwt/dev/lwt/Lwt_stream.md#val-create) returns a stream and a function to push new values to the stream.
 
-On client-side, the type [`Eliom.Comet.Channel.t`](./../eliom.server/Eliom-Comet-Channel.md#type-t) is just an Lwt stream [`Lwt_stream.t`](./../../lwt/lwt/Lwt_stream.md#type-t).
+On client-side, the type [`Eliom.Comet.Channel.t`](./../eliom.server/Eliom-Comet-Channel.md#type-t) is just an Lwt stream [`Lwt_stream.t`](../../../lwt/dev/lwt/Lwt_stream.md#type-t).
 
 There are 3 kinds of channels, depending on how you want to send data.
 
-- Channels created with [`Eliom.Comet.Channel.create`](./../eliom.server/Eliom-Comet-Channel.md#val-create) have a buffer with a limited size. Messages are read from the stream as soon as they are available, i.e. for streams created with [`Lwt_stream.from`](./../../lwt/lwt/Lwt_stream.md#val-from), that means that the function is called another time as soon as the previous one terminates. For streams created with [`Lwt_stream.create`](./../../lwt/lwt/Lwt_stream.md#val-create), this is as soon as they are pushed. If the client misses too many messages (more than the size of the buffer) it will receive an exception [`Eliom.Comet.Channel_full`](../eliom.client/Eliom/Comet/index.html#exception-Channel_full) when reading data from the stream.
+- Channels created with [`Eliom.Comet.Channel.create`](./../eliom.server/Eliom-Comet-Channel.md#val-create) have a buffer with a limited size. Messages are read from the stream as soon as they are available, i.e. for streams created with [`Lwt_stream.from`](../../../lwt/dev/lwt/Lwt_stream.md#val-from), that means that the function is called another time as soon as the previous one terminates. For streams created with [`Lwt_stream.create`](../../../lwt/dev/lwt/Lwt_stream.md#val-create), this is as soon as they are pushed. If the client misses too many messages (more than the size of the buffer) it will receive an exception [`Eliom.Comet.Channel_full`](../eliom.client/Eliom/Comet/index.html#exception-Channel_full) when reading data from the stream.
 - Channels created with [`Eliom.Comet.Channel.create_newest`](./../eliom.server/Eliom-Comet-Channel.md#val-create_newest) have no buffering and can lose messages, but the client will always receive the last value: For instance, if many messages are sent in a short time, the client may receive only the last one. Those channels never raise [`Eliom.Comet.Channel_full`](../eliom.client/Eliom/Comet/index.html#exception-Channel_full).
 - Channels created with [`Eliom.Comet.Channel.create_unlimited`](./../eliom.server/Eliom-Comet-Channel.md#val-create_unlimited) consume data on the stream only when there is a request from the client.
 Channels can be closed on client side by cancelling a thread waiting for data on it.
@@ -239,4 +239,4 @@ Like comet channels, the behaviour of buses can be tuned using the module [`Elio
 
 ## Another Server sending data (Comet on another server)
 
-It is possible to access a named stateless channel created on another server. It has to be declared using [`Eliom.Comet.Channel.external_channel`](./../eliom.server/Eliom-Comet-Channel.md#val-external_channel). The declaration of the channel must match exactly the creation. The server generating the page and the server that created the channel must run exactly the same version of Eliom. By default a browser can't do requests to a different server, to allow that the server serving the channel must allow Cross-Origin Resource Sharing using the [CORS Ocsigenserver extension](./../../ocsigenserver/cors.md).
+It is possible to access a named stateless channel created on another server. It has to be declared using [`Eliom.Comet.Channel.external_channel`](./../eliom.server/Eliom-Comet-Channel.md#val-external_channel). The declaration of the channel must match exactly the creation. The server generating the page and the server that created the channel must run exactly the same version of Eliom. By default a browser can't do requests to a different server, to allow that the server serving the channel must allow Cross-Origin Resource Sharing using the [CORS Ocsigenserver extension](../../../ocsigenserver/dev/cors.md).

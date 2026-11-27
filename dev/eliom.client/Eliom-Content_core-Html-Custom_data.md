@@ -31,10 +31,10 @@ val attrib : 'a t -> 'a -> [> `User_data ] attrib
 ```ocaml
 val get_dom : Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t -> 'a t -> 'a
 ```
-`get_dom element custom_data` gets the `custom_data` from a JavaScript `element` ([`Js_of_ocaml.Dom_html.element`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)).
+`get_dom element custom_data` gets the `custom_data` from a JavaScript `element` ([`Js_of_ocaml.Dom_html.element`](../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)).
 
 returns The value encoded in the respective custom data attribute of element, or the default value, if any.
-raises [`Not_found`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Not_found) if the element does not contain the respective custom data attribute and the custom\_data was created without default.
+raises [`Not_found`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Not_found) if the element does not contain the respective custom data attribute and the custom\_data was created without default.
 ```ocaml
 val set_dom : 
   Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
@@ -42,4 +42,4 @@ val set_dom :
   'a ->
   unit
 ```
-`set_dom element custom_data value` sets the custom data attribute for `custom_data` of an JavaScript `element` ([`Js_of_ocaml.Dom_html.element`](./../../js_of_ocaml/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)) to `value`.
+`set_dom element custom_data value` sets the custom data attribute for `custom_data` of an JavaScript `element` ([`Js_of_ocaml.Dom_html.element`](../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml-Dom_html-class-type-element.md)) to `value`.

@@ -79,7 +79,7 @@ since 3\.12
 ```ocaml
 val bindings : 'a t -> (key * 'a) list
 ```
-Return the list of all bindings of the given map. The returned list is sorted in increasing order of keys with respect to the ordering `Ord.compare`, where `Ord` is the argument given to [`Map.Make`](./../../ocaml-compiler/stdlib/Stdlib-Map-Make.md).
+Return the list of all bindings of the given map. The returned list is sorted in increasing order of keys with respect to the ordering `Ord.compare`, where `Ord` is the argument given to [`Map.Make`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Map/Make/index.html).
 
 since 3\.12
 ```ocaml

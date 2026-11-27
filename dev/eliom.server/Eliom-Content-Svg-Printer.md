@@ -1,6 +1,6 @@
 # Module `Svg.Printer`
 
-SVG printer. See [`Xml_sigs.Typed_pp`](./../../tyxml/tyxml.functor/Xml_sigs-module-type-Typed_pp.md).
+SVG printer. See [`Xml_sigs.Typed_pp`](../../../tyxml/dev/tyxml/Xml_sigs-module-type-Typed_pp.md).
 
 ```ocaml
 val pp_elt : 
@@ -11,9 +11,9 @@ val pp_elt :
   'a elt ->
   unit
 ```
-`pp_elt ()` is a [`Format`](./../../ocaml-compiler/stdlib/Stdlib-Format.md) printer for individual elements.
+`pp_elt ()` is a [`Format`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Format/index.html) printer for individual elements.
 
-A custom encoding function can be provided with the `~encode` argument. Various implementations of `encode` are available in [`Xml_print`](./../../tyxml/tyxml.functor/Xml_print.md).
+A custom encoding function can be provided with the `~encode` argument. Various implementations of `encode` are available in [`Xml_print`](../../../tyxml/dev/tyxml/Xml_print.md).
 
 ```ocaml
 val pp : 
@@ -25,11 +25,11 @@ val pp :
   F.doc ->
   unit
 ```
-`pp ()` is a [`Format`](./../../ocaml-compiler/stdlib/Stdlib-Format.md) printer for complete documents.
+`pp ()` is a [`Format`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Format/index.html) printer for complete documents.
 
 It can be used in combination with `"%a"`. For example, to get a string:
 
 ```ocaml
 let s = Format.asprintf "%a" (pp ()) my_document
 ```
-A custom encoding function can be provided with the `~encode` argument. Various implementations of `encode` are available in [`Xml_print`](./../../tyxml/tyxml.functor/Xml_print.md).
+A custom encoding function can be provided with the `~encode` argument. Various implementations of `encode` are available in [`Xml_print`](../../../tyxml/dev/tyxml/Xml_print.md).

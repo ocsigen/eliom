@@ -5,13 +5,13 @@ Ocsigen provides several ways to generate and type HTML pages.
 - The default technique to produce HTML pages using Eliom are the [`Eliom.Content.Html.F`](./../eliom.server/Eliom-Content-Html-F.md), [`Eliom.Content.Html.D`](./../eliom.server/Eliom-Content-Html-D.md) and [`Eliom.Content.Html.R`](./../eliom.server/Eliom-Content-Html-R.md) modules. It is the only one supported for client-server Eliom programs. This module provides a typing based on OCaml's polymorphic variants, which ensures at compile time, that the pages you will generate will respect the recommendations of the W3C (or be very close).
 - It is also possible to use a syntax extension to write your pages with the usual HTML syntax. This solution is also typed with polymorphic variants and is compatible with the previous one.
 - You can also choose to generate untyped html as text.
-The types in OCaml closest to XML types are *polymorphic variants*. Ocsigen uses them to provide a module with very good HTML typing. The full documentation is available [in the TyXML documentation](./../../tyxml/tyxml/Tyxml_html.md).
+The types in OCaml closest to XML types are *polymorphic variants*. Ocsigen uses them to provide a module with very good HTML typing. The full documentation is available [in the TyXML documentation](../../../tyxml/dev/tyxml/Tyxml_html.md).
 
 ## Generating HTML for Eliom applications
 
 ### The TyXML library vs. the DOM API
 
-On client side there are two kinds of HTML representations: one is based on the [TyXML library](./../../tyxml/index.md) and the other one is the browser DOM tree accessible through Js\_of\_ocaml modules `Js_of_ocaml.Dom` and `Js_of_ocaml.Dom_html`. The TyXML representation is a OCaml immutable typed tree. The DOM tree is mutable structure manipulated using the browser API which permit the modification of the displayed page. In the DOM representation, adding a node as a child to an other node removes it from its previous parent.
+On client side there are two kinds of HTML representations: one is based on the [TyXML library](../../../tyxml/dev/tyxml/index.md) and the other one is the browser DOM tree accessible through Js\_of\_ocaml modules `Js_of_ocaml.Dom` and `Js_of_ocaml.Dom_html`. The TyXML representation is a OCaml immutable typed tree. The DOM tree is mutable structure manipulated using the browser API which permit the modification of the displayed page. In the DOM representation, adding a node as a child to an other node removes it from its previous parent.
 
 Since those representations do not behave at all the same way, they are not used for the same thing.
 
@@ -352,7 +352,7 @@ let%server _ =
 
 It is possible to use regular HTML syntax using Tyxml's PPX syntax extension.
 
-See [Tyxml's manual](./../../tyxml/ppx.md).
+See [Tyxml's manual](../../../tyxml/dev/tyxml/ppx.md).
 
 ### Text HTML
 

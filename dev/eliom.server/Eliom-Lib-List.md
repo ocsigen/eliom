@@ -49,26 +49,26 @@ val hd : 'a list -> 'a
 ```
 Return the first element of the given list.
 
-raises [`Failure`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Failure) if the list is empty.
+raises [`Failure`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Failure) if the list is empty.
 ```ocaml
 val tl : 'a list -> 'a list
 ```
 Return the given list without its first element.
 
-raises [`Failure`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Failure) if the list is empty.
+raises [`Failure`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Failure) if the list is empty.
 ```ocaml
 val nth : 'a list -> int -> 'a
 ```
 Return the `n`\-th element of the given list. The first element (head of the list) is at position 0\.
 
-raises [`Failure`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Failure) if the list is too short.
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if n is negative.
+raises [`Failure`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Failure) if the list is too short.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if n is negative.
 ```ocaml
 val nth_opt : 'a list -> int -> 'a option
 ```
 Return the `n`\-th element of the given list. The first element (head of the list) is at position 0\. Return `None` if the list is too short.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if n is negative.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if n is negative.
 since 4\.05
 ```ocaml
 val rev : 'a list -> 'a list
@@ -80,7 +80,7 @@ val init : int -> (int -> 'a) -> 'a list
 ```
 `init len f` is `[f 0; f 1; ...; f (len-1)]`, evaluated left to right.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if len \< 0.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if len \< 0.
 since 4\.06
 ```ocaml
 val append : 'a list -> 'a list -> 'a list
@@ -116,7 +116,7 @@ since 4\.12
 ```ocaml
 val compare : ('a -> 'a -> int) -> 'a list -> 'a list -> int
 ```
-`compare cmp [a1; ...; an] [b1; ...; bm]` performs a lexicographic comparison of the two input lists, using the same `'a -> 'a -> int` interface as [`Stdlib.compare`](./../../ocaml-compiler/stdlib/Stdlib.md#val-compare):
+`compare cmp [a1; ...; an] [b1; ...; bm]` performs a lexicographic comparison of the two input lists, using the same `'a -> 'a -> int` interface as [`Stdlib.compare`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#val-compare):
 
 - `a1 :: l1` is smaller than `a2 :: l2` (negative result) if `a1` is smaller than `a2`, or if they are equal (0 result) and `l1` is smaller than `l2`
 - the empty list `[]` is strictly smaller than non-empty lists
@@ -192,13 +192,13 @@ val iter2 : ('a -> 'b -> unit) -> 'a list -> 'b list -> unit
 ```
 `iter2 f [a1; ...; an] [b1; ...; bn]` calls in turn `f a1 b1; ...; f an bn`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists are determined to have different lengths.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists are determined to have different lengths.
 ```ocaml
 val map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
 ```
 `map2 f [a1; ...; an] [b1; ...; bn]` is `[f a1 b1; ...; f an bn]`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists are determined to have different lengths.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists are determined to have different lengths.
 ```ocaml
 val rev_map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
 ```
@@ -214,7 +214,7 @@ val fold_left2 :
 ```
 `fold_left2 f init [a1; ...; an] [b1; ...; bn]` is `f (... (f (f init a1 b1) a2 b2) ...) an bn`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists are determined to have different lengths.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists are determined to have different lengths.
 ```ocaml
 val fold_right2 : 
   ('a -> 'b -> 'acc -> 'acc) ->
@@ -225,7 +225,7 @@ val fold_right2 :
 ```
 `fold_right2 f [a1; ...; an] [b1; ...; bn] init` is `f a1 b1 (f a2 b2 (... (f an bn init) ...))`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists are determined to have different lengths. Not tail-recursive.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists are determined to have different lengths. Not tail-recursive.
 
 ## List scanning
 
@@ -244,13 +244,13 @@ val for_all2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
 ```
 Same as [`for_all`](./#val-for_all), but for a two-argument predicate.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists are determined to have different lengths.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists are determined to have different lengths.
 ```ocaml
 val exists2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
 ```
 Same as [`exists`](./#val-exists), but for a two-argument predicate.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists are determined to have different lengths.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists are determined to have different lengths.
 ```ocaml
 val mem : 'a -> 'a list -> bool
 ```
@@ -268,7 +268,7 @@ val find : ('a -> bool) -> 'a list -> 'a
 ```
 `find f l` returns the first element of the list `l` that satisfies the predicate `f`.
 
-raises [`Not_found`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Not_found) if there is no value that satisfies f in the list l.
+raises [`Not_found`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Not_found) if there is no value that satisfies f in the list l.
 ```ocaml
 val find_opt : ('a -> bool) -> 'a list -> 'a option
 ```
@@ -367,7 +367,7 @@ val assoc : 'a -> ('a * 'b) list -> 'b
 ```
 `assoc a l` returns the value associated with key `a` in the list of pairs `l`. That is, `assoc a [ ...; (a,b); ...] = b` if `(a,b)` is the leftmost binding of `a` in list `l`.
 
-raises [`Not_found`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Not_found) if there is no value associated with a in the list l.
+raises [`Not_found`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Not_found) if there is no value associated with a in the list l.
 ```ocaml
 val assoc_opt : 'a -> ('a * 'b) list -> 'b option
 ```
@@ -417,14 +417,14 @@ val combine : 'a list -> 'b list -> ('a * 'b) list
 ```
 Transform a pair of lists into a list of pairs: `combine [a1; ...; an] [b1; ...; bn]` is `[(a1,b1); ...; (an,bn)]`.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if the two lists have different lengths. Not tail-recursive.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if the two lists have different lengths. Not tail-recursive.
 
 ## Sorting
 
 ```ocaml
 val sort : ('a -> 'a -> int) -> 'a list -> 'a list
 ```
-Sort a list in increasing order according to a comparison function. The comparison function must return 0 if its arguments compare as equal, a positive integer if the first is greater, and a negative integer if the first is smaller (see Array.sort for a complete specification). For example, [`Stdlib.compare`](./../../ocaml-compiler/stdlib/Stdlib.md#val-compare) is a suitable comparison function. The resulting list is sorted in increasing order. [`sort`](./#val-sort) is guaranteed to run in constant heap space (in addition to the size of the result list) and logarithmic stack space.
+Sort a list in increasing order according to a comparison function. The comparison function must return 0 if its arguments compare as equal, a positive integer if the first is greater, and a negative integer if the first is smaller (see Array.sort for a complete specification). For example, [`Stdlib.compare`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#val-compare) is a suitable comparison function. The resulting list is sorted in increasing order. [`sort`](./#val-sort) is guaranteed to run in constant heap space (in addition to the size of the result list) and logarithmic stack space.
 
 The current implementation uses Merge Sort. It runs in constant heap space and logarithmic stack space.
 

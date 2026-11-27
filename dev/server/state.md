@@ -240,7 +240,7 @@ The [`Eliom.Reference`](./../eliom.server/Eliom-Reference.md) module also define
 
 ### Persistent references
 
-Persistent references are Eliom references that survive a restart of the server. Their values are stored with [`Ocsipersist`](./../../ocsipersist/ocsipersist/Ocsipersist.md), like the data of persistent sessions. Ocsipersist has three backends: SQLite (package `ocsipersist-sqlite`), DBM (`ocsipersist-dbm`) and PostgreSQL (`ocsipersist-pgsql`). Your program must link one of them, and give it the location of the database (see [Configuring the database](./#ocsipersist_config)). Since ocsipersist 3\.2, there is no default location.
+Persistent references are Eliom references that survive a restart of the server. Their values are stored with [`Ocsipersist`](https://ocaml.org/p/ocsipersist/3.1.2/doc/ocsipersist/Ocsipersist/index.html), like the data of persistent sessions. Ocsipersist has three backends: SQLite (package `ocsipersist-sqlite`), DBM (`ocsipersist-dbm`) and PostgreSQL (`ocsipersist-pgsql`). Your program must link one of them, and give it the location of the database (see [Configuring the database](./#ocsipersist_config)). Since ocsipersist 3\.2, there is no default location.
 
 Persistent references are created by adding the `~persistent` parameter to the [`Eliom.Reference.eref`](./../eliom.server/Eliom-Reference.md#val-eref) function calls. Since Eliom 13, the value of this parameter is a pair `(name, codec)`: `name` is the name of the reference in the database, and `codec` is a `Deriving_Json` codec used to serialise the stored value:
 
@@ -278,7 +278,7 @@ With a configuration file, load the configuration extension of your Ocsipersist 
 ```
 For DBM, use `ocsipersist-dbm-config`, whose `<store dir="..."/>` tag gives the directory of the database. For PostgreSQL, use `ocsipersist-pgsql-config`, whose `<database .../>` tag gives the connection parameters.
 
-Without a configuration file (when your program starts the server itself with [`Ocsigen.Server.start`](./../../ocsigenserver/ocsigenserver/Ocsigen-Server.md#val-start) and [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run)), give the location with module `Ocsipersist_settings` before the server starts. For SQLite, link library `ocsipersist-sqlite.settings` and call:
+Without a configuration file (when your program starts the server itself with [`Ocsigen.Server.start`](../../../ocsigenserver/dev/Ocsigen-Server.md#val-start) and [`Eliom.App.run`](./../eliom.server/Eliom-App.md#val-run)), give the location with module `Ocsipersist_settings` before the server starts. For SQLite, link library `ocsipersist-sqlite.settings` and call:
 
 ```ocaml
 let () = Ocsipersist_settings.set_db_file "/var/lib/mysite/ocsidb"

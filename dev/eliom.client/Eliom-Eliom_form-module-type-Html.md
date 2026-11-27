@@ -11,7 +11,7 @@ Element constructors are in section [elements](./#elements). Most elements const
 
 The type variable `'a` is used to track the element's type. This allows the OCaml typechecker to check HTML validity.
 
-For example, `div []` is of type `[> `Div] elt`. The [span](./#val-span) function only accepts children of type [`Html_types.span_content`](./../../tyxml/tyxml.functor/Html_types.md#type-span_content). Since ``Div` is not part of it. `span [div []]` will not typecheck.
+For example, `div []` is of type `[> `Div] elt`. The [span](./#val-span) function only accepts children of type [`Html_types.span_content`](../../../tyxml/dev/tyxml/Html_types.md#type-span_content). Since ``Div` is not part of it. `span [div []]` will not typecheck.
 
 Note that the concrete implementation of this type can vary. See [`Xml`](./Eliom-Eliom_form-module-type-Html-Xml.md) for details.
 
@@ -31,7 +31,7 @@ Attribute constructors are in section [attributes](./#attributes) and their name
 
 Similarly to [elt](./#type-elt), attributes use the OCaml type system to enforce HTML validity.
 
-For example [`a_href`](./#val-a_href) returns a value of type `[> `Href] attrib`. The [div](./#val-div) function only accepts attributes of type [`Html_types.div_attrib`](./../../tyxml/tyxml.functor/Html_types.md#type-div_attrib). Since ``Href` is not part of it, `div ~a:[a_href "ocsigen.org"] []` will not typecheck.
+For example [`a_href`](./#val-a_href) returns a value of type `[> `Href] attrib`. The [div](./#val-div) function only accepts attributes of type [`Html_types.div_attrib`](../../../tyxml/dev/tyxml/Html_types.md#type-div_attrib). Since ``Href` is not part of it, `div ~a:[a_href "ocsigen.org"] []` will not typecheck.
 
 In some cases, attributes have to be disambiguated. The `max` attribute has two version, [`a_max`](./#val-a_max) and [`a_input_max`](./#val-a_input_max), depending on the element. Such disambiguated attribute will contain the name of the associated element.
 
@@ -52,14 +52,14 @@ type 'a wrap = 'a Xml.W.t
 ```
 `wrap` is a container for elements and values.
 
-In most cases, `'a wrap = 'a`. For `R` modules (in eliom or js\_of\_ocaml), It will be [`React.S.t`](./../../react/react/React-S.md#type-t).
+In most cases, `'a wrap = 'a`. For `R` modules (in eliom or js\_of\_ocaml), It will be [`React.S.t`](https://ocaml.org/p/react/1.2.2/doc/react/React/S/index.html#type-t).
 
 ```ocaml
 type 'a list_wrap = 'a Xml.W.tlist
 ```
 `list_wrap` is a container for list of elements.
 
-In most cases, `'a list_wrap = 'a list`. For `R` modules (in eliom or js\_of\_ocaml), It will be [`ReactiveData.RList.t`](./../../reactiveData/reactiveData/ReactiveData-RList.md#type-t).
+In most cases, `'a list_wrap = 'a list`. For `R` modules (in eliom or js\_of\_ocaml), It will be [`ReactiveData.RList.t`](../../../reactiveData/dev/ReactiveData-RList.md#type-t).
 
 ```ocaml
 type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
@@ -2148,7 +2148,7 @@ val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
 ```
 `import signal` converts the given XML signal into Tyxml elements. It can be used with HTML and SVG parsing libraries, such as Markup.
 
-raises [`Xml_stream.Malformed_stream`](./../../tyxml/tyxml.functor/Xml_stream.md#exception-Malformed_stream) if the stream is malformed.
+raises [`Xml_stream.Malformed_stream`](../../../tyxml/dev/tyxml/Xml_stream.md#exception-Malformed_stream) if the stream is malformed.
 ```ocaml
 val tot : Xml.elt -> 'a elt
 ```

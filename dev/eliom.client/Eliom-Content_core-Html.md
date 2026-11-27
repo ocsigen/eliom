@@ -22,16 +22,16 @@ type uri = Xml.uri
 ```ocaml
 module F : sig ... end
 ```
-Typed interface for building valid HTML5 tree (functional semantics). See [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md).
+Typed interface for building valid HTML5 tree (functional semantics). See [`Html_sigs.T`](../../../tyxml/dev/tyxml/Html_sigs-module-type-T.md).
 
 ```ocaml
 module D : sig ... end
 ```
-Typed interface for building valid HTML5 tree (DOM semantics). See [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md).
+Typed interface for building valid HTML5 tree (DOM semantics). See [`Html_sigs.T`](../../../tyxml/dev/tyxml/Html_sigs-module-type-T.md).
 
 Typed interface for building valid HTML5 tree from [React](http://erratique.ch/software/react) signals. HTML5's trees are automatically updated whenever corresponding signals change.
 
-[`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md).
+[`Html_sigs.T`](../../../tyxml/dev/tyxml/Html_sigs-module-type-T.md).
 
 ```ocaml
 module R : sig ... end

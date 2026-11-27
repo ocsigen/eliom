@@ -41,7 +41,7 @@ val set_comet_timeout : float -> unit
 ```
 `set_comet_timeout t` sets the time after which a Comet request waiting for data is answered with no data, in seconds.
 
-raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-Invalid_argument) if t is not a positive number.
+raises [`Invalid_argument`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/index.html#exception-Invalid_argument) if t is not a positive number.
 ```ocaml
 val get_comet_timeout : unit -> float
 ```
@@ -88,7 +88,7 @@ val parse_site_options :
 ```
 `parse_site_options sitedata options` applies to `sitedata` the options of Eliom in `options`, the content of an `<eliom>` element of a site, and returns the other ones, left to the Eliom modules.
 
-raises [`Ocsigen.Extensions.Error_in_config_file`](./../../ocsigenserver/ocsigenserver/Ocsigen-Extensions.md#exception-Error_in_config_file) for an option of Eliom with a wrong value, or renamed or removed in Eliom 13.
+raises [`Ocsigen.Extensions.Error_in_config_file`](../../../ocsigenserver/dev/Ocsigen-Extensions.md#exception-Error_in_config_file) for an option of Eliom with a wrong value, or renamed or removed in Eliom 13.
 ```ocaml
 val exception_during_eliommodule_loading : bool ref
 ```
