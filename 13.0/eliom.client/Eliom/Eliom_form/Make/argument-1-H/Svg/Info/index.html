@@ -87,9 +87,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../../eliom.server/Eliom/Eliom_form/Make/argument-1-H/Svg/Info/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../../eliom.client/Eliom/Eliom_form/Make/argument-1-H/Svg/Info/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -185,9 +185,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../../eliom.server/Eliom/Eliom_form/Make/argument-1-H/Svg/Info/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../../eliom.client/Eliom/Eliom_form/Make/argument-1-H/Svg/Info/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -270,21 +270,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Svg.Info</span></code></h1><p>Various information about SVG, such as the doctype, ...</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../../../../eliom.server/Eliom/Eliom_form/Make/argument-1-H/Svg/Info/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Svg.Info</span></code></h1><p>Various information about SVG, such as the doctype, ...</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-content_type"><code><span><span class="keyword">val</span> content_type : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-alternative_content_types"><code><span><span class="keyword">val</span> alternative_content_types : <span>string list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-version"><code><span><span class="keyword">val</span> version : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-standard"><code><span><span class="keyword">val</span> standard : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-namespace"><code><span><span class="keyword">val</span> namespace : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-doctype"><code><span><span class="keyword">val</span> doctype : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-emptytags"><code><span><span class="keyword">val</span> emptytags : <span>string list</span></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

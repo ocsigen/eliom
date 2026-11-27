@@ -1,8 +1,6 @@
 # Eliom
 
-*The full-stack OCaml Web and mobile framework*
-
-Eliom is a framework for building client/server Web and mobile applications in OCaml.
+Eliom is a full-stack framework for building client/server Web and mobile applications in OCaml.
 
 It can be used both as a traditional server-side Web framework or to implement complex client-server applications.
 

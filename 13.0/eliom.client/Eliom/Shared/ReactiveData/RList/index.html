@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Shared/ReactiveData/RList/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Shared/ReactiveData/RList/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Shared/ReactiveData/RList/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Shared/ReactiveData/RList/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>ReactiveData.RList</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../../eliom.server/Eliom/Shared/ReactiveData/RList/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>ReactiveData.RList</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <a href="../../../../../../../reactiveData/latest/ReactiveData/RList/index.html">ReactiveData.RList</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../../../../../../reactiveData/latest/ReactiveData/RList/index.html#type-t">t</a></span> = <span><span class="type-var">'a</span> <a href="../../../../../../../reactiveData/latest/ReactiveData/RList/index.html#type-t">ReactiveData.RList.t</a></span></span>
    <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../../../../../../../reactiveData/latest/ReactiveData/RList/index.html#type-handle">handle</a></span> = <span><span class="type-var">'a</span> <a href="../../../../../../../reactiveData/latest/ReactiveData/RList/index.html#type-handle">ReactiveData.RList.handle</a></span></span></span></code></summary><div class="odoc-spec"><div class="spec type anchored" id="type-p"><code><span><span class="keyword">type</span> <span>'a p</span></span><span> = </span></code><ol><li id="type-p.I" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">I</span> <span class="keyword">of</span> int * <span class="type-var">'a</span></span></code><div class="def-doc"><span class="comment-delim">(*</span><p><code>I (i, v)</code> adds <code>v</code> at position <code>i</code></p><span class="comment-delim">*)</span></div></li><li id="type-p.R" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">R</span> <span class="keyword">of</span> int</span></code><div class="def-doc"><span class="comment-delim">(*</span><p><code>R i</code> removes <code>i</code>-th element</p><span class="comment-delim">*)</span></div></li><li id="type-p.U" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">U</span> <span class="keyword">of</span> int * <span class="type-var">'a</span></span></code><div class="def-doc"><span class="comment-delim">(*</span><p><code>U (i, v)</code> substitutes <code>i</code>-th element with <code>v</code></p><span class="comment-delim">*)</span></div></li><li id="type-p.X" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">X</span> <span class="keyword">of</span> int * int</span></code><div class="def-doc"><span class="comment-delim">(*</span><p><code>X (i, j)</code> swaps the <code>i</code>-th and <code>j</code>-th elements</p><span class="comment-delim">*)</span></div></li></ol></div><div class="spec-doc"><p>Patch operation on lists. All operations are of linear complexity.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-patch"><code><span><span class="keyword">type</span> <span>'a patch</span></span><span> = <span><span><span class="type-var">'a</span> <a href="#type-p">p</a></span> list</span></span></code></div><div class="spec-doc"><p>A patch is a list of patch operations. The operations are applied in the order they appear in the list.</p><p>The indices correspond to list contents after the operations that appear earlier in the list have been applied, not to the contents before the whole patch operation.</p><p>A patch comprised of <code>I</code>, <code>R</code>, and <code>U</code> steps with increasing indices can be applied in time O(m + n), where m is the patch length and n is the current size of the list. (Arbitrary patches are slower, requiring O(m * n).)</p></div></div><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../../../../../../reactiveData/latest/ReactiveData/module-type-S/index.html">ReactiveData.S</a>
@@ -301,14 +305,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../eliom.server/Eliom/Content/Svg/D/Raw/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../eliom.client/Eliom/Content/Svg/D/Raw/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../../eliom.server/Eliom/Content/Svg/D/Raw/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../../eliom.client/Eliom/Content/Svg/D/Raw/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>D.Raw</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../../../eliom.server/Eliom/Content/Svg/D/Raw/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>D.Raw</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-elt"><code><span><span class="keyword">type</span> <span>+'a elt</span></span><span> = <span><span class="type-var">'a</span> <a href="../../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>SVG elements.</p><p>Element constructors are in section <a href="#elements" title="elements">Elements</a>. Most elements constructors are either <a href="#type-nullary" title="nullary">nullary</a>, <a href="#type-unary" title="unary">unary</a> or <a href="#type-star" title="star">star</a>, depending on the number of children they accept. Children are usually given as a list of elements. <a href="#val-txt" title="txt">txt</a> is used for text.</p><p>The type variable <code>'a</code> is used to track the element's type. This allows the OCaml typechecker to check SVG validity.</p><p>Note that the concrete implementation of this type can vary. See <a href="Xml/index.html"><code>Xml</code></a> for details.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-doc"><code><span><span class="keyword">type</span> doc</span><span> = <span><span>[ `Svg ]</span> <a href="#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>A complete SVG document.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attrib"><code><span><span class="keyword">type</span> <span>+'a attrib</span></span><span> = <span><span class="type-var">'a</span> <a href="../../index.html#type-attrib">attrib</a></span></span></code></div><div class="spec-doc"><p>SVG attributes</p><p>Attribute constructors are in section <a href="#attributes" title="attributes">Attributes</a> and their name starts with <code>a_</code>. Attributes are given to elements with the <code>~a</code> optional argument.</p><p>Similarly to <a href="#type-elt" title="elt">elt</a>, attributes use the OCaml type system to enforce Html validity.</p><p>In some cases, attributes have to be disambiguated. The <code>max</code> attribute has two version, <a href="#val-a_fill"><code>a_fill</code></a> and <a href="#val-a_animation_fill"><code>a_animation_fill</code></a>, depending on the element. Such disambiguated attribute will contain the name of the associated element.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Xml"><code><span><span class="keyword">module</span> <a href="Xml/index.html">Xml</a></span><span> : 
   <a href="../../../../../../../../tyxml/latest/tyxml/Xml_sigs/module-type-T/index.html">Xml_sigs.T</a>
     <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../../../../../../../tyxml/latest/tyxml/Xml_sigs/module-type-T/W/index.html#type-t">W.t</a></span> = <span><span class="type-var">'a</span> <a href="../../../Xml/W/index.html#type-t">Xml.W.t</a></span></span>
@@ -813,14 +817,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

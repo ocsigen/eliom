@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Content/Html/R/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Content/Html/R/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Content/Html/R/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Content/Html/R/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Html.R</span></code></h1><p>Creation of HTML5 content from <a href="http://erratique.ch/software/react">React</a> signals. HTML5's trees are automatically updated whenever corresponding signals change.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../../eliom.server/Eliom/Content/Html/R/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Html.R</span></code></h1><p>Creation of HTML5 content from <a href="http://erratique.ch/software/react">React</a> signals. HTML5's trees are automatically updated whenever corresponding signals change.</p></header>
         <div class="odoc-content"><h3 id="content-creation">Content creation</h3><p>See <a href="../../../../../../../tyxml/latest/tyxml/Html_sigs/module-type-T/index.html"><code>Html_sigs.T</code></a>, If you want to create an untyped form, you will have to use <a href="../D/Raw/index.html"><code>Content.Html.D.Raw</code></a> otherwise, use the form module. For more information, see <a href="../../../../../server/services/links.html#forms" title="forms">the manual</a>.</p><div class="odoc-spec"><div class="spec value anchored" id="val-node"><code><span><span class="keyword">val</span> node : <span><span><span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <a href="../../../Client_value/index.html#type-t">Client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Function <code>node s</code> create an HTML5 <code>elt</code> from a signal <code>s</code>. The resulting HTML5 <code>elt</code> can then be used like any other HTML5 <code>elt</code></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-filter_attrib"><code><span><span class="keyword">val</span> filter_attrib : <span><span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>bool <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span></span></code></div><div class="spec-doc"><p><code>filter_attrib att on</code> returns an attrib that behave like <code>att</code> when <code>on</code> is <code>true</code> and behave like if there was no attribute when <code>on</code> is <code>false</code></p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Raw"><code><span><span class="keyword">module</span> <a href="Raw/index.html">Raw</a></span><span> : 
   <a href="../../../../../../../tyxml/latest/tyxml/Html_sigs/Make/module-type-T/index.html">Html_sigs.Make(Content_core.Xml_wed)(Svg.R.Raw).T</a>
     <span class="keyword">with</span> <span><span class="keyword">type</span> <span>+'a <a href="../../../../../../../tyxml/latest/tyxml/Html_sigs/Make/module-type-T/index.html#type-elt">elt</a></span> = <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span>
@@ -780,14 +784,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

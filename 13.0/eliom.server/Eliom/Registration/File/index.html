@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Registration/File/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Registration/File/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Registration.File</span></code></h1><p>Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on <a href="../../../../server/services/handlers.html#eliomfiles" title="eliomfiles">how to send files with Eliom</a>. The option is the optional &quot;Cache-Control: max-age&quot; header value to be sent.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Registration.File</span></code></h1><p>Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on <a href="../../../../server/services/handlers.html#eliomfiles" title="eliomfiles">how to send files with Eliom</a>. The option is the optional &quot;Cache-Control: max-age&quot; header value to be sent.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-check_file"><code><span><span class="keyword">val</span> check_file : <span>string <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>The function <code>check_file file</code> is true if <code>File.send file</code> would effectively return the file (i.e. the file is present and readable)</p></div></div><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../Registration_sigs/module-type-S_with_create/index.html">Registration_sigs.S_with_create</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = string</span>
    <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../../Registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = int</span>
@@ -446,14 +450,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

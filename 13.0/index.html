@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="./eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="./eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="./eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="./eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,7 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1 id="eliom">Eliom</h1><p><em>The full-stack OCaml Web and mobile framework</em></p><p>Eliom is a framework for building client/server Web and mobile applications in OCaml.</p><p>It can be used both as a traditional server-side Web framework or to implement complex client-server applications.</p><p>Eliom transforms OCaml into a multi-tier language, making it possible to implement both the server and client parts of a Web and mobile app as a single program. This simplifies a lot the communication between server and client.</p><p>Applications can run on any Web browser or mobile device (iOS, Android), removing the need to develop one version for each platform.</p><p>Eliom has support for reactive pages (generated on server or client), an advanced session mechanism, server to client communication, continuation based Web programming, etc.</p></header>
+        <header class="odoc-preamble"><h1 id="eliom">Eliom</h1><p>Eliom is a full-stack framework for building client/server Web and mobile applications in OCaml.</p><p>It can be used both as a traditional server-side Web framework or to implement complex client-server applications.</p><p>Eliom transforms OCaml into a multi-tier language, making it possible to implement both the server and client parts of a Web and mobile app as a single program. This simplifies a lot the communication between server and client.</p><p>Applications can run on any Web browser or mobile device (iOS, Android), removing the need to develop one version for each platform.</p><p>Eliom has support for reactive pages (generated on server or client), an advanced session mechanism, server to client communication, continuation based Web programming, etc.</p></header>
         <div class="odoc-content"><h2 id="installation-instructions">Installation Instructions</h2><pre>opam install eliom</pre><h2 id="a-quick-tour">A quick tour</h2><p>Here is a quick overview of what programming with Eliom looks like.</p><p>Defining a service on path <code>/foo</code>, taking any GET parameters:</p><pre class="language-ocaml server"><code>let myservice =
   Eliom.Service.create
     ~path:(Eliom.Service.Path [&quot;foo&quot;])
@@ -319,14 +319,6 @@ let%server f () =
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : './eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Content_core/Html/Id/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Content_core/Html/Id/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../../eliom.server/Eliom/Content_core/Html/Id/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../../eliom.client/Eliom/Content_core/Html/Id/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Html.Id</span></code></h1><p>Node identifiers</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../../eliom.server/Eliom/Content_core/Html/Id/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Html.Id</span></code></h1><p>Node identifiers</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-id"><code><span><span class="keyword">type</span> <span>+'a id</span></span></code></div><div class="spec-doc"><p>The type of global HTML5 element identifier.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-new_elt_id"><code><span><span class="keyword">val</span> new_elt_id : <span><span class="optlabel">?global</span>:bool <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-id">id</a></span></span></code></div><div class="spec-doc"><p>The function <code>new_elt_id ()</code> creates a new HTML5 element identifier. (see the Eliom manual for more information on <a href="../../../../../clientserver/html.html#global" title="global">global element</a>).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_named_elt"><code><span><span class="keyword">val</span> create_named_elt : <span><span class="label">id</span>:<span><span class="type-var">'a</span> <a href="#type-id">id</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>The function <code>create_named_elt ~id elt</code> create a copy of the element <code>elt</code> that will be accessible through the name <code>id</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_global_elt"><code><span><span class="keyword">val</span> create_global_elt : <span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>The function <code>create_named_elt elt</code> is equivalent to <code>create_named_elt ~id:(new_elt_id ()) elt</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_request_elt"><code><span><span class="keyword">val</span> create_request_elt : <span><span class="optlabel">?reset</span>:bool <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>See <a href="../../../Content/Svg/Id/index.html#val-create_request_elt"><code>Content.Svg.Id.create_request_elt</code></a></p></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

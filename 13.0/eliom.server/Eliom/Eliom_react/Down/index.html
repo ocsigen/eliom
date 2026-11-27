@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Eliom_react/Down/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Eliom_react/Down/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Eliom_react/Down/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Eliom_react/Down/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom_react.Down</span></code></h1><p>Event from server to client.</p><p>A &quot;Down event&quot; (AKA down-going event) is an event which occurrences are transmitted asynchronously to the client. Even if they are named &quot;events&quot;, it might be better to consider them as asynchronous server-to-client edges in the react events dependency graph.</p><p>To use this, call function <code>of_react</code> on server side, and just use the returned value as a react event on client side. Example: <code>let e = of_react ... in ... [%client ... React.E.map f ~%e; ...]</code></p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Eliom_react/Down/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom_react.Down</span></code></h1><p>Event from server to client.</p><p>A &quot;Down event&quot; (AKA down-going event) is an event which occurrences are transmitted asynchronously to the client. Even if they are named &quot;events&quot;, it might be better to consider them as asynchronous server-to-client edges in the react events dependency graph.</p><p>To use this, call function <code>of_react</code> on server side, and just use the returned value as a react event on client side. Example: <code>let e = of_react ... in ... [%client ... React.E.map f ~%e; ...]</code></p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div><div class="spec-doc"><p>The abstract type of down events.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_react"><code><span><span class="keyword">val</span> of_react : 
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Comet/Channel/index.html#type-comet_scope">Comet.Channel.comet_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?throttling</span>:float <span class="arrow">&#45;&gt;</span></span>
@@ -306,14 +310,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

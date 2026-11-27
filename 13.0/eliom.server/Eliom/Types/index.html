@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Types/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Types/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Types/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Types/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,21 +293,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Types</span></code></h1><p>Types shared by client and server.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../eliom.client/Eliom/Types/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Types</span></code></h1><p>Types shared by client and server.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-sitedata"><code><span><span class="keyword">type</span> sitedata</span><span> = </span><span>{</span></code><ol><li id="type-sitedata.site_dir" class="def record field anchored"><code><span>site_dir : <span>string list</span>;</span></code></li><li id="type-sitedata.site_dir_string" class="def record field anchored"><code><span>site_dir_string : string;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-server_params"><code><span><span class="keyword">type</span> server_params</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-sp"><code><span><span class="keyword">val</span> sp : <a href="#type-server_params">server_params</a></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

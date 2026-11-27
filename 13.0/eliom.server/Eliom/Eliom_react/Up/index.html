@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Eliom_react/Up/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Eliom_react/Up/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Eliom_react/Up/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Eliom_react/Up/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom_react.Up</span></code></h1><p>Event from client to server.</p><p>Up events are quite different from Down events. Because of the asymmetrical nature of web programming and because of the reactive model used, an Up event must be created on the server and wrapped into a callback (or something the client can build a callback with).</p><p>Example of use: <code>let e_up = Eliom_react.Up.create (Parameter.ocaml &quot;a&quot; [%json: string]) in ... [%client ignore (~%e_up &quot;A&quot;)] ... </code></p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Eliom_react/Up/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom_react.Up</span></code></h1><p>Event from client to server.</p><p>Up events are quite different from Down events. Because of the asymmetrical nature of web programming and because of the reactive model used, an Up event must be created on the server and wrapped into a callback (or something the client can build a callback with).</p><p>Example of use: <code>let e_up = Eliom_react.Up.create (Parameter.ocaml &quot;a&quot; [%json: string]) in ... [%client ignore (~%e_up &quot;A&quot;)] ... </code></p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div><div class="spec-doc"><p>The type of events that, while being &quot;on the server&quot;, are triggered by clients. On the server such an event is /primitive/ (hence the <code>create</code> function) whereas it is /effect-full/ on the client.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_react"><code><span><span class="keyword">val</span> to_react : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/E/index.html#type-t">React.E.t</a></span></span></code></div><div class="spec-doc"><p><code>to_react e</code> injects the up events <code>e</code> into react events so that it can be manipulated as a standard event.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : 
   <span><span class="optlabel">?scope</span>:<a href="../../Common/index.html#type-scope">Common.scope</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?name</span>:string <span class="arrow">&#45;&gt;</span></span>
@@ -305,14 +309,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

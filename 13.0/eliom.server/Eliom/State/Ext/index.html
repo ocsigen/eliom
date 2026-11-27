@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/State/Ext/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/State/Ext/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>State.Ext</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>State.Ext</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec exception anchored" id="exception-Wrong_scope"><code><span><span class="keyword">exception</span> </span><span><span class="exception">Wrong_scope</span></span></code></div><div class="spec-doc"><p>Exception raised when you try to access a reference belonging to a scope different to the state's scope</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-timeout"><code><span><span class="keyword">type</span> timeout</span><span> = </span></code><ol><li id="type-timeout.TGlobal" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">TGlobal</span></span></code><div class="def-doc"><span class="comment-delim">(*</span><p>see global setting</p><span class="comment-delim">*)</span></div></li><li id="type-timeout.TNone" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">TNone</span></span></code><div class="def-doc"><span class="comment-delim">(*</span><p>explicitly set no timeout</p><span class="comment-delim">*)</span></div></li><li id="type-timeout.TSome" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">TSome</span> <span class="keyword">of</span> float</span></code><div class="def-doc"><span class="comment-delim">(*</span><p>timeout duration in seconds</p><span class="comment-delim">*)</span></div></li></ol></div><div class="spec-doc"><p>Type used to describe session timeouts</p></div></div><p>These types are used to get or set information about browser or process cookies (like timeouts).</p><div class="odoc-spec"><div class="spec type anchored" id="type-service_cookie_info"><code><span><span class="keyword">type</span> service_cookie_info</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-data_cookie_info"><code><span><span class="keyword">type</span> data_cookie_info</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-persistent_cookie_info"><code><span><span class="keyword">type</span> persistent_cookie_info</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-state"><code><span><span class="keyword">type</span> <span>(+'a, +'b) state</span></span></code></div><div class="spec-doc"><p>The type of states. The first parameter corresponds to the scope level and the second one to the kind of state (volatile or persistent data, or service state)</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-volatile_data_group_state"><code><span><span class="keyword">val</span> volatile_data_group_state : 
   <span><span class="optlabel">?scope</span>:<a href="../../Common/index.html#type-session_group_scope">Common.session_group_scope</a> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
@@ -380,14 +384,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

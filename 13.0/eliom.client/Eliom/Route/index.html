@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Route/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Route/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../eliom.server/Eliom/Route/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../eliom.client/Eliom/Route/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,7 +271,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Route</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../eliom.server/Eliom/Route/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Route</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-info"><code><span><span class="keyword">type</span> info</span><span> = </span><span>{</span></code><ol><li id="type-info.i_sess_info" class="def record field anchored"><code><span>i_sess_info : <a href="../Common/index.html#type-sess_info">Common.sess_info</a>;</span></code></li><li id="type-info.i_subpath" class="def record field anchored"><code><span>i_subpath : <span>string list</span>;</span></code></li><li id="type-info.i_meth" class="def record field anchored"><code><span>i_meth : <a href="../Common/index.html#type-meth">Common.meth</a>;</span></code></li><li id="type-info.i_get_params" class="def record field anchored"><code><span>i_get_params : <span><span>(string * string)</span> list</span>;</span></code></li><li id="type-info.i_post_params" class="def record field anchored"><code><span>i_post_params : <span><span>(string * string)</span> list</span>;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-A"><code><span><span class="keyword">module</span> <a href="A/index.html">A</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></summary><div class="odoc-spec"><div class="spec value anchored" id="val-find_page_table"><code><span><span class="keyword">val</span> find_page_table : 
   <span>bool <span class="arrow">&#45;&gt;</span></span>
   <span>float <span class="arrow">&#45;&gt;</span></span>
@@ -342,14 +346,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

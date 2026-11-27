@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../eliom.server.monitor/Eliom_monitor/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../eliom.server.monitor/Eliom_monitor/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,21 +293,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom_monitor</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom_monitor</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-uptime"><code><span><span class="keyword">val</span> uptime : <span>unit <span class="arrow">&#45;&gt;</span></span> float</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-pid"><code><span><span class="keyword">val</span> pid : <span>unit <span class="arrow">&#45;&gt;</span></span> int</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fd"><code><span><span class="keyword">val</span> fd : <span><span class="label">pid</span>:int <span class="arrow">&#45;&gt;</span></span> <span>[ <span>`Ok of int</span> <span><span>| `Error</span> of string</span> ]</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-content_div"><code><span><span class="keyword">val</span> content_div : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span>[&gt; <a href="../../../../tyxml/latest/tyxml/Html_types/index.html#type-div">Html_types.div</a> ]</span> <a href="../../eliom.server/Eliom/Content/Html/index.html#type-elt">Eliom.Content.Html.elt</a></span> <a href="../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-content_html"><code><span><span class="keyword">val</span> content_html : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span>[&gt; <a href="../../../../tyxml/latest/tyxml/Html_types/index.html#type-html">Html_types.html</a> ]</span> <a href="../../eliom.server/Eliom/Content/Html/index.html#type-elt">Eliom.Content.Html.elt</a></span> <a href="../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

@@ -87,9 +87,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/Shared_sigs/module-type-RLIST/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Shared_sigs/module-type-RLIST/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -185,9 +185,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/Shared_sigs/module-type-RLIST/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Shared_sigs/module-type-RLIST/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -270,7 +270,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module type <code><span>Shared_sigs.RLIST</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p><a href="../../../../eliom.server/Eliom/Shared_sigs/module-type-RLIST/index.html">See this page in the Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module type <code><span>Shared_sigs.RLIST</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div><div class="spec-doc"><p>The type of (shared) reactive lists</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-handle"><code><span><span class="keyword">type</span> <span>'a handle</span></span></code></div><div class="spec-doc"><p>Handles are used to manipulate reactive lists</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-signal"><code><span><span class="keyword">type</span> <span>'a signal</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-sv"><code><span><span class="keyword">type</span> <span>'a sv</span></span></code></div><div class="spec-doc"><p>The type of shared values</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ct"><code><span><span class="keyword">type</span> <span>'a ct</span></span></code></div><div class="spec-doc"><p>Client-side version of 'a t</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-chandle"><code><span><span class="keyword">type</span> <span>'a chandle</span></span></code></div><div class="spec-doc"><p>Client-side version of 'a handle</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : 
   <span><span class="optlabel">?default</span>:<span><span><span>(<span><span class="type-var">'a</span> <a href="#type-ct">ct</a></span> * <span><span class="type-var">'a</span> <a href="#type-chandle">chandle</a></span>)</span> option</span> <a href="../../Client_value/index.html#type-t">Client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?reset_default</span>:bool <span class="arrow">&#45;&gt;</span></span>
@@ -281,14 +285,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

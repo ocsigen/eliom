@@ -240,7 +240,7 @@ The [`Eliom.Reference`](./../eliom.server/Eliom-Reference.md) module also define
 
 ### Persistent references
 
-Persistent references are Eliom references that survive a restart of the server. Their values are stored with [`Ocsipersist`](https://ocaml.org/p/ocsipersist/3.1.2/doc/ocsipersist/Ocsipersist/index.html), like the data of persistent sessions. Ocsipersist has three backends: SQLite (package `ocsipersist-sqlite`), DBM (`ocsipersist-dbm`) and PostgreSQL (`ocsipersist-pgsql`). Your program must link one of them, and give it the location of the database (see [Configuring the database](./#ocsipersist_config)). Since ocsipersist 3\.2, there is no default location.
+Persistent references are Eliom references that survive a restart of the server. Their values are stored with [`Ocsipersist`](../../../ocsipersist/latest/ocsipersist/Ocsipersist.md), like the data of persistent sessions. Ocsipersist has three backends: SQLite (package `ocsipersist-sqlite`), DBM (`ocsipersist-dbm`) and PostgreSQL (`ocsipersist-pgsql`). Your program must link one of them, and give it the location of the database (see [Configuring the database](./#ocsipersist_config)). Since ocsipersist 3\.2, there is no default location.
 
 Persistent references are created by adding the `~persistent` parameter to the [`Eliom.Reference.eref`](./../eliom.server/Eliom-Reference.md#val-eref) function calls. Since Eliom 13, the value of this parameter is a pair `(name, codec)`: `name` is the name of the reference in the database, and `codec` is a `Deriving_Json` codec used to serialise the stored value:
 

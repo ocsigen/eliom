@@ -33,7 +33,7 @@ val onactive :
 ```
 `onactive` is convenience function that attaches a handler to `Events.active`, which behaves exactly like `fun f -> React.E.map f Events.active`. If `now` is `true` (default) and the page is currently active the function is also invoked right away. This is useful to ensure that the function is invoked also on server-generated pages which are active right from the start and thus have no transition to the active state. If `once` is `true` (`false` by default) the action is executed only once. By `stop` one can supply an event that will deinstall the handler when triggered.
 
-Typical use cases for this function are processes that need to run continually while a page is being viewed. Such processes (including event listeners of `Dom_html.window`) are killed on a page change and not automatically restored with the DOM (contrary to event listeners attached to DOM elements).
+Typical use cases for this function are processes that need to run continually while a page is being viewed. Such processes (for example event listeners of `Dom_html.window` or `Dom_html.document`, or timers) are not tied to the page: a page change does not stop them. If you start them with `onactive`, stop them with [`oninactive`](./#val-oninactive), or use [`while_active`](./#val-while_active), which cancels them when the page becomes inactive if they are written as a cancelable Lwt thread (for example a `Lwt_js_events` loop or `Lwt_js.sleep`).
 
 ```ocaml
 val oncached : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
@@ -51,4 +51,4 @@ val while_active :
   (unit -> unit Lwt.t) ->
   unit
 ```
-`while_active` initiates an action as `onactive` but cancels it whenever the page is not active anymore.
+`while_active` initiates an action as `onactive` but cancels it whenever the page is not active anymore. The action is restarted each time the page becomes active. Like the other functions of this module, it applies to the current page in the sense of [`signal`](./#val-signal): at the top level of a client module, that is the first page only.

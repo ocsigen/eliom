@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Lib/Let_syntax/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Lib/Let_syntax/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Lib/Let_syntax/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Lib/Let_syntax/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,21 +293,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Lib.Let_syntax</span></code></h1><p>This module provides support for <a href="https://github.com/janestreet/ppx_let">ppx_let</a>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.2.0</li></ul></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Lib/Let_syntax/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Lib.Let_syntax</span></code></h1><p>This module provides support for <a href="https://github.com/janestreet/ppx_let">ppx_let</a>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.2.0</li></ul></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-return"><code><span><span class="keyword">val</span> return : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>See <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#val-return"><code>Lwt.return</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-map"><code><span><span class="keyword">val</span> map : <span><span><span class="type-var">'a</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="label">f</span>:<span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>See <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#val-map"><code>Lwt.map</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-bind"><code><span><span class="keyword">val</span> bind : <span><span><span class="type-var">'a</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="label">f</span>:<span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>See <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#val-bind"><code>Lwt.bind</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-both"><code><span><span class="keyword">val</span> both : <span><span><span class="type-var">'a</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'b</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span class="type-var">'a</span> * <span class="type-var">'b</span>)</span> <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>See <a href="../../../../../../lwt/latest/lwt/Lwt/index.html#val-both"><code>Lwt.both</code></a>.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Open_on_rhs"><code><span><span class="keyword">module</span> <a href="Open_on_rhs/index.html">Open_on_rhs</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

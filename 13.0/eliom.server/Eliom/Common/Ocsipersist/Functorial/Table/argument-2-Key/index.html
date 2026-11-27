@@ -87,9 +87,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../../../eliom.server/Eliom/Common/Ocsipersist/Functorial/Table/argument-2-Key/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -196,9 +196,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../../../eliom.server/Eliom/Common/Ocsipersist/Functorial/Table/argument-2-Key/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -292,21 +292,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Parameter <code><span>Table.Key</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Parameter <code><span>Table.Key</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> t</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-column_type"><code><span><span class="keyword">val</span> column_type : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-encode"><code><span><span class="keyword">val</span> encode : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="../../index.html#type-internal">internal</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-decode"><code><span><span class="keyword">val</span> decode : <span><a href="../../index.html#type-internal">internal</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

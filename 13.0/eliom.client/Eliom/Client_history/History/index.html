@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Client_history/History/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -186,9 +186,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server" href="../../../../eliom.server/Eliom/index.html">Server API</a>
+  <a class="wodoc-variant-client current" aria-current="page" href="../../../../eliom.client/Eliom/Client_history/History/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -271,21 +271,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Client_history.History</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-client" role="note">
+<p>You are reading the <strong>Client API</strong> documentation. This code runs in the browser, compiled to JavaScript or WebAssembly.</p>
+<p>This page has no equivalent in the <a href="../../../../eliom.server/Eliom/index.html">Server API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Client_history.History</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-find_by_state_index"><code><span><span class="keyword">val</span> find_by_state_index : <span>int <span class="arrow">&#45;&gt;</span></span> <span><a href="../index.html#type-page">page</a> option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-replace"><code><span><span class="keyword">val</span> replace : <span><a href="../index.html#type-page">page</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Replaces the page with the same state index.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-past"><code><span><span class="keyword">val</span> past : <span>unit <span class="arrow">&#45;&gt;</span></span> <span>string list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-future"><code><span><span class="keyword">val</span> future : <span>unit <span class="arrow">&#45;&gt;</span></span> <span>string list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-max_num_doms"><code><span><span class="keyword">val</span> max_num_doms : <span><span>int option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div><div class="spec-doc"><p>The maximum distance from the active page of the pages whose DOM is kept in the cache.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-garbage_collect_doms"><code><span><span class="keyword">val</span> garbage_collect_doms : <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Removes the DOMs too far from the active page from the cache.</p></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

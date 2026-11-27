@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Common_base/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Common_base/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Common_base/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Common_base/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Common_base</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../eliom.client/Eliom/Common_base/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Common_base</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec exception anchored" id="exception-Site_information_not_available"><code><span><span class="keyword">exception</span> </span><span><span class="exception">Site_information_not_available</span> <span class="keyword">of</span> string</span></code></div></div><div class="odoc-spec"><div class="spec exception anchored" id="exception-Eliom_site_information_not_available"><code><span><span class="keyword">exception</span> </span><span><span class="exception">Eliom_site_information_not_available</span> <span class="keyword">of</span> string</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-scope_hierarchy"><code><span><span class="keyword">type</span> scope_hierarchy</span><span> = </span></code><ol><li id="type-scope_hierarchy.User_hier" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">User_hier</span> <span class="keyword">of</span> string</span></code></li><li id="type-scope_hierarchy.Default_ref_hier" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Default_ref_hier</span></span></code></li><li id="type-scope_hierarchy.Default_comet_hier" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Default_comet_hier</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-scope_hierarchy_of_json"><code><span><span class="keyword">val</span> scope_hierarchy_of_json : <span><a href="../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json_lexer/index.html#type-lexbuf">Deriving_Json_lexer.lexbuf</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-scope_hierarchy">scope_hierarchy</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-scope_hierarchy_to_json"><code><span><span class="keyword">val</span> scope_hierarchy_to_json : <span><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Buffer/index.html#type-t">Buffer.t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-scope_hierarchy">scope_hierarchy</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-scope_hierarchy_json"><code><span><span class="keyword">val</span> scope_hierarchy_json : <span><a href="#type-scope_hierarchy">scope_hierarchy</a> <a href="../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-user_scope"><code><span><span class="keyword">type</span> user_scope</span><span> = </span><span>[ </span></code><ol><li id="type-user_scope.Session_group" class="def variant constructor anchored"><code><span>| </span><span>`Session_group <span class="keyword">of</span> <a href="#type-scope_hierarchy">scope_hierarchy</a></span></code></li><li id="type-user_scope.Session" class="def variant constructor anchored"><code><span>| </span><span>`Session <span class="keyword">of</span> <a href="#type-scope_hierarchy">scope_hierarchy</a></span></code></li><li id="type-user_scope.Client_process" class="def variant constructor anchored"><code><span>| </span><span>`Client_process <span class="keyword">of</span> <a href="#type-scope_hierarchy">scope_hierarchy</a></span></code></li></ol><code><span> ]</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-user_scope_recognize"><code><span><span class="keyword">val</span> user_scope_recognize : <span><span>[ <span>`Cst of int</span> <span><span>| `NCst</span> of int</span> ]</span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-user_scope_of_json_with_tag"><code><span><span class="keyword">val</span> user_scope_of_json_with_tag : 
   <span><a href="../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json_lexer/index.html#type-lexbuf">Deriving_Json_lexer.lexbuf</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span>[ <span>`Cst of int</span> <span><span>| `NCst</span> of int</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
@@ -321,14 +325,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

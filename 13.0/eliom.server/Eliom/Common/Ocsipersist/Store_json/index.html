@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../eliom.server/Eliom/Common/Ocsipersist/Store_json/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../eliom.server/Eliom/Common/Ocsipersist/Store_json/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Ocsipersist.Store_json</span></code></h1><p>Type-safe variable store using <a href="../../../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json/index.html"><code>Deriving_Json</code></a> for serialisation. Unlike <a href="../Store/index.html"><code>Store</code></a>, this does not rely on <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Marshal/index.html"><code>Stdlib.Marshal</code></a> and is safe across OCaml versions. Requires types annotated with <code>[@@deriving json]</code> (from <code>js_of_ocaml-ppx_deriving_json</code>).</p><p>Note: The dependency on <code>js_of_ocaml</code> is only for the <a href="../../../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json/index.html"><code>Deriving_Json</code></a> runtime library, which provides type-safe JSON serialisation. This is the same serialisation mechanism used by Eliom for client-server communication. No JavaScript compilation is involved.</p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Ocsipersist.Store_json</span></code></h1><p>Type-safe variable store using <a href="../../../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json/index.html"><code>Deriving_Json</code></a> for serialisation. Unlike <a href="../Store/index.html"><code>Store</code></a>, this does not rely on <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Marshal/index.html"><code>Stdlib.Marshal</code></a> and is safe across OCaml versions. Requires types annotated with <code>[@@deriving json]</code> (from <code>js_of_ocaml-ppx_deriving_json</code>).</p><p>Note: The dependency on <code>js_of_ocaml</code> is only for the <a href="../../../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json/index.html"><code>Deriving_Json</code></a> runtime library, which provides type-safe JSON serialisation. This is the same serialisation mechanism used by Eliom for client-server communication. No JavaScript compilation is involved.</p></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div><div class="spec-doc"><p>Type of persistent data</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-store"><code><span><span class="keyword">type</span> store</span></code></div><div class="spec-doc"><p>Data are divided into stores. Create one store for your project, where you will save all your data.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-open_store"><code><span><span class="keyword">val</span> open_store : <span>string <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-store">store</a> <a href="../../../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Open a store (and create it if it does not exist)</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_persistent"><code><span><span class="keyword">val</span> make_persistent : 
   <span><span class="label">store</span>:<a href="#type-store">store</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">name</span>:string <span class="arrow">&#45;&gt;</span></span>
@@ -315,14 +319,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

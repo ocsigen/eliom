@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Mod_gc/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Mod_gc/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,21 +293,17 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Mod_gc</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p>This page has no equivalent in the <a href="../../../eliom.client/Eliom/index.html">Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Mod_gc</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-servicesessiongcfrequency"><code><span><span class="keyword">val</span> servicesessiongcfrequency : <span><span>float option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-datasessiongcfrequency"><code><span><span class="keyword">val</span> datasessiongcfrequency : <span><span>float option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-persistentsessiongcfrequency"><code><span><span class="keyword">val</span> persistentsessiongcfrequency : <span><span>float option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_servicesessiongcfrequency"><code><span><span class="keyword">val</span> set_servicesessiongcfrequency : <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_datasessiongcfrequency"><code><span><span class="keyword">val</span> set_datasessiongcfrequency : <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_servicesessiongcfrequency"><code><span><span class="keyword">val</span> get_servicesessiongcfrequency : <span>unit <span class="arrow">&#45;&gt;</span></span> <span>float option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_datasessiongcfrequency"><code><span><span class="keyword">val</span> get_datasessiongcfrequency : <span>unit <span class="arrow">&#45;&gt;</span></span> <span>float option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_persistentsessiongcfrequency"><code><span><span class="keyword">val</span> set_persistentsessiongcfrequency : <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_persistentsessiongcfrequency"><code><span><span class="keyword">val</span> get_persistentsessiongcfrequency : <span>unit <span class="arrow">&#45;&gt;</span></span> <span>float option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-service_session_gc"><code><span><span class="keyword">val</span> service_session_gc : <span><span class="xref-unresolved">Common.sitedata</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-data_session_gc"><code><span><span class="keyword">val</span> data_session_gc : <span><span class="xref-unresolved">Common.sitedata</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-persistent_session_gc"><code><span><span class="keyword">val</span> persistent_session_gc : <span><span class="xref-unresolved">Common.sitedata</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-collect_service_sessions"><code><span><span class="keyword">val</span> collect_service_sessions : <span><span class="xref-unresolved">Common.sitedata</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>collect_service_sessions sitedata</code> removes the expired service sessions and coservices of <code>sitedata</code>, and the service sessions left unused: one run of the collector started by <a href="#val-service_session_gc"><code>service_session_gc</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-collect_data_sessions"><code><span><span class="keyword">val</span> collect_data_sessions : <span><span class="xref-unresolved">Common.sitedata</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>collect_data_sessions sitedata</code> removes the expired volatile data sessions of <code>sitedata</code>, and the sessions left unused: one run of the collector started by <a href="#val-data_session_gc"><code>data_session_gc</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-collect_persistent_sessions"><code><span><span class="keyword">val</span> collect_persistent_sessions : <span><span class="xref-unresolved">Common.sitedata</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>collect_persistent_sessions sitedata</code> removes the expired persistent sessions of <code>sitedata</code>: one run of the collector started by <a href="#val-persistent_session_gc"><code>persistent_session_gc</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-section"><code><span><span class="keyword">val</span> section : <a href="https://ocaml.org/p/logs/0.10.0/doc/Logs/index.html#type-src">Logs.src</a></span></code></div></div></div>
       </article>
     </div>
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

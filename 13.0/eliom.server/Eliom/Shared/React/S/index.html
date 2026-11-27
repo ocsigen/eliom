@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../eliom.server/Eliom/Shared/React/S/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../eliom.client/Eliom/Shared/React/S/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../../eliom.server/Eliom/Shared/React/S/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../../eliom.client/Eliom/Shared/React/S/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>React.S</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../../eliom.client/Eliom/Shared/React/S/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>React.S</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../../Shared_sigs/module-type-S/index.html">Shared_sigs.S</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../../Shared_sigs/module-type-S/index.html#type-sv">sv</a></span> := <span><span class="type-var">'a</span> <a href="../../Value/index.html#type-t">Value.t</a></span></span></span></code></summary><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>'a t</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-const"><code><span><span class="keyword">val</span> const : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-value"><code><span><span class="keyword">val</span> value : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../../Value/index.html#type-t">Value.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-map"><code><span><span class="keyword">val</span> map : <span><span class="optlabel">?eq</span>:<span><span>(<span><span class="type-var">'b</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <a href="../../Value/index.html#type-t">Value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <a href="../../Value/index.html#type-t">Value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fmap"><code><span><span class="keyword">val</span> fmap : 
   <span><span class="optlabel">?eq</span>:<span><span>(<span><span class="type-var">'b</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <a href="../../Value/index.html#type-t">Value.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> option</span>)</span> <a href="../../Value/index.html#type-t">Value.t</a></span> <span class="arrow">&#45;&gt;</span></span>
@@ -351,14 +355,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

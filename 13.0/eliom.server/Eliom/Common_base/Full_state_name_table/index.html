@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Common_base/Full_state_name_table/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Common_base/Full_state_name_table/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../../eliom.server/Eliom/Common_base/Full_state_name_table/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../../eliom.client/Eliom/Common_base/Full_state_name_table/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Common_base.Full_state_name_table</span></code></h1></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../../eliom.client/Eliom/Common_base/Full_state_name_table/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Common_base.Full_state_name_table</span></code></h1></header>
         <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-key"><code><span><span class="keyword">type</span> key</span><span> = <a href="../index.html#type-full_state_name">full_state_name</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>!+'a t</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-empty"><code><span><span class="keyword">val</span> empty : <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add"><code><span><span class="keyword">val</span> add : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_to_list"><code><span><span class="keyword">val</span> add_to_list : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> list</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> list</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-update"><code><span><span class="keyword">val</span> update : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span><span class="type-var">'a</span> option</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> option</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-singleton"><code><span><span class="keyword">val</span> singleton : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove"><code><span><span class="keyword">val</span> remove : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-merge"><code><span><span class="keyword">val</span> merge : 
   <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> option</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'b</span> option</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'c</span> option</span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
@@ -304,14 +308,6 @@
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,

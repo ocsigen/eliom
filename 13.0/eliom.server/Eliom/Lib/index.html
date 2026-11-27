@@ -88,9 +88,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Lib/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Lib/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -197,9 +197,9 @@
     </select>
   </label>
 </div>
-<div class="cs-switch">
-  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
-  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+<div class="wodoc-variant-switch">
+  <a class="wodoc-variant-server current" aria-current="page" href="../../../eliom.server/Eliom/Lib/index.html">Server API</a>
+  <a class="wodoc-variant-client" href="../../../eliom.client/Eliom/Lib/index.html">Client API</a>
 </div>
 <div class="page-toc">
   <h3>On this page</h3>
@@ -293,7 +293,11 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Lib</span></code></h1><p>A few common functions used by Eliom. Extension of OCaml stdlib. See also <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html"><code>Ocsigen_base.Lib</code></a></p></header>
+        <div class="wodoc-variant-notice wodoc-variant-notice-server" role="note">
+<p>You are reading the <strong>Server API</strong> documentation. This code runs on the server.</p>
+<p><a href="../../../eliom.client/Eliom/Lib/index.html">See this page in the Client API</a>.</p>
+</div>
+<header class="odoc-preamble"><h1>Module <code><span>Eliom.Lib</span></code></h1><p>A few common functions used by Eliom. Extension of OCaml stdlib. See also <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html"><code>Ocsigen_base.Lib</code></a></p></header>
         <div class="odoc-content"><div class="odoc-include"><div class="spec-doc"><p>See <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html"><code>Ocsigen_base.Lib</code></a>.</p></div><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html">Ocsigen_base.Lib</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html#type-poly">poly</a> = <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html#type-poly">Ocsigen_base.Lib.poly</a></span>
    <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html#type-yesnomaybe">yesnomaybe</a> = <a href="../../../../../ocsigenserver/latest/Ocsigen_base/Lib/index.html#type-yesnomaybe">Ocsigen_base.Lib.yesnomaybe</a></span>
@@ -330,14 +334,6 @@ let () =
   </div>
 
   <script>
-    // Toggle between the server / client API of the same module.
-    function wodocSwitch(side) {
-      var w = { server: 'Eliom/', client: 'Eliom/' };
-      var p = location.pathname;
-      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
-      location.href = np !== p ? np
-        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
-    }
     var wodocPub = "/eliom";
     // Switch version: keep the current page, swapping only the version segment,
     // unless that page does not exist in the target version (a renamed module,
