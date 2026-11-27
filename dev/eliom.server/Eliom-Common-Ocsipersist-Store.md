@@ -1,6 +1,6 @@
 # Module `Ocsipersist.Store`
 
-The variable store allows for the persistent storage of individual variables. Relies on [`Stdlib.Marshal`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Marshal/index.html) for (de)serialisation, which entails the same limitations as for the [`Polymorphic`](./Eliom-Common-Ocsipersist-Polymorphic.md) frontend. If this is an issue you can rely on [`Functorial`](./Eliom-Common-Ocsipersist-Functorial.md) frontend instead (see [`TABLE.Variable`](https://ocaml.org/p/ocsipersist-lib/3.1.2/doc/ocsipersist-lib/Ocsipersist_lib/Sigs/module-type-TABLE/Variable/index.html)).
+The variable store allows for the persistent storage of individual variables. Relies on [`Stdlib.Marshal`](https://ocaml.org/p/ocaml-compiler/5.4.0/doc/stdlib/Stdlib/Marshal/index.html) for (de)serialisation, which entails the same limitations as for the [`Polymorphic`](./Eliom-Common-Ocsipersist-Polymorphic.md) frontend. If this is an issue you can rely on [`Functorial`](./Eliom-Common-Ocsipersist-Functorial.md) frontend instead (see [`TABLE.Variable`](../../../ocsipersist/dev/ocsipersist-lib/Ocsipersist_lib-Sigs-module-type-TABLE-Variable.md)).
 
 ```ocaml
 type 'a t
