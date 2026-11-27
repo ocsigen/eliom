@@ -308,10 +308,13 @@ module Page_status : sig
       triggered.
 
       Typical use cases for this function are processes that need to run
-      continually while a page is being viewed. Such processes (including event
-      listeners of [Dom_html.window]) are killed on a page change and not
-      automatically restored with the DOM (contrary to event listeners attached
-      to DOM elements). *)
+      continually while a page is being viewed. Such processes (for example
+      event listeners of [Dom_html.window] or [Dom_html.document], or timers)
+      are not tied to the page: a page change does not stop them. If you start
+      them with [onactive], stop them with {!oninactive}, or use
+      {!while_active}, which cancels them when the page becomes inactive if
+      they are written as a cancelable Lwt thread (for example a
+      [Lwt_js_events] loop or [Lwt_js.sleep]). *)
 
   val oncached : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
   val ondead : ?stop:unit React.E.t -> (unit -> unit) -> unit
@@ -320,7 +323,11 @@ module Page_status : sig
   val while_active :
     ?now:bool -> ?stop:unit React.E.t -> (unit -> unit Lwt.t) -> unit
   (** [while_active] initiates an action as [onactive] but cancels it whenever
-      the page is not active anymore. *)
+      the page is not active anymore. The action is restarted each time the
+      page becomes active.
+      Like the other functions of this module, it applies to the current page
+      in the sense of {!signal}: at the top level of a client module, that is
+      the first page only. *)
 end
 
 val onbeforeunload : (unit -> string option) -> unit
